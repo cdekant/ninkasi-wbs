@@ -176,4 +176,4 @@ def _bewege(dx, dy):
     if ist_betretbar(nx, ny):
         spieler_x, spieler_y = nx, ny
         spieler.runden += 1
-        spieler.ep_hinzufuegen(spieler.ep_pro_runde(alle_skills))
+        spieler.ep_hinzufuegen(1)

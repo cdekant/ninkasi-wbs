@@ -6,11 +6,6 @@ import src.systems.skills as skills_system
 class Spieler:
     """Repraesentiert den Spieler mit EP, Skills und Grundwerten."""
 
-    # Basis-Werte ohne Skills
-    BASIS_LP = 30
-    BASIS_PP = 10
-    BASIS_ANGRIFF = 5
-
     def __init__(self, name="Brauer"):
         self.name = name
         self.ep_gesamt = 0        # Alle je verdienten EP (nie zurueckgesetzt)
@@ -42,30 +37,6 @@ class Spieler:
     def skill_lernen(self, skill_id, alle_skills):
         """Kauft die naechste Stufe eines Skills. Gibt (bool, meldung) zurueck."""
         return skills_system.skill_lernen(self, skill_id, alle_skills)
-
-    # ------------------------------------------------------------------
-    # Abgeleitete Werte
-    # ------------------------------------------------------------------
-
-    def max_lp(self, alle_skills):
-        """Maximale Lebenspunkte inkl. Skill-Bonus."""
-        bonus = skills_system.skill_wert(self, "lebenspunkte", alle_skills)
-        return self.BASIS_LP + bonus
-
-    def max_pp(self, alle_skills):
-        """Maximale Psi-Punkte inkl. Skill-Bonus."""
-        bonus = skills_system.skill_wert(self, "psi_punkte", alle_skills)
-        return self.BASIS_PP + bonus
-
-    def angriff(self, alle_skills):
-        """Angriffswert inkl. Darrtechnik-Bonus."""
-        bonus = skills_system.skill_wert(self, "darrtechnik", alle_skills)
-        return self.BASIS_ANGRIFF + bonus
-
-    def ep_pro_runde(self, alle_skills):
-        """EP-Gewinn pro gueltigem Spielzug (1 + Verfahrenstechnik-Bonus)."""
-        bonus = skills_system.skill_wert(self, "verfahrenstechnik", alle_skills)
-        return 1 + bonus
 
     # ------------------------------------------------------------------
     # Serialisierung
