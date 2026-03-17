@@ -7,6 +7,7 @@
 3. [Skill-Menue bedienen](#skill-menue)
 4. [Kostentabelle](#kostentabelle)
 5. [Tod und Neubeginn](#tod-und-neubeginn)
+6. [Skill-Kategorien (Entwurf)](#skill-kategorien)
 
 ---
 
@@ -103,18 +104,18 @@ Verfuegbare Tabs zwischen den Runs: **Skill-Baum** und **Mannis Pilsstube**.
 
 ## Kostentabelle
 
-Die Kosten steigen exponentiell: `basis * 4^(stufe-1)`
+Die Kosten steigen exponentiell: `basis * 3,5^(stufe-1)` (gerundet)
 
-| Stufe | Basis 10 | Basis 15 | Basis 20 | Basis 25 |
-|---|---|---|---|---|
-| 1 | 10 | 15 | 20 | 25 |
-| 2 | 40 | 60 | 80 | 100 |
-| 3 | 160 | 240 | 320 | 400 |
-| 4 | 640 | 960 | 1.280 | 1.600 |
-| 5 | 2.560 | 3.840 | 5.120 | 6.400 |
-| 6 (Zoigl) | 10.240 | 15.360 | 20.480 | 25.600 |
+| Stufe | Basis 10 | Basis 15 | Basis 20 | Basis 30 | Basis 50 | Basis 100 |
+|---|---|---|---|---|---|---|
+| 1 | 10 | 15 | 20 | 30 | 50 | 100 |
+| 2 | 35 | 53 | 70 | 105 | 175 | 350 |
+| 3 | 123 | 184 | 245 | 368 | 613 | 1.225 |
+| 4 | 429 | 643 | 858 | 1.286 | 2.144 | 4.288 |
+| 5 | 1.501 | 2.251 | 3.001 | 4.502 | 7.503 | 15.006 |
+| 6 (Zoigl) | 5.252 | 7.878 | 10.504 | 15.757 | 26.261 | 52.522 |
 
-Plane langfristig: Zoigl in einem Basis-20-Skill kostet 20.480 EP.
+Plane langfristig: Zoigl in einem Basis-20-Skill kostet 10.504 EP.
 
 ---
 
@@ -128,3 +129,77 @@ Wenn du stirbst:
 - Du startest am Anfang des **aktuellen Levels** (nicht beim allerersten Level)
 
 Das ist das Roguelite-Versprechen: Der Tod kostet Zeit, nicht Fortschritt.
+
+
+## Skill-Kategorien
+
+Die verfügbaren Skills sind in zwölf Kategorie aufgeteilt.
+
+### Körper
+
+**Der Bierbauch der Brauerin ist ebenso wie ihre Zöpfe ihr Stolz** – Nur mit Training übersteht sie die Strapazen von Schroten, Maischen, Ausschlagen und Anstellen.
+
+- Trinkfestigkeit: 
+
+### Bewegung
+
+**Agil und flink wie ein Wiesel ist sie Ninaksi, die zwei Ströme küsste** – Ausweichen von Angriffen, defekten Dampfventilen, Orientierung und Gewaltmärsche.
+
+### Waffen und Angriff
+
+**Ob Braupaddel, Milchrohrschlüssel oder mobile Keg-Anlage** – Wenn es beweglich ist, kann man es als Waffe verwenden (außer man kann es nicht tragen).
+
+### Rüstung und Verteidigung
+
+**Die Verteidigung umfasst physische, magische, Psi, chemische und biologische Resistenzen** – Rüstungen zu tragen muss trainiert werden, möchte man nicht vom langsamsten Schleim eingeholt werden, Amulette, Ohrringe, Diademe sind leichter zu tragen und bieten oft magischen/Psi-Schutz
+
+### Bier-Magie
+
+**Die Magie der Gaerung ist organisch, lebendig, unkontrollierbar** — Hefe tut was sie will, der Brauer lenkt sie nur. Bier-Magie wirkt auf (höhere) Lebewesen, Prozesse, Zufälle.
+
+### Schnaps-Psi oder SchnaPsi
+
+**Das Psi der Destillation präzise, konzentrierte Klarheit** – SchnaPsi wirkt auf (niedere) Lebewesen, Materie, Zahlen, Technik. Psi-Punkte sind die Waehrung beider Systeme; welches System mehr verbraucht ist offen (`?`).
+
+### Brautechnologie
+
+**Ohne ein gerüttelt Maß an Brauerwissen ist Hopfen und Malz verloren** – ohne das Wissen über Brauprozesse und Geräte wird man sin in den dunkleren Ecken der Brauerei nur schwer behaupten können
+
+### Getreidetechnologie
+
+**Das Wissen über Anbau, Ernte, Maelzen, Schroten ist eine eigene Form von Magie** – es erleichtert die Fortbewegung im Freien und den Kampf gegen viele Mikroorganismen
+
+### Anlagentechnik
+
+**Als Anlagenflüsterer nutzt man die Maschinenumgebung situativ zu seinen Gunsten** – Begünstigt auch das Sammeln von Materialien und pro Run Verbesserungen
+
+### Verfahrenstechnik
+
+**Als Meta-Skill-Tree holt sich Battle Ninkasi hier die letzten Optimierungen** – Prozessoptimierung, Effizienz, EP-Gewinn
+
+### Naturwissenschaften
+
+**Die absolute Basis für viele fortgeschrittene Skills** – Biologie, Chemie, Mikrobiologie
+
+### Mathematik
+
+**Die letzte Stufe der Magie, die kaum eine Brauerin je erreichen wird ...** – Berechnungen, Rezepturen, Psi-Effizienz?
+
+### Gastronomie
+
+**Brauereinnen sind soziale Wesen und wissen wann sie freundlich zu sein haben** - das könnte auch die Kategorie Sozial sein
+
+### Handel und Marketin
+
+### Logistik
+
+### Offene Fragen
+
+- `?` **Psi-Punkte und Mathematik:** Skills sind passiv, zur Erhöhung des Levels verbrauchen sie immer nur EP, SchnaPsi-Punkte werden von aktiven Fähigkeiten bzw. bei Psi-Angriffen verbraucht, bzw. zerstört, so wie "Malz-Punkte" (bessere Bezeichnung?) bei Magie
+  ja, Mathematik rein passiv (Boni ohne Ressourcenkosten)?
+- alle Skills arbeiten rein passiv, immer Boni
+- `?` **Magie vs. Psi im Kampf:** beide wirken gegen Lebewesen (Psi - Schnaps - Desinfektion - gegen Mirkobiologie), Magie (organisch, gegen höhere Lebewesen - daneben Überschneidungen
+- `?` **Umwelt:** Feld-Skills (Aussaat, Ernte) vs. Anlagen-Skills (Sudhaus) — aufgeteilt Umwelt kommt zu Rohstofftechnologie, Anlagen zu Verfahrenstechnik oder Brautechnologie
+
+- `?` **Groesse:** 12 Kategorien x ~12 Skills = ~144 Skills ist sehr ambitioniert.
+  JA, konkrete Skills folgen demnächst

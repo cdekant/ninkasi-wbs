@@ -17,10 +17,10 @@ def lade_skills():
 
 def stufen_kosten(basis_kosten, stufe):
     """Berechnet die EP-Kosten fuer eine bestimmte Stufe.
-    Formel: basis * 4^(stufe-1)
-    Stufe 1: basis, Stufe 2: basis*4, ..., Stufe 6: basis*4^5
+    Formel: basis * 3,5^(stufe-1), gerundet
+    Stufe 1: basis, Stufe 2: basis*3,5, ..., Stufe 6: basis*3,5^5
     """
-    return basis_kosten * (4 ** (stufe - 1))
+    return round(basis_kosten * (3.5 ** (stufe - 1)))
 
 
 def voraussetzungen_erfuellt(spieler, skill_def):
