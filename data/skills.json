@@ -9,12 +9,12 @@
       "basis_kosten": 10,
       "voraussetzungen": [],
       "effekte": [
-        { "stufe": 1, "beschreibung": "Alkohol-Negativeffekte -12 %, Dauer -8 %",  "werte": { "negativ_reduktion": 12, "dauer_reduktion": 8  } },
-        { "stufe": 2, "beschreibung": "Alkohol-Negativeffekte -24 %, Dauer -16 %", "werte": { "negativ_reduktion": 24, "dauer_reduktion": 16 } },
-        { "stufe": 3, "beschreibung": "Alkohol-Negativeffekte -36 %, Dauer -24 %", "werte": { "negativ_reduktion": 36, "dauer_reduktion": 24 } },
-        { "stufe": 4, "beschreibung": "Alkohol-Negativeffekte -48 %, Dauer -32 %", "werte": { "negativ_reduktion": 48, "dauer_reduktion": 32 } },
-        { "stufe": 5, "beschreibung": "Alkohol-Negativeffekte -60 %, Dauer -40 %", "werte": { "negativ_reduktion": 60, "dauer_reduktion": 40 } },
-        { "stufe": 6, "beschreibung": "Alkohol-Negativeffekte -72 %, Dauer -48 % — Zoigl", "werte": { "negativ_reduktion": 72, "dauer_reduktion": 48 } }
+        { "stufe": 1, "beschreibung": "Alkohol-Negativeffekte -12 %, Dauer -8 %",        "werte": [ { "typ": "alkohol_negativ_pct", "wert": 12 }, { "typ": "alkohol_dauer_pct", "wert": 8  } ] },
+        { "stufe": 2, "beschreibung": "Alkohol-Negativeffekte -24 %, Dauer -16 %",       "werte": [ { "typ": "alkohol_negativ_pct", "wert": 24 }, { "typ": "alkohol_dauer_pct", "wert": 16 } ] },
+        { "stufe": 3, "beschreibung": "Alkohol-Negativeffekte -36 %, Dauer -24 %",       "werte": [ { "typ": "alkohol_negativ_pct", "wert": 36 }, { "typ": "alkohol_dauer_pct", "wert": 24 } ] },
+        { "stufe": 4, "beschreibung": "Alkohol-Negativeffekte -48 %, Dauer -32 %",       "werte": [ { "typ": "alkohol_negativ_pct", "wert": 48 }, { "typ": "alkohol_dauer_pct", "wert": 32 } ] },
+        { "stufe": 5, "beschreibung": "Alkohol-Negativeffekte -60 %, Dauer -40 %",       "werte": [ { "typ": "alkohol_negativ_pct", "wert": 60 }, { "typ": "alkohol_dauer_pct", "wert": 40 } ] },
+        { "stufe": 6, "beschreibung": "Alkohol-Negativeffekte -72 %, Dauer -48 % — Zoigl", "werte": [ { "typ": "alkohol_negativ_pct", "wert": 72 }, { "typ": "alkohol_dauer_pct", "wert": 48 } ] }
       ]
     }
   ]

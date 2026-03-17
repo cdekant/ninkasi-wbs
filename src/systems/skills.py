@@ -84,13 +84,21 @@ def skill_lernen(spieler, skill_id, alle_skills):
     return True, f"{skill_def['name']} ist jetzt Stufe {naechste_stufe}: {effekt}"
 
 
-def skill_wert(spieler, skill_id, alle_skills):
-    """Gibt den aktuellen Effektwert eines Skills zurueck (0 wenn nicht gelernt)."""
-    stufe = spieler.skill_stufe(skill_id)
-    if stufe == 0:
-        return 0
-    skill_def = alle_skills[skill_id]
-    return skill_def["effekte"][stufe - 1]["wert"]
+def effekt_summe(spieler, typ, alle_skills):
+    """Summiert alle Effekte eines bestimmten Typs ueber alle gelernten Skills.
+    Beispiel: effekt_summe(spieler, 'alkohol_negativ_pct', alle_skills)
+    Gibt 0 zurueck wenn kein Skill diesen Effekttyp hat.
+    """
+    summe = 0
+    for skill_id, stufe in spieler.skills.items():
+        if skill_id not in alle_skills:
+            continue
+        effekte = alle_skills[skill_id]["effekte"]
+        werte = effekte[stufe - 1].get("werte", [])
+        for w in werte:
+            if w["typ"] == typ:
+                summe += w["wert"]
+    return summe
 
 
 def naechste_kosten(spieler, skill_id, alle_skills):
