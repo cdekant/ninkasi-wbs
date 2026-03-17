@@ -4,14 +4,36 @@ import json
 import os
 
 
+def lade_effekttypen():
+    """Laedt alle bekannten Effekttypen aus data/effekttypen.json.
+    Gibt ein Dictionary {typ: definition} zurueck.
+    """
+    pfad = os.path.join(os.path.dirname(__file__), "..", "..", "data", "effekttypen.json")
+    pfad = os.path.normpath(pfad)
+    with open(pfad, encoding="utf-8") as f:
+        return json.load(f)
+
+
 def lade_skills():
     """Laedt alle Skill-Definitionen aus data/skills.json.
     Gibt ein Dictionary {skill_id: skill_definition} zurueck.
+    Prueft ob alle verwendeten Effekttypen in effekttypen.json bekannt sind.
     """
     pfad = os.path.join(os.path.dirname(__file__), "..", "..", "data", "skills.json")
     pfad = os.path.normpath(pfad)
     with open(pfad, encoding="utf-8") as f:
         daten = json.load(f)
+
+    bekannte_typen = lade_effekttypen()
+    for skill in daten["skills"]:
+        for effekt in skill["effekte"]:
+            for w in effekt.get("werte", []):
+                if w["typ"] not in bekannte_typen:
+                    raise ValueError(
+                        f"Unbekannter Effekttyp '{w['typ']}' in Skill '{skill['id']}' "
+                        f"(Stufe {effekt['stufe']}). Bitte in data/effekttypen.json eintragen."
+                    )
+
     return {skill["id"]: skill for skill in daten["skills"]}
 
 
