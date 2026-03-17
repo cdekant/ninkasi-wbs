@@ -1,0 +1,80 @@
+"""Menue-Registry und State-Hilfsfunktionen.
+
+MENUES definiert welche Menues in welchem Spielmodus verfuegbar sind.
+Modi:  "hub"  = zwischen den Runs (Mannis Pilsstube)
+       "run"  = aktives Level
+"""
+
+import src.systems.skills as skills_system
+
+# Reihenfolge = TAB-Reihenfolge
+MENUES = [
+    {"id": "skills",    "name": "Skill-Baum",       "verfuegbar": ["hub"]},
+    {"id": "pilsstube", "name": "Mannis Pilsstube",  "verfuegbar": ["hub"]},
+]
+
+# Kategorie-Reihenfolge fuer die Skill-Liste
+KATEGORIE_REIHENFOLGE = ["Koerper", "Magie", "Braukunst", "Handel"]
+
+
+def verfuegbare_menues(modus):
+    """Gibt Liste aller im aktuellen Modus freigeschalteten Menue-Definitionen zurueck."""
+    return [m for m in MENUES if modus in m["verfuegbar"]]
+
+
+def naechstes_menue(aktuelles_id, modus):
+    """Gibt die ID des naechsten verfuegbaren Menues zurueck (zyklisch)."""
+    ids = [m["id"] for m in verfuegbare_menues(modus)]
+    if not ids:
+        return None
+    if aktuelles_id not in ids:
+        return ids[0]
+    return ids[(ids.index(aktuelles_id) + 1) % len(ids)]
+
+
+def vorheriges_menue(aktuelles_id, modus):
+    """Gibt die ID des vorherigen verfuegbaren Menues zurueck (zyklisch)."""
+    ids = [m["id"] for m in verfuegbare_menues(modus)]
+    if not ids:
+        return None
+    if aktuelles_id not in ids:
+        return ids[-1]
+    return ids[(ids.index(aktuelles_id) - 1) % len(ids)]
+
+
+def skill_flat_liste(alle_skills):
+    """Baut eine geordnete Flachliste aus Kategorie-Headern und Skill-Eintraegen.
+
+    Jedes Element ist ein dict mit "typ": "header" | "skill" | "leer".
+    Diese Liste ist die einzige Quelle fuer Reihenfolge in Navigation und Rendering.
+    """
+    gruppen = skills_system.skills_nach_kategorie(alle_skills)
+    items = []
+    for kat in KATEGORIE_REIHENFOLGE:
+        gruppe = gruppen.get(kat, [])
+        if not gruppe:
+            continue
+        items.append({"typ": "header", "text": kat.upper()})
+        for sd in gruppe:
+            items.append({"typ": "skill", "skill_id": sd["id"]})
+        items.append({"typ": "leer"})
+    return items
+
+
+def ausgewaehlte_skill_id(alle_skills, auswahl):
+    """Gibt die skill_id des aktuell ausgewaehlten Skills zurueck.
+
+    auswahl  -- Index in die Liste der auswaehlbaren Skills (ohne Header/Leerzeilen)
+    Gibt None zurueck wenn Liste leer oder Index ungueltig.
+    """
+    items = skill_flat_liste(alle_skills)
+    skill_indices = [i for i, it in enumerate(items) if it["typ"] == "skill"]
+    if not skill_indices:
+        return None
+    auswahl = max(0, min(auswahl, len(skill_indices) - 1))
+    return items[skill_indices[auswahl]]["skill_id"]
+
+
+def anzahl_auswaehlbar(alle_skills):
+    """Anzahl auswaehlbarer Skills in der Flachliste (fuer Navigations-Grenzen)."""
+    return sum(1 for it in skill_flat_liste(alle_skills) if it["typ"] == "skill")
