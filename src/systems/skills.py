@@ -20,7 +20,7 @@ def stufen_kosten(basis_kosten, stufe):
     Formel: basis * 3,5^(stufe-1), gerundet
     Stufe 1: basis, Stufe 2: basis*3,5, ..., Stufe 6: basis*3,5^5
     """
-    return round(basis_kosten * (3.5 ** (stufe - 1)))
+    return int(basis_kosten * (3.5 ** (stufe - 1)) + 0.5)
 
 
 def voraussetzungen_erfuellt(spieler, skill_def):

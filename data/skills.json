@@ -1,4 +1,21 @@
 {
-  "_hinweis": "Skill-Design offen. Struktur: id, name, kategorie, beschreibung, basis_kosten, voraussetzungen, effekte (6 Stufen mit stufe/beschreibung/wert).",
-  "skills": []
+  "_hinweis": "Struktur je Skill: id, name, kategorie, beschreibung, basis_kosten, voraussetzungen, effekte (6 Stufen). Jede Stufe hat stufe, beschreibung, und entweder wert (einzelner Wert) oder werte (Objekt mit benannten Feldern fuer mehrere Effekte).",
+  "skills": [
+    {
+      "id": "trinkfestigkeit",
+      "name": "Trinkfestigkeit",
+      "kategorie": "Koerper",
+      "beschreibung": "Alkohol hat im Brauerleben Vor- und Nachteile. Trinkfestigkeit mindert die negativen Effekte und verkuerzt deren Dauer — die angenehmen Seiten bleiben unveraendert.",
+      "basis_kosten": 10,
+      "voraussetzungen": [],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Alkohol-Negativeffekte -12 %, Dauer -8 %",  "werte": { "negativ_reduktion": 12, "dauer_reduktion": 8  } },
+        { "stufe": 2, "beschreibung": "Alkohol-Negativeffekte -24 %, Dauer -16 %", "werte": { "negativ_reduktion": 24, "dauer_reduktion": 16 } },
+        { "stufe": 3, "beschreibung": "Alkohol-Negativeffekte -36 %, Dauer -24 %", "werte": { "negativ_reduktion": 36, "dauer_reduktion": 24 } },
+        { "stufe": 4, "beschreibung": "Alkohol-Negativeffekte -48 %, Dauer -32 %", "werte": { "negativ_reduktion": 48, "dauer_reduktion": 32 } },
+        { "stufe": 5, "beschreibung": "Alkohol-Negativeffekte -60 %, Dauer -40 %", "werte": { "negativ_reduktion": 60, "dauer_reduktion": 40 } },
+        { "stufe": 6, "beschreibung": "Alkohol-Negativeffekte -72 %, Dauer -48 % — Zoigl", "werte": { "negativ_reduktion": 72, "dauer_reduktion": 48 } }
+      ]
+    }
+  ]
 }
