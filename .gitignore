@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtuelle Umgebungen
+venv/
+.venv/
+env/
+.env/
+
+# Spielstände
+saves/
+
+# IDE / Editor
+.idea/
+.vscode/
+*.npp
+Thumbs.db
+desktop.ini
+
+# Claude Code (lokal, kein Spielcode)
+.claude/
+
+# Tests
+test/
+tests/
+test_*.py
+*_test.py
+
+# Pandoc-Ausgaben
+*.docx
+*.html
+*.icml
+*.pdf
+
+# Logs
+*.log
+
+# tcod / assets (optional, falls generiert)
+*.bak
