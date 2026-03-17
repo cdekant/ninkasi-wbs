@@ -1,14 +1,17 @@
 {
   "alkohol_negativ_pct": {
-    "beschreibung": "Reduziert negative Alkohol-Effekte (prozentualer Abzug vom Schadenswert)",
+    "beschreibung": "Reduziert negative Alkohol-Effekte [%]",
     "einheit": "pct",
-    "stapelbar": true,
-    "kategorie": "Koerper"
+    "stapelbar": true
   },
   "alkohol_dauer_pct": {
-    "beschreibung": "Verkuerzt die Dauer von Alkohol-Effekten in Prozent",
+    "beschreibung": "Verkuerzt die Dauer von Alkohol-Effekten [%]",
     "einheit": "pct",
-    "stapelbar": true,
-    "kategorie": "Koerper"
+    "stapelbar": true
+  },
+  "bewegung_malus_pct": {
+    "beschreibung": "Verlangsamt die Bewegung [%]",
+    "einheit": "pct",
+    "stapelbar": true
   }
 }
