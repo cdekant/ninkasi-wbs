@@ -1,0 +1,198 @@
+{
+  "skills": [
+    {
+      "id": "lebenspunkte",
+      "name": "Lebenspunkte",
+      "kategorie": "Koerper",
+      "beschreibung": "Staerkt den Koerper des Brauers. Mehr Ausdauer, mehr Trinkfestigkeit.",
+      "basis_kosten": 10,
+      "voraussetzungen": [],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Max. LP +10", "wert": 10 },
+        { "stufe": 2, "beschreibung": "Max. LP +20", "wert": 20 },
+        { "stufe": 3, "beschreibung": "Max. LP +30", "wert": 30 },
+        { "stufe": 4, "beschreibung": "Max. LP +40", "wert": 40 },
+        { "stufe": 5, "beschreibung": "Max. LP +50", "wert": 50 },
+        { "stufe": 6, "beschreibung": "Max. LP +60 — Zoigl", "wert": 60 }
+      ]
+    },
+    {
+      "id": "alkohollevel",
+      "name": "Alkohollevel",
+      "kategorie": "Koerper",
+      "beschreibung": "Der Brauer vertraegt mehr. Alkohol-Debuffs wirken kuerzer.",
+      "basis_kosten": 10,
+      "voraussetzungen": [],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Alkohol-Debuff -1 Runde", "wert": 1 },
+        { "stufe": 2, "beschreibung": "Alkohol-Debuff -2 Runden", "wert": 2 },
+        { "stufe": 3, "beschreibung": "Alkohol-Debuff -3 Runden", "wert": 3 },
+        { "stufe": 4, "beschreibung": "Alkohol-Debuff -4 Runden", "wert": 4 },
+        { "stufe": 5, "beschreibung": "Alkohol-Debuff -5 Runden", "wert": 5 },
+        { "stufe": 6, "beschreibung": "Alkohol-Debuff -6 Runden — Zoigl", "wert": 6 }
+      ]
+    },
+    {
+      "id": "psi_punkte",
+      "name": "Psi-Punkte",
+      "kategorie": "Koerper",
+      "beschreibung": "Mentale Staerke. Mehr Psi-Punkte fuer Magie-Einsatz.",
+      "basis_kosten": 10,
+      "voraussetzungen": [],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Max. PP +5", "wert": 5 },
+        { "stufe": 2, "beschreibung": "Max. PP +10", "wert": 10 },
+        { "stufe": 3, "beschreibung": "Max. PP +15", "wert": 15 },
+        { "stufe": 4, "beschreibung": "Max. PP +20", "wert": 20 },
+        { "stufe": 5, "beschreibung": "Max. PP +25", "wert": 25 },
+        { "stufe": 6, "beschreibung": "Max. PP +30 — Zoigl", "wert": 30 }
+      ]
+    },
+    {
+      "id": "getreidemagie",
+      "name": "Getreidemagie",
+      "kategorie": "Magie",
+      "beschreibung": "Beherrschung der Feldfrueche. Pflanzliche Gegner erleiden mehr Schaden.",
+      "basis_kosten": 15,
+      "voraussetzungen": [],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Pflanzenschaden +2", "wert": 2 },
+        { "stufe": 2, "beschreibung": "Pflanzenschaden +4", "wert": 4 },
+        { "stufe": 3, "beschreibung": "Pflanzenschaden +6", "wert": 6 },
+        { "stufe": 4, "beschreibung": "Pflanzenschaden +8", "wert": 8 },
+        { "stufe": 5, "beschreibung": "Pflanzenschaden +10", "wert": 10 },
+        { "stufe": 6, "beschreibung": "Pflanzenschaden +12 — Zoigl", "wert": 12 }
+      ]
+    },
+    {
+      "id": "hefemagie",
+      "name": "Hefemagie",
+      "kategorie": "Magie",
+      "beschreibung": "Kontrolle ueber Hefe und Gaerprozesse. Mikrobielle Gegner werden lahmgelegt.",
+      "basis_kosten": 15,
+      "voraussetzungen": [],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Hefe-Debuff +1 Runde", "wert": 1 },
+        { "stufe": 2, "beschreibung": "Hefe-Debuff +2 Runden", "wert": 2 },
+        { "stufe": 3, "beschreibung": "Hefe-Debuff +3 Runden", "wert": 3 },
+        { "stufe": 4, "beschreibung": "Hefe-Debuff +4 Runden", "wert": 4 },
+        { "stufe": 5, "beschreibung": "Hefe-Debuff +5 Runden", "wert": 5 },
+        { "stufe": 6, "beschreibung": "Hefe-Debuff +6 Runden — Zoigl", "wert": 6 }
+      ]
+    },
+    {
+      "id": "wildhefen_bann",
+      "name": "Wildhefen-Bann",
+      "kategorie": "Magie",
+      "beschreibung": "Treibt wilde Hefen und Bakterien in die Flucht. Nur fuer erfahrene Hefe-Magier.",
+      "basis_kosten": 25,
+      "voraussetzungen": [
+        { "skill_id": "hefemagie", "min_stufe": 3 }
+      ],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Wildhefe-Flucht 20 %", "wert": 20 },
+        { "stufe": 2, "beschreibung": "Wildhefe-Flucht 30 %", "wert": 30 },
+        { "stufe": 3, "beschreibung": "Wildhefe-Flucht 40 %", "wert": 40 },
+        { "stufe": 4, "beschreibung": "Wildhefe-Flucht 50 %", "wert": 50 },
+        { "stufe": 5, "beschreibung": "Wildhefe-Flucht 65 %", "wert": 65 },
+        { "stufe": 6, "beschreibung": "Wildhefe-Flucht 80 % — Zoigl", "wert": 80 }
+      ]
+    },
+    {
+      "id": "wassermagie",
+      "name": "Wassermagie",
+      "kategorie": "Magie",
+      "beschreibung": "Beherrschung des Brauwassers. Beeinflusst Haerte und Mineralien.",
+      "basis_kosten": 15,
+      "voraussetzungen": [],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Wasser-Schutzschild +5 LP", "wert": 5 },
+        { "stufe": 2, "beschreibung": "Wasser-Schutzschild +10 LP", "wert": 10 },
+        { "stufe": 3, "beschreibung": "Wasser-Schutzschild +15 LP", "wert": 15 },
+        { "stufe": 4, "beschreibung": "Wasser-Schutzschild +20 LP", "wert": 20 },
+        { "stufe": 5, "beschreibung": "Wasser-Schutzschild +25 LP", "wert": 25 },
+        { "stufe": 6, "beschreibung": "Wasser-Schutzschild +30 LP — Zoigl", "wert": 30 }
+      ]
+    },
+    {
+      "id": "hopfenmagie",
+      "name": "Hopfenmagie",
+      "kategorie": "Magie",
+      "beschreibung": "Die bitteren Kraefte des Hopfens. Angriffe hinterlassen Vergiftung.",
+      "basis_kosten": 15,
+      "voraussetzungen": [],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Gift-Schaden +1 pro Runde", "wert": 1 },
+        { "stufe": 2, "beschreibung": "Gift-Schaden +2 pro Runde", "wert": 2 },
+        { "stufe": 3, "beschreibung": "Gift-Schaden +3 pro Runde", "wert": 3 },
+        { "stufe": 4, "beschreibung": "Gift-Schaden +4 pro Runde", "wert": 4 },
+        { "stufe": 5, "beschreibung": "Gift-Schaden +5 pro Runde", "wert": 5 },
+        { "stufe": 6, "beschreibung": "Gift-Schaden +6 pro Runde — Zoigl", "wert": 6 }
+      ]
+    },
+    {
+      "id": "darrtechnik",
+      "name": "Darrtechnik",
+      "kategorie": "Braukunst",
+      "beschreibung": "Praezise Darrung des Malzes. Verbessert Angriffswerte durch optimale Roestkontrolle.",
+      "basis_kosten": 20,
+      "voraussetzungen": [],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Angriff +1", "wert": 1 },
+        { "stufe": 2, "beschreibung": "Angriff +2", "wert": 2 },
+        { "stufe": 3, "beschreibung": "Angriff +3", "wert": 3 },
+        { "stufe": 4, "beschreibung": "Angriff +4", "wert": 4 },
+        { "stufe": 5, "beschreibung": "Angriff +5", "wert": 5 },
+        { "stufe": 6, "beschreibung": "Angriff +6 — Zoigl", "wert": 6 }
+      ]
+    },
+    {
+      "id": "verfahrenstechnik",
+      "name": "Verfahrenstechnik",
+      "kategorie": "Braukunst",
+      "beschreibung": "Optimierung aller Brau-Prozesse. Der Brauer handelt effizienter und verdient mehr EP.",
+      "basis_kosten": 20,
+      "voraussetzungen": [],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "EP-Bonus +1 pro Aktion", "wert": 1 },
+        { "stufe": 2, "beschreibung": "EP-Bonus +2 pro Aktion", "wert": 2 },
+        { "stufe": 3, "beschreibung": "EP-Bonus +3 pro Aktion", "wert": 3 },
+        { "stufe": 4, "beschreibung": "EP-Bonus +4 pro Aktion", "wert": 4 },
+        { "stufe": 5, "beschreibung": "EP-Bonus +5 pro Aktion", "wert": 5 },
+        { "stufe": 6, "beschreibung": "EP-Bonus +6 pro Aktion — Zoigl", "wert": 6 }
+      ]
+    },
+    {
+      "id": "biologische_betriebskontrolle",
+      "name": "Biologische Betriebskontrolle",
+      "kategorie": "Braukunst",
+      "beschreibung": "Hygiene als Waffe. Reduziert Schaden durch mikrobielle Gegner.",
+      "basis_kosten": 20,
+      "voraussetzungen": [],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Mikroben-Schadensreduktion 5 %", "wert": 5 },
+        { "stufe": 2, "beschreibung": "Mikroben-Schadensreduktion 10 %", "wert": 10 },
+        { "stufe": 3, "beschreibung": "Mikroben-Schadensreduktion 15 %", "wert": 15 },
+        { "stufe": 4, "beschreibung": "Mikroben-Schadensreduktion 20 %", "wert": 20 },
+        { "stufe": 5, "beschreibung": "Mikroben-Schadensreduktion 25 %", "wert": 25 },
+        { "stufe": 6, "beschreibung": "Mikroben-Schadensreduktion 30 % — Zoigl", "wert": 30 }
+      ]
+    },
+    {
+      "id": "hopfenhandel",
+      "name": "Hopfenhandel",
+      "kategorie": "Handel",
+      "beschreibung": "Marktkenntnis und Verhandlungsgeschick. Bessere Preise, mehr Belohnungen.",
+      "basis_kosten": 20,
+      "voraussetzungen": [],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Handelsbonus +5 %", "wert": 5 },
+        { "stufe": 2, "beschreibung": "Handelsbonus +10 %", "wert": 10 },
+        { "stufe": 3, "beschreibung": "Handelsbonus +15 %", "wert": 15 },
+        { "stufe": 4, "beschreibung": "Handelsbonus +20 %", "wert": 20 },
+        { "stufe": 5, "beschreibung": "Handelsbonus +25 %", "wert": 25 },
+        { "stufe": 6, "beschreibung": "Handelsbonus +30 % — Zoigl", "wert": 30 }
+      ]
+    }
+  ]
+}
