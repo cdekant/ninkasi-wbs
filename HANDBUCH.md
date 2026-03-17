@@ -6,9 +6,7 @@
 2. [Der Brauerstern — Sechs Stufen, ein Zoigl](#der-brauerstern)
 3. [Skill-Menue bedienen](#skill-menue)
 4. [Kostentabelle](#kostentabelle)
-5. [Voraussetzungen](#voraussetzungen)
-6. [Alle Skills nach Kategorie](#alle-skills)
-7. [Tod und Neubeginn](#tod-und-neubeginn)
+5. [Tod und Neubeginn](#tod-und-neubeginn)
 
 ---
 
@@ -20,8 +18,8 @@ EP sind die Währung deines Fortschritts. Sie werden durch Handlungen verdient u
 
 | Aktion | EP |
 |---|---|
-| Bewegung auf freiem Feld | 1 (+ Rohstoffkunde-Bonus) |
-| Bewegung im Sudhaus | 1 (+ Brautechnologie I-Bonus + Verfahrenstechnik-Bonus |
+| Bewegung auf freiem Feld | 1 (+ Skill-Bonus) |
+| Bewegung im Sudhaus | 1 (+ Skill-Bonus) |
 | Gegner besiegen | je nach Gegner |
 | Raetsel loesen | je nach Raetsel |
 
@@ -90,7 +88,7 @@ Verfuegbare Tabs zwischen den Runs: **Skill-Baum** und **Mannis Pilsstube**.
 ### Was du im Skill-Baum siehst
 
 - Deine EP (verfuegbar und gesamt erhalten)
-- Alle Skills nach Kategorie (Koerper / Magie / Braukunst / Handel)
+- Alle Skills nach Kategorie
 - Aktuelle Stufe je Skill als Punkte: `●●●○○○` = Stufe 3 von 6
 - EP-Kosten fuer die naechste Stufe
 - Farbkodierung:
@@ -117,56 +115,6 @@ Die Kosten steigen exponentiell: `basis * 4^(stufe-1)`
 | 6 (Zoigl) | 10.240 | 15.360 | 20.480 | 25.600 |
 
 Plane langfristig: Zoigl in einem Basis-20-Skill kostet 20.480 EP.
-
----
-
-## Voraussetzungen
-
-Manche Skills koennen erst gelernt werden, wenn ein anderer Skill eine
-Mindeststufe erreicht hat.
-
-| Skill | Voraussetzung |
-|---|---|
-| Wildhefen-Bann | Hefemagie Stufe 3 |
-
-Das System ist erweiterbar — zukuenftige Skills koennen mehrere
-Voraussetzungen haben.
-
----
-
-## Alle Skills
-
-### Koerper
-
-| Skill | Basis | Effekt (pro Stufe) | Beschreibung |
-|---|---|---|---|
-| Lebenspunkte | 10 | Max. LP +10 | Mehr Ausdauer und Trinkfestigkeit |
-| Alkohollevel | 10 | Alkohol-Debuff -1 Runde | Alkohol wirkt kuerzer |
-| Psi-Punkte | 10 | Max. PP +5 | Mehr Magie-Kapazitaet |
-
-### Magie
-
-| Skill | Basis | Effekt (pro Stufe) | Beschreibung |
-|---|---|---|---|
-| Getreidemagie | 15 | Pflanzenschaden +2 | Pflanzengegner erleiden mehr Schaden |
-| Hefemagie | 15 | Hefe-Debuff +1 Runde | Mikrobielle Gegner werden lahmgelegt |
-| Wildhefen-Bann | 25 | Flucht 20/30/40/50/65/80 % | Wildhefen und Bakterien fliehen (req: Hefemagie 3) |
-| Wassermagie | 15 | Schutzschild +5 LP | Temporaere LP-Pufferung |
-| Hopfenmagie | 15 | Gift +1/Runde | Angriffe vergiften den Gegner |
-
-### Braukunst
-
-| Skill | Basis | Effekt (pro Stufe) | Beschreibung |
-|---|---|---|---|
-| Darrtechnik | 20 | Angriff +1 | Bessere Roestkontrolle = mehr Schaden |
-| Verfahrenstechnik | 20 | EP-Bonus +1/Aktion | Effizienter handeln, mehr EP verdienen |
-| Biologische Betriebskontrolle | 20 | Mikroben-Schaden -5 % | Hygiene als Schutzschild |
-
-### Handel
-
-| Skill | Basis | Effekt (pro Stufe) | Beschreibung |
-|---|---|---|---|
-| Hopfenhandel | 20 | Handelsbonus +5 % | Bessere Preise und Belohnungen |
 
 ---
 

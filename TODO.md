@@ -4,7 +4,7 @@
 
 - [x] Grundgeruest: tcod-Fenster, Karte, Spielerbewegung
 - [x] Skill- & Progressionssystem
-  - [x] `data/skills.json` (12 Skills, 6 Stufen, Brauerstern-Lore)
+  - [x] `data/skills.json` (Skelett angelegt, konkreter Inhalt offen)
   - [x] `src/systems/skills.py` (laden, pruefen, kaufen)
   - [x] `src/entities/player.py` (EP, Skills, Serialisierung)
   - [x] `src/systems/speichern.py` (Speichern/Laden/Tod-Reset)

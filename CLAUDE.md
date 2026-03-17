@@ -70,7 +70,7 @@ bn/
 ├── main.py              # Einstiegspunkt, startet das Spiel
 ├── game.py              # Hauptspielschleife
 ├── data/                # Alle Spieldaten als JSON
-│   ├── skills.json      # Skill-Definitionen (12 Skills, 6 Stufen je)
+│   ├── skills.json      # Skill-Definitionen (Skelett — offen)
 │   ├── enemies.json     # (geplant)
 │   ├── weapons.json     # (geplant)
 │   ├── items.json       # (geplant)
