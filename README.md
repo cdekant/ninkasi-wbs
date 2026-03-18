@@ -48,4 +48,5 @@ Fruehe Entwicklung. Laeufig mit:
 - EP-System und Skill-Menue (TAB)
 - Gegner auf der Karte — Anlaufen startet rundenbasierten Kampf
 - Kampf-Panel mit HP-Balken, Kampf-Log und Status-Effekten (DoT, Debuffs)
+- Sichtfeld (FOV, Radius 8) und Fog of War — nur Erkundetes bleibt sichtbar
 - Tod-Reset: LP/PP auf Maximum, neue Karte, neue Gegner

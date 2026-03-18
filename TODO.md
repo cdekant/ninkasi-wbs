@@ -31,13 +31,15 @@
   - [x] `src/systems/kampf.py`: KampfZustand, runde_ausfuehren, Status-Effekte (DoT + Debuffs), Resistenzen, Regeneration, EP-Vergabe
 - [x] Spielschleife mit Kampf
   - [x] `game.py`: Gegner-Spawn aus gegner_pool, Anlaufen startet Kampf, Kampf-Panel (HP-Balken, Log, Status), Tod-Reset + Level-Neustart
+- [x] Sichtfeld / Fog of War
+  - [x] `src/systems/sichtfeld.py`: baue_transparenz, berechne_fov (tcod, Radius 8), neues_erkundet, aktualisiere_erkundet
+  - [x] `game.py`: FOV/ERKUNDET-Arrays, Neuberechnung nach jedem Zug, Rendering (sichtbar/erkundet/schwarz), Gegner nur im FOV sichtbar
 
 ## Offen
 
 ### Naechste Schritte (Prioritaet hoch)
 
-- [ ] Gegner-KI: Bewegung auf der Karte (auf Spieler zu)
-- [ ] Sichtfeld / Fog of War (FOV)
+- [ ] Gegner-KI: Bewegung auf der Karte; verhalten-Feld in enemies.json (verfolgen/territorial/flucht/statisch); flucht_hp_pct als optionaler Schwellwert
 - [ ] Speichern/Laden in die Spielschleife integrieren
 
 ### Mittelfristig
