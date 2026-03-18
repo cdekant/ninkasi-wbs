@@ -41,6 +41,9 @@ test_*.py
 *.icml
 *.pdf
 
+# Archiv (lokale Ablage, nicht versioniert)
+Archiv/
+
 # Logs
 *.log
 
