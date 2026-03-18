@@ -1,4 +1,8 @@
+---
+lang: de-DE
+---
 # Handbuch: Battle Ninkasi
+
 
 ## Inhalt
 
@@ -6,12 +10,12 @@
 2. [Der Brauerstern — Sechs Stufen, ein Zoigl](#der-brauerstern)
 3. [Skill-Menue bedienen](#skill-menue)
 4. [Kostentabelle](#kostentabelle)
-5. [Tod und Neubeginn](#tod-und-neubeginn)
-6. [Skill-Kategorien (Entwurf)](#skill-kategorien)
+5. [Kampf](#kampf)
+6. [Tod und Neubeginn](#tod-und-neubeginn)
+7. [Skill-Kategorien (Entwurf)](#skill-kategorien)
 
----
 
-## ETHANOL-Punkte
+## Ethanol-Punkte
 
 EP sind die Währung deines Fortschritts. Sie werden durch Handlungen verdient und können manuell in Brauer-Fertigkeiten investiert werden.
 
@@ -30,7 +34,6 @@ Wandbewegungen (kein Ortswechsel) zaehlen **nicht** — Leerlauf bringt nichts.
 Ausgeben: EP werden im Skill-Menue abgezogen, sobald ein Skill gekauft wird.
 Kein Verlust durch Tod.
 
----
 
 ## Der Brauerstern
 
@@ -44,23 +47,6 @@ Meisterschaft.
 Beherrschung einer Kunst. Den Zoigl erreicht man nicht zufaellig; er kostet
 viele EP und ist das Ziel langfristiger Planung.
 
-```
-         *
-        ***
-       *****
-      **** **
-     *** *****
-    **  *** **
-   *  *  *   *
-  ****** ****
- *  ***   **
-    *  * ***
-       ***
-        *
-```
-*(ASCII-Annaeherung an den Brauerstern mit fünfzackigen Asterisken)*
-
----
 
 ## Skill-Menue
 
@@ -100,7 +86,6 @@ Verfuegbare Tabs zwischen den Runs: **Skill-Baum** und **Mannis Pilsstube**.
 - Detailzeile unten: Effekt der naechsten Stufe oder Grund fuer Sperre
 - Rueckmeldungszeile: Ergebnis des letzten Kaufversuchs
 
----
 
 ## Kostentabelle
 
@@ -117,7 +102,71 @@ Die Kosten steigen exponentiell: `basis * 3,5^(stufe-1)` (gerundet)
 
 Plane langfristig: Zoigl in einem Basis-20-Skill kostet 10.504 EP.
 
----
+
+## Kampf
+
+Laeuft ein Gegner-Symbol deinen Weg, beginnt der Kampf automatisch sobald du
+dich auf sein Feld bewegst. Ein Kampf-Panel erscheint am unteren Bildschirmrand.
+
+### Kampf-Panel
+
+```
+----------------------------------------------------------
+m Gaerkeller-Schimmel          @ Ninkasi
+HP [######..........] 6/12     LP [############....] 15/20
+  Gaerkeller-Schimmel: Sporenausstoss - 2 Schaden (LP 15/20)
+  dot_biologisch -> 1 Schaden (LP 14/20)
+  dot_biologisch klingt ab.
+  Ninkasi greift an: 3 Schaden (Gaerkeller-Schimmel HP 3/12)
+[LEERTASTE] Angreifen
+----------------------------------------------------------
+```
+
+- **Links:** Gegner mit HP-Balken
+- **Rechts:** Ninkasi mit LP-Balken
+- **Mitte:** Kampf-Log der letzten vier Ereignisse
+- **Unten:** Aktuelle Aktion oder Ergebnis
+
+### Kampfablauf pro Runde
+
+1. Gegner regeneriert (falls er Regeneration hat)
+2. Status-Effekte wirken — DoT zieht Schaden ab, Dauer sinkt
+3. Ninkasi greift an
+4. Gegner greift an (zufaelliger Angriff aus seiner Liste)
+
+### Steuerung im Kampf
+
+| Taste | Aktion |
+|---|---|
+| **LEERTASTE** oder **ENTER** | Naechste Kampfrunde ausfuehren |
+| **LEERTASTE** (nach Ende) | Ergebnis bestaetigen und weiterspielen |
+
+Andere Tasten (Bewegung, TAB) sind waehrend des Kampfes gesperrt.
+
+### Status-Effekte
+
+Manche Angriffe hinterlassen **Status-Effekte** fuer mehrere Runden:
+
+| Typ | Wirkung |
+|---|---|
+| `dot_biologisch` | Biologischer Schaden pro Runde (Sporen, Wildhefen) |
+| `dot_chemisch` | Chemischer Schaden pro Runde |
+| `psi_malus_pct` | Reduziert Psi-Effektivitaet um X % |
+
+Status-Effekte klingen nach ihrer Dauer automatisch ab.
+
+### Resistenzen
+
+Manche Gegner sind gegen bestimmte Schadenstypen resistent. Resistenzwerte
+sind in `data/enemies.json` hinterlegt und werden im Kampf automatisch
+berechnet — ihr bemerkt sie daran, dass weniger Schaden angezeigt wird als
+erwartet.
+
+### Sieg und Niederlage
+
+- **Sieg:** Gegner faellt auf 0 HP — ihr erhaltet EP und kehrt zur Erkundung zurueck.
+- **Niederlage:** Ninkasi faellt auf 0 LP — Tod-Reset (siehe naechstes Kapitel).
+
 
 ## Tod und Neubeginn
 
@@ -139,7 +188,9 @@ Die verfügbaren Skills sind in zwölf Kategorie aufgeteilt.
 
 **Der Bierbauch der Brauerin ist ebenso wie ihre Zöpfe ihr Stolz** – Nur mit Training übersteht sie die Strapazen von Schroten, Maischen, Ausschlagen und Anstellen.
 
-- Trinkfestigkeit: 
+- Trinkfestigkeit
+
+- Saumagen
 
 ### Bewegung
 

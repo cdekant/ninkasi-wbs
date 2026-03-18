@@ -31,6 +31,9 @@ python main.py
 | S / Pfeil unten | Runter |
 | A / Pfeil links | Links |
 | D / Pfeil rechts | Rechts |
+| LEERTASTE / ENTER | Kampfrunde ausfuehren (im Kampf) |
+| TAB | Menue oeffnen/wechseln |
+| ESC | Menue schliessen |
 | Q | Beenden |
 
 ## Dokumentation
@@ -39,4 +42,10 @@ Siehe `HANDBUCH.md` fuer das vollstaendige Spieler-Handbuch.
 
 ## Status
 
-Fruehe Entwicklung. Lauffahig mit Bewegung und EP-System.
+Fruehe Entwicklung. Laeufig mit:
+
+- Bewegung auf prozedural generierter Karte (BSP, Gaerkeller-Demo)
+- EP-System und Skill-Menue (TAB)
+- Gegner auf der Karte — Anlaufen startet rundenbasierten Kampf
+- Kampf-Panel mit HP-Balken, Kampf-Log und Status-Effekten (DoT, Debuffs)
+- Tod-Reset: LP/PP auf Maximum, neue Karte, neue Gegner
