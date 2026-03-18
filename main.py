@@ -1,13 +1,15 @@
 import tcod
 import game
 
-BREITE = 80
-HOEHE = 40
+BREITE = 100
+HOEHE  = 56
 
 
 def main():
-    tileset = tcod.tileset.load_truetype_font(
-        "assets/IBMPlexMono-Regular.ttf", tile_width=14, tile_height=24
+    tileset = tcod.tileset.load_tilesheet(
+        "assets/Cheepicus_16x16.png",
+        columns=16, rows=16,
+        charmap=tcod.tileset.CHARMAP_CP437,
     )
     with tcod.context.new(
         columns=BREITE,

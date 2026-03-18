@@ -1,0 +1,26 @@
+{
+  "gaerkeller": {
+    "algorithmus": "bsp",
+    "zonen_anzahl_min": 1,
+    "zonen_anzahl_max": 1,
+    "raeume_min": 5,
+    "raeume_max": 8,
+    "raum_breite_min": 5,
+    "raum_breite_max": 15,
+    "raum_hoehe_min": 5,
+    "raum_hoehe_max": 15,
+    "kacheln": {
+      "boden": ".",
+      "wand": "#",
+      "objekt_gaertank": "O"
+    },
+    "objekte": [
+      {"typ": "gaertank", "min": 0, "max": 2}
+    ],
+    "gegner_pool": [
+      {"id": "wildhefe",           "gewicht": 4, "staerke": 0.3},
+      {"id": "gaerkeller_schimmel","gewicht": 3, "staerke": 0.4}
+    ],
+    "bonus_ausgang_chance": 0.0
+  }
+}
