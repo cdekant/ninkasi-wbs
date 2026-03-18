@@ -1,17 +1,40 @@
 {
+  "_hinweis": "Zentrales Register aller Effekt-Typen. einheit: 'pct' = Prozentwert, 'schaden_pro_runde' = DoT-Schaden. stapelbar: ob mehrere Quellen addiert werden. dauer_moeglich: ob der Effekt als Status-Effekt mit Ablauf-Runden auftreten kann.",
+
   "alkohol_negativ_pct": {
     "beschreibung": "Reduziert negative Alkohol-Effekte [%]",
     "einheit": "pct",
-    "stapelbar": true
+    "stapelbar": true,
+    "dauer_moeglich": false
   },
   "alkohol_dauer_pct": {
     "beschreibung": "Verkuerzt die Dauer von Alkohol-Effekten [%]",
     "einheit": "pct",
-    "stapelbar": true
+    "stapelbar": true,
+    "dauer_moeglich": false
   },
   "bewegung_malus_pct": {
     "beschreibung": "Verlangsamt die Bewegung [%]",
     "einheit": "pct",
-    "stapelbar": true
+    "stapelbar": true,
+    "dauer_moeglich": true
+  },
+  "psi_malus_pct": {
+    "beschreibung": "Reduziert die Effektivitaet von Psi-Faehigkeiten [%]",
+    "einheit": "pct",
+    "stapelbar": true,
+    "dauer_moeglich": true
+  },
+  "dot_biologisch": {
+    "beschreibung": "Biologischer Schaden pro Runde (Sporen, Bakterien, Wildhefen)",
+    "einheit": "schaden_pro_runde",
+    "stapelbar": true,
+    "dauer_moeglich": true
+  },
+  "dot_chemisch": {
+    "beschreibung": "Chemischer Schaden pro Runde (Saeuren, Laugen, Reinigunsmittel)",
+    "einheit": "schaden_pro_runde",
+    "stapelbar": true,
+    "dauer_moeglich": true
   }
 }

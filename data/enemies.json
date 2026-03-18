@@ -1,0 +1,85 @@
+{
+  "_hinweis": "Gegner-Typ-Definitionen. typ: 'einzel' oder 'schwarm'. staerke (0.0-1.0) skaliert HP und Schaden beim Spawnen (siehe Gegner.aus_typ). Angriffe: typ = Schadensart (nah/fern/biologisch/chemisch/magie/psi), ziel = Zielart (einzel/aoe/linie/raum), radius nur bei ziel=aoe. effekte referenzieren data/effekttypen.json; dauer (Runden) macht einen Effekt zum Status-Effekt.",
+
+  "wildhefe": {
+    "typ": "schwarm",
+    "name": "Wilde Hefe",
+    "symbol": "y",
+    "hp_basis": 5,
+    "verteidigung_basis": 0,
+    "ep_beute": 8,
+    "angriffe": [
+      {
+        "id": "sporenwolke",
+        "name": "Sporenwolke",
+        "typ": "biologisch",
+        "ziel": "aoe",
+        "radius": 2,
+        "schaden_basis": 1,
+        "effekte": [
+          {"typ": "dot_biologisch", "wert": 2, "dauer": 3}
+        ]
+      }
+    ],
+    "resistenzen": {},
+    "regen_hp": 0,
+    "loot_pool": [],
+    "schwarm": {"einheiten_min": 4, "einheiten_max": 8}
+  },
+
+  "gaerkeller_schimmel": {
+    "typ": "einzel",
+    "name": "Gaerkeller-Schimmel",
+    "symbol": "m",
+    "hp_basis": 8,
+    "verteidigung_basis": 0,
+    "ep_beute": 5,
+    "angriffe": [
+      {
+        "id": "sporenausstoss",
+        "name": "Sporenausstoss",
+        "typ": "biologisch",
+        "ziel": "einzel",
+        "schaden_basis": 3,
+        "effekte": [
+          {"typ": "dot_biologisch", "wert": 1, "dauer": 2}
+        ]
+      }
+    ],
+    "resistenzen": {},
+    "regen_hp": 0,
+    "loot_pool": []
+  },
+
+  "lebensmittelkontrolleur": {
+    "typ": "einzel",
+    "name": "Lebensmittelkontrolleur",
+    "symbol": "K",
+    "hp_basis": 30,
+    "verteidigung_basis": 2,
+    "ep_beute": 25,
+    "angriffe": [
+      {
+        "id": "aktenpruefung",
+        "name": "Aktenpruefung",
+        "typ": "nah",
+        "ziel": "einzel",
+        "schaden_basis": 4,
+        "effekte": []
+      },
+      {
+        "id": "anlagenstilllegung",
+        "name": "Anlagenstilllegung",
+        "typ": "psi",
+        "ziel": "einzel",
+        "schaden_basis": 0,
+        "effekte": [
+          {"typ": "psi_malus_pct", "wert": 30, "dauer": 3}
+        ]
+      }
+    ],
+    "resistenzen": {},
+    "regen_hp": 0,
+    "loot_pool": []
+  }
+}
