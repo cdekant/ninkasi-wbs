@@ -39,7 +39,11 @@
 
 ### Naechste Schritte (Prioritaet hoch)
 
-- [ ] Gegner-KI: Bewegung auf der Karte; verhalten-Feld in enemies.json (verfolgen/territorial/flucht/statisch); flucht_hp_pct als optionaler Schwellwert
+- [x] Gegner-KI
+  - [x] `data/enemies.json`: verhalten, sicht_radius, flucht_hp_pct, geschwindigkeit je Gegner
+  - [x] `src/entities/gegner.py`: KI-Felder in __init__/aus_typ/als_dict/aus_dict; ki_zustand + bewegungs_zaehler als Laufzeitzustand
+  - [x] `src/systems/ki.py`: ki_tick (statisch/territorial/verfolgen/flucht), geschwindigkeit-Akkumulation, flucht_hp_pct-Override, _schritt_zu/_schritt_weg
+  - [x] `game.py`: ki_tick nach jedem Spielerzug; Gegner-Angriff loest Kampf aus
 - [ ] Speichern/Laden in die Spielschleife integrieren
 
 ### Mittelfristig

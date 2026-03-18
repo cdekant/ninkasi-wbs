@@ -112,6 +112,7 @@ bn/
 │   │   └── bsp.py       # BSP-Generator (Raeume + Korridore + Objekte)
 │   ├── systems/         # Kampf, Inventar, Sichtfeld
 │   │   ├── kampf.py     # Kampfsystem: KampfZustand, runde_ausfuehren, Status-Effekte
+│   │   ├── ki.py        # Gegner-KI: ki_tick, verhalten (statisch/territorial/verfolgen/flucht)
 │   │   ├── sichtfeld.py # FOV: baue_transparenz, berechne_fov (tcod), Fog of War
 │   │   ├── skills.py    # Skill-Logik (laden, prüfen, kaufen)
 │   │   ├── menus.py     # Menue-Registry + State (verfügbar je Modus)
