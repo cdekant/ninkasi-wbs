@@ -1,8 +1,6 @@
 import tcod
 import game
-
-BREITE = 100
-HOEHE  = 56
+import config
 
 
 def main():
@@ -12,12 +10,13 @@ def main():
         charmap=tcod.tileset.CHARMAP_CP437,
     )
     with tcod.context.new(
-        columns=BREITE,
-        rows=HOEHE,
+        columns=config.BREITE,
+        rows=config.HOEHE,
         title="Battle Ninkasi",
         tileset=tileset,
+        sdl_window_flags=config.SDL_FLAGS,
     ) as context:
-        console = tcod.console.Console(BREITE, HOEHE, order="F")
+        console = tcod.console.Console(config.BREITE, config.HOEHE, order="F")
         game.starte(console, context)
 
 
