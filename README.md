@@ -49,4 +49,5 @@ Fruehe Entwicklung. Laeufig mit:
 - Gegner auf der Karte — Anlaufen startet rundenbasierten Kampf
 - Kampf-Panel mit HP-Balken, Kampf-Log und Status-Effekten (DoT, Debuffs)
 - Sichtfeld (FOV, Radius 8) und Fog of War — nur Erkundetes bleibt sichtbar
+- Gegner-KI: territorial, verfolgen, flucht; Geschwindigkeit und flucht_hp_pct je Typ
 - Tod-Reset: LP/PP auf Maximum, neue Karte, neue Gegner

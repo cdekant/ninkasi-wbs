@@ -10,9 +10,11 @@ lang: de-DE
 2. [Der Brauerstern — Sechs Stufen, ein Zoigl](#der-brauerstern)
 3. [Skill-Menue bedienen](#skill-menue)
 4. [Kostentabelle](#kostentabelle)
-5. [Kampf](#kampf)
-6. [Tod und Neubeginn](#tod-und-neubeginn)
-7. [Skill-Kategorien (Entwurf)](#skill-kategorien)
+5. [Erkundung](#erkundung)
+6. [Gegner](#gegner)
+7. [Kampf](#kampf)
+8. [Tod und Neubeginn](#tod-und-neubeginn)
+9. [Skill-Kategorien (Entwurf)](#skill-kategorien)
 
 
 ## Ethanol-Punkte
@@ -101,6 +103,69 @@ Die Kosten steigen exponentiell: `basis * 3,5^(stufe-1)` (gerundet)
 | 6 (Zoigl) | 5.252 | 7.878 | 10.504 | 15.757 | 26.261 | 52.522 |
 
 Plane langfristig: Zoigl in einem Basis-20-Skill kostet 10.504 EP.
+
+
+## Erkundung
+
+Die Karte wird prozedural generiert — jeder Run sieht anders aus. Du startest
+in einem zufaelligen Raum; der Rest liegt im Dunkeln.
+
+### Sichtfeld (FOV)
+
+Ninkasi sieht alles innerhalb eines Radius von **8 Kacheln**. Was ausserhalb
+liegt, bleibt schwarz. Waende blockieren die Sichtlinie — um die Ecke siehst
+du nicht.
+
+### Fog of War
+
+| Darstellung | Bedeutung |
+|---|---|
+| **Hell** (volle Helligkeit) | Gerade im Sichtfeld |
+| **Dunkel** (abgedunkelt) | Schon erkundet, aber nicht mehr im Blickfeld |
+| **Schwarz** | Noch nie betreten oder gesehen |
+
+Erkundetes bleibt erkundigt — auch nach dem Tod verschwindet das Wissen
+nicht sofort. Neue Karte bei Tod bedeutet: neues Dunkel, neues Erkunden.
+
+### Gegner und Sichtfeld
+
+Gegner sind nur sichtbar wenn sie sich in deinem Sichtfeld befinden.
+Ein Gegner ausserhalb des Radius ist unsichtbar — du hoerst ihn nicht kommen.
+Erst wenn er ins Licht tritt (oder du nah genug rangehst), erscheint er.
+
+
+## Gegner
+
+Jeder Gegner-Typ verhaelt sich anders. Manche warten auf dich, andere jagen
+dich unerbittlich — und wieder andere kehren um sobald du ausser Reichweite bist.
+
+### Verhalten
+
+| Verhalten | Beschreibung |
+|---|---|
+| **Statisch** | Bewegt sich nie. Steht immer am selben Fleck. |
+| **Territorial** | Reagiert nur wenn du in seinen Radius eintrittst. Gibt die Verfolgung auf sobald du wieder weit genug weg bist. |
+| **Verfolgen** | Beginnt die Jagd sobald er dich einmal gesehen hat — und hoert nicht mehr auf. |
+| **Flucht** | Weicht dir aktiv aus. |
+
+### Geschwindigkeit
+
+Nicht alle Gegner bewegen sich jeden Zug. Langsame Gegner (z.B. Schimmel)
+brauchen zwei Spielerzuege fuer einen eigenen Schritt — traeger, aber nicht
+harmloser.
+
+### Flucht bei Verletzung
+
+Manche Gegner fliehen wenn ihre HP einen bestimmten Schwellwert unterschreiten,
+unabhaengig von ihrem normalen Verhalten. Ein Schimmel der eigentlich territorial
+ist, kehrt bei 30 % HP um und sucht das Weite.
+
+### Aktuelle Gegner (Gaerkeller)
+
+| Symbol | Name | Verhalten | Besonderheit |
+|---|---|---|---|
+| `m` | Gaerkeller-Schimmel | Territorial (Radius 5) | Flieht unter 30 % HP; bewegt sich langsam |
+| `K` | Lebensmittelkontrolleur | Verfolgen (Radius 15) | Gibt nie auf |
 
 
 ## Kampf
