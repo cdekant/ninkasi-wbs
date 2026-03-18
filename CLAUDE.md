@@ -10,9 +10,7 @@
 
 ### Konzept
 
-Der Spieler kämpft sich durch alle Stufen der Bierherstellung — von der Aussaat
-des Getreides bis zum Verkauf an den Kunden. Jede Stufe ist ein eigenes Level
-mit zufälliger Karte.
+Der Spieler kämpft sich durch alle Stufen der Bierherstellung — von der Aussaat des Getreides bis zum Verkauf an den Kunden. Jede Stufe ist ein eigenes Level mit zufälliger Karte.
 
 Der Spieler steuert Ninkasi, die frühgeschichtliche mesopotamische Göttin des Bierbrauens, die als Rachegöttin wiedererstanden ist, um die Welt vom "Dämon der Abstinenz", dem "Prohibitus" und seine dunklen Adepti Lobbyisti, gegen Veganer und Zölikultisten, intelligente Schleime, Schädlinge, Lebensmittelkontrolleure, schlitzohrige Landwirte, Gastronomen anzutreten und den Menschen die Drinkability zurückzubringen.
 
