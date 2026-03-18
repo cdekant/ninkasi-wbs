@@ -8,6 +8,9 @@
     "hp_basis": 5,
     "verteidigung_basis": 0,
     "ep_beute": 8,
+    "verhalten": "verfolgen",
+    "sicht_radius": 20,
+    "geschwindigkeit": 0.5,
     "angriffe": [
       {
         "id": "sporenwolke",
@@ -34,6 +37,10 @@
     "hp_basis": 8,
     "verteidigung_basis": 0,
     "ep_beute": 5,
+    "verhalten": "territorial",
+    "sicht_radius": 5,
+    "flucht_hp_pct": 30,
+    "geschwindigkeit": 0.5,
     "angriffe": [
       {
         "id": "sporenausstoss",
@@ -58,6 +65,9 @@
     "hp_basis": 30,
     "verteidigung_basis": 2,
     "ep_beute": 25,
+    "verhalten": "verfolgen",
+    "sicht_radius": 15,
+    "geschwindigkeit": 1.0,
     "angriffe": [
       {
         "id": "aktenpruefung",

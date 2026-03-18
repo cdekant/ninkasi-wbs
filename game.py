@@ -11,6 +11,7 @@ from src.systems.speichern import tod_reset, STANDARD_AKTUELL
 from src.ui.menu_anzeige import zeichne_menue
 from src.map.bsp import generiere_karte
 from src.systems import sichtfeld
+from src.systems import ki
 
 
 # ---------------------------------------------------------------------------
@@ -350,6 +351,12 @@ def _bewege(dx, dy):
         spieler.ep_hinzufuegen(1)
         FOV = sichtfeld.berechne_fov(TRANSPARENZ, spieler_x, spieler_y)
         sichtfeld.aktualisiere_erkundet(ERKUNDET, FOV)
+        # Gegner reagieren auf den Spielerzug
+        angreifer = ki.ki_tick(gegner_auf_karte, spieler_x, spieler_y, KARTE)
+        if angreifer:
+            aktiver_kampf = KampfZustand(spieler, angreifer["gegner"])
+            aktiver_kampf_eintrag = angreifer
+            modus = "kampf"
 
 
 def _kampf_aktion():

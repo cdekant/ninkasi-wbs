@@ -43,7 +43,9 @@ class Gegner:
     """
 
     def __init__(self, typ_id, name, symbol, hp_max, verteidigung,
-                 ep_beute, angriffe, resistenzen=None, regen_hp=0, loot_pool=None):
+                 ep_beute, angriffe, resistenzen=None, regen_hp=0, loot_pool=None,
+                 verhalten="statisch", sicht_radius=20,
+                 flucht_hp_pct=None, geschwindigkeit=1.0):
         self.typ_id = typ_id
         self.name = name
         self.symbol = symbol
@@ -55,6 +57,14 @@ class Gegner:
         self.resistenzen = resistenzen if resistenzen is not None else {}
         self.regen_hp = regen_hp
         self.loot_pool = loot_pool if loot_pool is not None else []
+        # KI-Felder (aus JSON)
+        self.verhalten = verhalten
+        self.sicht_radius = sicht_radius
+        self.flucht_hp_pct = flucht_hp_pct    # None = flieht nie
+        self.geschwindigkeit = geschwindigkeit
+        # KI-Laufzeitzustand (nicht serialisiert)
+        self.ki_zustand = "idle"              # "idle" | "aktiv"
+        self.bewegungs_zaehler = 0.0          # akkumuliert geschwindigkeit pro Zug
 
     @property
     def lebt(self):
@@ -104,6 +114,10 @@ class Gegner:
             resistenzen=dict(d.get("resistenzen", {})),
             regen_hp=d.get("regen_hp", 0),
             loot_pool=list(d.get("loot_pool", [])),
+            verhalten=d.get("verhalten", "statisch"),
+            sicht_radius=d.get("sicht_radius", 20),
+            flucht_hp_pct=d.get("flucht_hp_pct", None),
+            geschwindigkeit=d.get("geschwindigkeit", 1.0),
         )
 
     def als_dict(self):
@@ -120,6 +134,10 @@ class Gegner:
             "resistenzen": self.resistenzen,
             "regen_hp": self.regen_hp,
             "loot_pool": self.loot_pool,
+            "verhalten": self.verhalten,
+            "sicht_radius": self.sicht_radius,
+            "flucht_hp_pct": self.flucht_hp_pct,
+            "geschwindigkeit": self.geschwindigkeit,
         }
 
     @classmethod
@@ -138,4 +156,8 @@ class Gegner:
             loot_pool=daten.get("loot_pool", []),
         )
         g.hp = daten.get("hp", daten["hp_max"])  # gespeicherte HP wiederherstellen
+        g.verhalten = daten.get("verhalten", "statisch")
+        g.sicht_radius = daten.get("sicht_radius", 20)
+        g.flucht_hp_pct = daten.get("flucht_hp_pct", None)
+        g.geschwindigkeit = daten.get("geschwindigkeit", 1.0)
         return g
