@@ -18,8 +18,9 @@
       {"typ": "gaertank", "min": 0, "max": 2}
     ],
     "gegner_pool": [
-      {"id": "wildhefe",           "gewicht": 4, "staerke": 0.3},
-      {"id": "gaerkeller_schimmel","gewicht": 3, "staerke": 0.4}
+      {"id": "wildhefe",              "gewicht": 4, "staerke": 0.3},
+      {"id": "gaerkeller_schimmel",   "gewicht": 3, "staerke": 0.4},
+      {"id": "lebensmittelkontrolleur","gewicht": 1, "staerke": 0.5}
     ],
     "bonus_ausgang_chance": 0.0
   }
