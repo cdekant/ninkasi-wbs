@@ -12,6 +12,13 @@ class Spieler:
         self.ep_verfuegbar = 0    # Ausgebbare EP
         self.skills = {}          # {skill_id: stufe} — nur gekaufte Skills
         self.runden = 0           # Gesamte gespielte Runden
+        # Kampfwerte — werden bei Tod zurueckgesetzt (siehe speichern.py)
+        self.lp_max = 20
+        self.lp = 20
+        self.pp_max = 10
+        self.pp = 10
+        self.verteidigung = 0     # Basiswert; Skills und Ruestung addieren darauf
+        self.basis_schaden = 5    # Platzhalter bis Waffensystem existiert
 
     # ------------------------------------------------------------------
     # EP
@@ -50,6 +57,12 @@ class Spieler:
             "ep_verfuegbar": self.ep_verfuegbar,
             "skills": dict(self.skills),
             "runden": self.runden,
+            "lp_max": self.lp_max,
+            "lp": self.lp,
+            "pp_max": self.pp_max,
+            "pp": self.pp,
+            "verteidigung": self.verteidigung,
+            "basis_schaden": self.basis_schaden,
         }
 
     @classmethod
@@ -60,4 +73,10 @@ class Spieler:
         spieler.ep_verfuegbar = daten.get("ep_verfuegbar", 0)
         spieler.skills = daten.get("skills", {})
         spieler.runden = daten.get("runden", 0)
+        spieler.lp_max = daten.get("lp_max", 20)
+        spieler.lp = daten.get("lp", spieler.lp_max)
+        spieler.pp_max = daten.get("pp_max", 10)
+        spieler.pp = daten.get("pp", spieler.pp_max)
+        spieler.verteidigung = daten.get("verteidigung", 0)
+        spieler.basis_schaden = daten.get("basis_schaden", 5)
         return spieler

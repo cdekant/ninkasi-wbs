@@ -17,8 +17,6 @@ STANDARD_AKTUELL = {
     "karten_seed": None,
     "spieler_x": 2,
     "spieler_y": 2,
-    "lp": None,    # None = auf Maximum setzen beim Laden
-    "pp": None,    # None = auf Maximum setzen beim Laden
     "tod_zaehler": 0,
 }
 
@@ -72,9 +70,12 @@ def tod_reset(spieler, aktuell_dict):
     """Setzt den Level-Zustand nach dem Tod zurueck.
 
     EP und Skills bleiben erhalten (Roguelite-Prinzip).
-    Position, LP, PP und Seed werden auf Startwerte gesetzt.
+    LP, PP, Position und Karten-Seed werden zurueckgesetzt.
     Der Tod-Zaehler wird erhoeht.
     """
+    spieler.lp = spieler.lp_max
+    spieler.pp = spieler.pp_max
+
     tod_zaehler = aktuell_dict.get("tod_zaehler", 0) + 1
     neues_aktuell = dict(STANDARD_AKTUELL)
     neues_aktuell["level_index"] = aktuell_dict.get("level_index", 0)
