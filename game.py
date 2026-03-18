@@ -10,6 +10,7 @@ from src.systems.kampf import KampfZustand, runde_ausfuehren
 from src.systems.speichern import tod_reset, STANDARD_AKTUELL
 from src.ui.menu_anzeige import zeichne_menue
 from src.map.bsp import generiere_karte
+from src.systems import sichtfeld
 
 
 # ---------------------------------------------------------------------------
@@ -48,6 +49,11 @@ KARTE = []
 spieler_x, spieler_y = 1, 1
 gegner_auf_karte = []   # [{"gegner": Gegner-Instanz, "x": int, "y": int}]
 
+# Sichtfeld
+TRANSPARENZ = None   # bool-Array: True = durchsichtig (Boden)
+FOV         = None   # bool-Array: True = gerade sichtbar
+ERKUNDET    = None   # bool-Array: True = schon einmal gesehen
+
 
 # ---------------------------------------------------------------------------
 # Level initialisieren und Gegner spawnen
@@ -58,6 +64,7 @@ def _initialisiere_level():
     Wird beim Start und nach dem Tod aufgerufen.
     """
     global KARTE, spieler_x, spieler_y, gegner_auf_karte
+    global TRANSPARENZ, FOV, ERKUNDET
 
     KARTE = generiere_karte(alle_level["gaerkeller"], breite=100, hoehe=55)
 
@@ -73,6 +80,12 @@ def _initialisiere_level():
         break
 
     _spawne_gegner(3)
+
+    # Sichtfeld initialisieren
+    TRANSPARENZ = sichtfeld.baue_transparenz(KARTE)
+    ERKUNDET    = sichtfeld.neues_erkundet(KARTE)
+    FOV         = sichtfeld.berechne_fov(TRANSPARENZ, spieler_x, spieler_y)
+    sichtfeld.aktualisiere_erkundet(ERKUNDET, FOV)
 
 
 def _spawne_gegner(anzahl):
@@ -138,17 +151,26 @@ def _balken(aktuell, maximum, breite=16):
 def zeichne(console):
     console.clear()
 
-    # Karte
+    # Karte mit FOV / Fog of War
     for y, zeile in enumerate(KARTE):
         for x, zeichen in enumerate(zeile):
-            if zeichen == "#":
-                console.print(x, y, zeichen, fg=(120, 120, 120))
-            else:
-                console.print(x, y, zeichen, fg=(60, 60, 60))
+            if FOV[y, x]:
+                # Gerade sichtbar — volle Helligkeit
+                if zeichen == "#":
+                    console.print(x, y, zeichen, fg=(160, 160, 160))
+                else:
+                    console.print(x, y, zeichen, fg=(90, 90, 90))
+            elif ERKUNDET[y, x]:
+                # Schon gesehen, aber gerade nicht im Blickfeld — abgedunkelt
+                if zeichen == "#":
+                    console.print(x, y, zeichen, fg=(50, 50, 50))
+                else:
+                    console.print(x, y, zeichen, fg=(20, 20, 20))
+            # Nie gesehen: nicht zeichnen (bleibt schwarz)
 
-    # Gegner auf der Karte
+    # Gegner — nur sichtbar wenn im FOV
     for eintrag in gegner_auf_karte:
-        if eintrag["gegner"].lebt:
+        if eintrag["gegner"].lebt and FOV[eintrag["y"], eintrag["x"]]:
             console.print(eintrag["x"], eintrag["y"],
                           eintrag["gegner"].symbol, fg=(200, 80, 80))
 
@@ -309,7 +331,7 @@ def _handle_key(event):
 
 
 def _bewege(dx, dy):
-    global spieler_x, spieler_y, aktiver_kampf, aktiver_kampf_eintrag, modus
+    global spieler_x, spieler_y, aktiver_kampf, aktiver_kampf_eintrag, modus, FOV
 
     nx, ny = spieler_x + dx, spieler_y + dy
 
@@ -326,6 +348,8 @@ def _bewege(dx, dy):
         spieler_x, spieler_y = nx, ny
         spieler.runden += 1
         spieler.ep_hinzufuegen(1)
+        FOV = sichtfeld.berechne_fov(TRANSPARENZ, spieler_x, spieler_y)
+        sichtfeld.aktualisiere_erkundet(ERKUNDET, FOV)
 
 
 def _kampf_aktion():
