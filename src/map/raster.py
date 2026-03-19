@@ -1,0 +1,158 @@
+"""
+Raster-Kartengenerator fuer Battle Ninkasi.
+
+Teilt die Karte in ein gleichmaessiges Raster aus Zellen.
+In jeder Zelle wird ein Raum zentriert platziert.
+Benachbarte Raeume werden mit Korridoren verbunden.
+"""
+
+import random
+
+
+class _Rect:
+    def __init__(self, x, y, breite, hoehe):
+        self.x1 = x
+        self.y1 = y
+        self.x2 = x + breite
+        self.y2 = y + hoehe
+
+    @property
+    def mitte_x(self):
+        return (self.x1 + self.x2) // 2
+
+    @property
+    def mitte_y(self):
+        return (self.y1 + self.y2) // 2
+
+
+def generiere_karte(grammatik, breite, hoehe, seed=None):
+    """
+    Erzeugt eine Raster-Karte als Liste von Strings.
+
+    grammatik: dict aus levels.json
+    breite, hoehe: Kartengroesse in Kacheln
+    """
+    if seed is not None:
+        random.seed(seed)
+
+    spalten  = grammatik.get("raster_spalten",  3)
+    zeilen   = grammatik.get("raster_zeilen",   2)
+    belegung = grammatik.get("raster_belegung", 1.0)
+    korr_b   = grammatik.get("korridor_breite", 1)
+
+    kacheln  = grammatik["kacheln"]
+    wand     = kacheln["wand"]
+    boden    = kacheln["boden"]
+
+    karte = [[wand] * breite for _ in range(hoehe)]
+
+    zell_b = breite // spalten
+    zell_h = hoehe  // zeilen
+
+    # Gitter aufbauen: gitter[z][s] = _Rect oder None
+    gitter = []
+    for z in range(zeilen):
+        reihe = []
+        for s in range(spalten):
+            if random.random() > belegung:
+                reihe.append(None)
+                continue
+
+            ox = s * zell_b
+            oy = z * zell_h
+
+            rb_max = min(grammatik["raum_breite_max"], zell_b - 2)
+            rh_max = min(grammatik["raum_hoehe_max"],  zell_h - 2)
+            rb_min = grammatik["raum_breite_min"]
+            rh_min = grammatik["raum_hoehe_min"]
+
+            if rb_max < rb_min or rh_max < rh_min:
+                reihe.append(None)
+                continue
+
+            rb = random.randint(rb_min, rb_max)
+            rh = random.randint(rh_min, rh_max)
+
+            # Raum in der Zelle zentrieren
+            rx = ox + (zell_b - rb) // 2
+            ry = oy + (zell_h - rh) // 2
+            rx = max(1, min(rx, breite - rb - 1))
+            ry = max(1, min(ry, hoehe  - rh - 1))
+
+            raum = _Rect(rx, ry, rb, rh)
+            reihe.append(raum)
+
+            for y in range(raum.y1, raum.y2):
+                for x in range(raum.x1, raum.x2):
+                    karte[y][x] = boden
+
+        gitter.append(reihe)
+
+    # Korridore: rechten und unteren Nachbar verbinden
+    for z in range(zeilen):
+        for s in range(spalten):
+            raum = gitter[z][s]
+            if raum is None:
+                continue
+            if s + 1 < spalten and gitter[z][s + 1]:
+                _korridor(karte, boden, hoehe, breite,
+                          raum.mitte_x, raum.mitte_y,
+                          gitter[z][s + 1].mitte_x, gitter[z][s + 1].mitte_y,
+                          korr_b)
+            if z + 1 < zeilen and gitter[z + 1][s]:
+                _korridor(karte, boden, hoehe, breite,
+                          raum.mitte_x, raum.mitte_y,
+                          gitter[z + 1][s].mitte_x, gitter[z + 1][s].mitte_y,
+                          korr_b)
+
+    # Objekte platzieren
+    alle_raeume = [r for reihe in gitter for r in reihe if r is not None]
+    for obj_def in grammatik.get("objekte", []):
+        obj_typ  = obj_def["typ"]
+        obj_char = kacheln.get(f"objekt_{obj_typ}", "?")
+        abstand  = obj_def.get("abstand_wand", 0)
+        position = obj_def.get("position", "zufall")
+
+        for raum in alle_raeume:
+            anzahl   = random.randint(obj_def["min"], obj_def["max"])
+            gesetzt  = 0
+            versuche = 0
+            while gesetzt < anzahl and versuche < 30:
+                versuche += 1
+                if position == "mitte":
+                    ox = raum.mitte_x + random.randint(-1, 1)
+                    oy = raum.mitte_y + random.randint(-1, 1)
+                else:
+                    x1 = raum.x1 + abstand
+                    x2 = raum.x2 - 1 - abstand
+                    y1 = raum.y1 + abstand
+                    y2 = raum.y2 - 1 - abstand
+                    if x1 > x2 or y1 > y2:
+                        break
+                    ox = random.randint(x1, x2)
+                    oy = random.randint(y1, y2)
+                if (0 <= oy < hoehe and 0 <= ox < breite
+                        and karte[oy][ox] == boden):
+                    karte[oy][ox] = obj_char
+                    gesetzt += 1
+
+    return ["".join(zeile) for zeile in karte]
+
+
+def _korridor(karte, boden, h, w, x1, y1, x2, y2, breite):
+    """L-foermiger Korridor mit konfigurierbarer Breite.
+
+    Fuer jede Breitenstufe (offset) wird ein eigener 1-breiter
+    Korridor gezeichnet — einmal horizontal, einmal vertikal versetzt.
+    """
+    for offset in range(breite):
+        # Horizontales Stueck bei y1+offset
+        for x in range(min(x1, x2), max(x1, x2) + 1):
+            ny = y1 + offset
+            if 0 <= ny < h and 0 <= x < w:
+                karte[ny][x] = boden
+        # Vertikales Stueck bei x2+offset
+        for y in range(min(y1, y2), max(y1, y2) + 1):
+            nx = x2 + offset
+            if 0 <= y < h and 0 <= nx < w:
+                karte[y][nx] = boden

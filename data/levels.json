@@ -23,5 +23,35 @@
       {"id": "lebensmittelkontrolleur","gewicht": 1, "staerke": 0.3}
     ],
     "bonus_ausgang_chance": 0.0
+  },
+  "pflanzenzuechtung": {
+    "algorithmus": "raster",
+    "raster_spalten": 3,
+    "raster_zeilen": 2,
+    "raster_belegung": 1.0,
+    "zonen_anzahl_min": 5,
+    "zonen_anzahl_max": 7,
+    "raeume_min": 6,
+    "raeume_max": 6,
+    "raum_breite_min": 7,
+    "raum_breite_max": 15,
+    "raum_hoehe_min": 5,
+    "raum_hoehe_max": 15,
+    "korridor_breite": 2,
+    "kacheln": {
+      "boden": ".",
+      "wand": "#",
+      "objekt_hochbeet": "H",
+      "objekt_pflanze":  "%"
+    },
+    "objekte": [
+      {"typ": "hochbeet", "min": 1, "max": 2, "position": "mitte",  "abstand_wand": 2},
+      {"typ": "pflanze",  "min": 2, "max": 4, "position": "zufall", "abstand_wand": 1}
+    ],
+    "gegner_pool": [
+      {"id": "gaerkeller_schimmel",    "gewicht": 3, "staerke": 0.2},
+      {"id": "lebensmittelkontrolleur","gewicht": 1, "staerke": 0.3}
+    ],
+    "bonus_ausgang_chance": 0.2
   }
 }

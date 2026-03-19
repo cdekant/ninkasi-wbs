@@ -27,7 +27,7 @@ from src.entities.item import typen_laden as items_laden
 from src.systems.kampf import KampfZustand, runde_ausfuehren
 from src.systems.speichern import tod_reset, STANDARD_AKTUELL, speichern, laden
 from src.ui.menu_anzeige import zeichne_menue
-from src.map.bsp import generiere_karte
+from src.map.karte import generiere_karte
 from src.map.hub import generiere_hub as _generiere_hub
 from src.systems import sichtfeld
 from src.systems import ki
@@ -153,13 +153,14 @@ HUB_ERKUNDET    = None
 
 def _initialisiere_level():
     """Generiert die Karte, setzt Spielerposition und spawnt Gegner.
-    Wird beim Start und nach dem Tod aufgerufen.
+    Wird beim Dungeon-Eintritt, Zonen-Wechsel und nach dem Tod aufgerufen.
     """
     global KARTE, spieler_x, spieler_y, gegner_auf_karte
     global TRANSPARENZ, FOV, ERKUNDET
     global DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y
 
-    KARTE = generiere_karte(alle_level["gaerkeller"], breite=config.BREITE, hoehe=config.HOEHE - 1)
+    level_name = aktuell.get("level_name", "pflanzenzuechtung")
+    KARTE = generiere_karte(alle_level[level_name], breite=config.BREITE, hoehe=config.HOEHE - 1)
 
     # Spieler auf die erste freie Bodenkachel setzen
     spieler_x, spieler_y = 1, 1
@@ -183,7 +184,8 @@ def _initialisiere_level():
                     max_dist = dist
                     DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y = x, y
 
-    _spawne_gegner(12)
+    zone_idx = aktuell.get("zone_index", 0)
+    _spawne_gegner(12 + zone_idx * 2)
 
     # Bodenloot zuruecksetzen (neue Karte, neues Loot)
     aktuell["bodenloot"] = []
@@ -196,13 +198,20 @@ def _initialisiere_level():
 
 
 def _spawne_gegner(anzahl):
-    """Waehlt Gegner gewichtet aus dem gegner_pool und platziert sie zufaellig."""
+    """Waehlt Gegner gewichtet aus dem gegner_pool und platziert sie zufaellig.
+
+    Die Staerke wird pro Zone um 5 % erhoeht (zone_index * 0.05).
+    """
     global gegner_auf_karte
     gegner_auf_karte = []
 
-    pool = alle_level["gaerkeller"].get("gegner_pool", [])
+    level_name = aktuell.get("level_name", "pflanzenzuechtung")
+    pool = alle_level[level_name].get("gegner_pool", [])
     if not pool:
         return
+
+    zone_idx     = aktuell.get("zone_index", 0)
+    staerke_mult = 1.0 + 0.05 * zone_idx
 
     freie = [
         (x, y)
@@ -213,7 +222,7 @@ def _spawne_gegner(anzahl):
 
     ids      = [e["id"]      for e in pool]
     weights  = [e["gewicht"] for e in pool]
-    staerken = {e["id"]: e["staerke"] for e in pool}
+    staerken = {e["id"]: min(1.0, e["staerke"] * staerke_mult) for e in pool}
 
     spawned = 0
     versuche = 0
@@ -317,10 +326,16 @@ def zeichne(console):
 
     # HUD (nur ausserhalb des Kampfes)
     if modus != "kampf":
+        zone_txt = ""
+        if ort == "dungeon":
+            z  = aktuell.get("zone_index",   0) + 1
+            zg = aktuell.get("zonen_gesamt", 1)
+            zone_txt = f"  Zone {z}/{zg}"
         hud = (f"EP: {spieler.ep_verfuegbar}  "
                f"LP: {spieler.lp}/{spieler.lp_max}  "
                f"PP: {spieler.pp}/{spieler.pp_max}  "
-               f"MP: {spieler.mp}/{spieler.mp_max}")
+               f"MP: {spieler.mp}/{spieler.mp_max}"
+               f"{zone_txt}")
         console.print(1, console.height - 1, hud, fg=(100, 200, 120))
         console.print(console.width - 32, console.height - 1,
                       "[TAB] Menue  [<] Hub  [Q] Beenden", fg=(80, 80, 80))
@@ -710,9 +725,13 @@ def _bewege(dx, dy):
             modus = "kampf"
             return
 
-    # Ausgang betreten -> zurueck zum Hub
+    # Ausgang betreten -> naechste Zone oder Hub
     if nx == DUNGEON_AUSGANG_X and ny == DUNGEON_AUSGANG_Y:
-        _zurueck_zum_hub()
+        if aktuell.get("zone_index", 0) < aktuell.get("zonen_gesamt", 1) - 1:
+            aktuell["zone_index"] += 1
+            _initialisiere_level()
+        else:
+            _zurueck_zum_hub()
         return
 
     # Freies Feld -> bewegen
@@ -762,15 +781,30 @@ def _hub_bewege(dx, dy):
 
 
 def _zurueck_zum_hub():
-    """Spieler verlaesst den Dungeon und kehrt zum Hub zurueck."""
+    """Spieler verlaesst den Dungeon und kehrt zum Hub zurueck.
+
+    LP, PP und MP werden vollstaendig aufgefuellt (Hub = sicherer Ort).
+    """
     global ort
+    spieler.lp = spieler.lp_max
+    spieler.pp = spieler.pp_max
+    spieler.mp = spieler.mp_max
     ort = "pilsstube"
     speichern(spieler, aktuell)
 
 
 def _betrete_dungeon():
-    """Spieler tritt durch den Braukessel ins Dungeon."""
+    """Spieler tritt durch den Braukessel ins Dungeon.
+
+    Wuerfelt die Zonen-Anzahl fuer diesen Run und startet bei Zone 0.
+    """
     global ort
+    level_name = aktuell.get("level_name", "pflanzenzuechtung")
+    grammatik  = alle_level[level_name]
+    zonen_min  = grammatik.get("zonen_anzahl_min", 1)
+    zonen_max  = grammatik.get("zonen_anzahl_max", 1)
+    aktuell["zone_index"]   = 0
+    aktuell["zonen_gesamt"] = random.randint(zonen_min, zonen_max)
     _initialisiere_level()
     ort = "dungeon"
 

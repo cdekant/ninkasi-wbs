@@ -14,6 +14,9 @@ VERSION = 1
 # Startwerte fuer den Level-Zustand
 STANDARD_AKTUELL = {
     "level_index": 0,
+    "level_name":  "pflanzenzuechtung",
+    "zone_index":  0,     # Aktuelle Zone (0-basiert) innerhalb des Levels
+    "zonen_gesamt": 1,    # Gesamtzahl Zonen fuer diesen Run (gewuerfelt beim Dungeon-Eintritt)
     "karten_seed": None,
     "spieler_x": 2,
     "spieler_y": 2,
@@ -81,7 +84,10 @@ def tod_reset(spieler, aktuell_dict):
     tod_zaehler = aktuell_dict.get("tod_zaehler", 0) + 1
     neues_aktuell = dict(STANDARD_AKTUELL)
     neues_aktuell["level_index"] = aktuell_dict.get("level_index", 0)
+    neues_aktuell["level_name"]  = aktuell_dict.get("level_name", "pflanzenzuechtung")
     neues_aktuell["tod_zaehler"] = tod_zaehler
-    # Karten-Seed neu wuerfeln beim naechsten Laden (None = zufaellig)
-    neues_aktuell["karten_seed"] = None
+    # Zonen- und Seed-Zustand wird beim naechsten Dungeon-Eintritt neu gewuerfelt
+    neues_aktuell["zone_index"]   = 0
+    neues_aktuell["zonen_gesamt"] = 1
+    neues_aktuell["karten_seed"]  = None
     return neues_aktuell

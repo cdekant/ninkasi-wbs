@@ -69,8 +69,16 @@
 
 ### Mittelfristig
 
+- [x] Zonen-System (Zonen-Abfolge pro Level, Uebergaenge, Schwierigkeits-Skalierung)
+  - [x] `src/systems/speichern.py`: zone_index, zonen_gesamt, level_name in STANDARD_AKTUELL + tod_reset
+  - [x] `game.py`: _betrete_dungeon wuerfelt zonen_gesamt; _bewege naechste Zone oder Hub; _spawne_gegner skaliert Staerke (+5%/Zone) und Anzahl (+2/Zone)
+  - [x] HUD: Zone X/Y im Dungeon angezeigt
+  - [x] HP/PP/MP-Auffuellung bei Hub-Rueckkehr
+- [x] Raster-Kartengenerator fuer Gewaechshaus-Level
+  - [x] `src/map/raster.py`: gleichmaessiges N×M-Raster, Raeume zentriert, Korridore konfigurierbar breit, Objekte mit position/abstand_wand
+  - [x] `src/map/karte.py`: Algorithmus-Dispatcher (bsp / raster)
+  - [x] `data/levels.json`: pflanzenzuechtung (raster 3×2, Hochbeete, Pflanzen, 5–7 Zonen)
 - [ ] Ausruestungs-System (Anlegen/Ablegen, Kampf-Integration, Waffe ersetzt basis_schaden)
-- [ ] Zonen-System (Zone-Graph, Hybrid-Struktur, Uebergaenge)
 - [ ] Mini-Map (Fog of War, Zone-Graph-Anzeige)
 - [ ] Schwarm-Gegner (SchwarmGegner-Klasse, AoE-Logik)
 - [ ] Noise-Generator fuer Aussen-Level (Aussaat, Ernte)
