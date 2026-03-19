@@ -49,8 +49,15 @@
   - [x] `game.py`: `starte()` laedt Speicherstand, zeigt "Weiter spielen" / "Neues Spiel" je nach Lage
   - [x] Auto-Speichern beim Hub-Eintritt, nach Tod-Reset und beim Beenden (Q)
 
+- [x] Entitaet-Basis (Refactor)
+  - [x] `src/entities/entitaet.py`: Basis-Klasse mit hp/hp_max, pp, verteidigung, resistenzen, angriffe, lebt
+  - [x] `Spieler(Entitaet)`: lp/lp_max als Alias-Properties auf hp/hp_max — kampf.py/speichern.py unveraendert
+  - [x] `Gegner(Entitaet)`: lebt-Property in Basis; als_dict/aus_dict via super()
+
 ### Mittelfristig
 
+- [ ] items.json + Inventar-System (Spieler.inventar, Item-Klasse, Loot)
+- [ ] weapons.json + Ausruestungsslots (Waffe ueberschreibt basis_schaden)
 - [ ] Zonen-System (Zone-Graph, Hybrid-Struktur, Uebergaenge)
 - [ ] Mini-Map (Fog of War, Zone-Graph-Anzeige)
 - [ ] Inventar-System (`data/items.json`, `data/weapons.json`)

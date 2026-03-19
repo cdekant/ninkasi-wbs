@@ -1,24 +1,45 @@
 """Spieler-Klasse mit EP- und Skill-System."""
 
 import src.systems.skills as skills_system
+from src.entities.entitaet import Entitaet
 
 
-class Spieler:
+class Spieler(Entitaet):
     """Repraesentiert den Spieler mit EP, Skills und Grundwerten."""
 
     def __init__(self, name="Brauer"):
-        self.name = name
+        super().__init__(name=name, symbol="@")
+        self.hp_max = 20
+        self.hp = 20
+        self.pp_max = 10
+        self.pp = 10
+        self.basis_schaden = 5
+        # Spieler-eigene Felder
         self.ep_gesamt = 0        # Alle je verdienten EP (nie zurueckgesetzt)
         self.ep_verfuegbar = 0    # Ausgebbare EP
         self.skills = {}          # {skill_id: stufe} — nur gekaufte Skills
         self.runden = 0           # Gesamte gespielte Runden
-        # Kampfwerte — werden bei Tod zurueckgesetzt (siehe speichern.py)
-        self.lp_max = 20
-        self.lp = 20
-        self.pp_max = 10
-        self.pp = 10
-        self.verteidigung = 0     # Basiswert; Skills und Ruestung addieren darauf
-        self.basis_schaden = 5    # Platzhalter bis Waffensystem existiert
+
+    # ------------------------------------------------------------------
+    # Alias-Properties: lp / lp_max als Anzeige-Namen fuer hp / hp_max.
+    # Kampfsystem, UI und Speichern koennen weiter .lp / .lp_max nutzen.
+    # ------------------------------------------------------------------
+
+    @property
+    def lp(self):
+        return self.hp
+
+    @lp.setter
+    def lp(self, value):
+        self.hp = value
+
+    @property
+    def lp_max(self):
+        return self.hp_max
+
+    @lp_max.setter
+    def lp_max(self, value):
+        self.hp_max = value
 
     # ------------------------------------------------------------------
     # EP
@@ -51,32 +72,32 @@ class Spieler:
 
     def als_dict(self):
         """Gibt den Spieler als Dictionary zurueck (fuer JSON-Speicherung)."""
-        return {
-            "name": self.name,
-            "ep_gesamt": self.ep_gesamt,
-            "ep_verfuegbar": self.ep_verfuegbar,
-            "skills": dict(self.skills),
-            "runden": self.runden,
-            "lp_max": self.lp_max,
-            "lp": self.lp,
-            "pp_max": self.pp_max,
-            "pp": self.pp,
-            "verteidigung": self.verteidigung,
-            "basis_schaden": self.basis_schaden,
-        }
+        d = super().als_dict()
+        # hp/hp_max als lp/lp_max speichern (Anzeige-Konvention + Save-Compat)
+        d["lp"] = d.pop("hp")
+        d["lp_max"] = d.pop("hp_max")
+        # Spieler-eigene Felder
+        d["ep_gesamt"] = self.ep_gesamt
+        d["ep_verfuegbar"] = self.ep_verfuegbar
+        d["skills"] = dict(self.skills)
+        d["runden"] = self.runden
+        return d
 
     @classmethod
     def aus_dict(cls, daten):
         """Erstellt einen Spieler aus einem Dictionary (aus JSON geladen)."""
         spieler = cls(name=daten.get("name", "Brauer"))
-        spieler.ep_gesamt = daten.get("ep_gesamt", 0)
-        spieler.ep_verfuegbar = daten.get("ep_verfuegbar", 0)
-        spieler.skills = daten.get("skills", {})
-        spieler.runden = daten.get("runden", 0)
-        spieler.lp_max = daten.get("lp_max", 20)
-        spieler.lp = daten.get("lp", spieler.lp_max)
+        # lp/lp_max (aktuelles Format) mit Fallback auf hp/hp_max
+        spieler.hp_max = daten.get("lp_max", daten.get("hp_max", 20))
+        spieler.hp     = daten.get("lp",     daten.get("hp", spieler.hp_max))
         spieler.pp_max = daten.get("pp_max", 10)
-        spieler.pp = daten.get("pp", spieler.pp_max)
-        spieler.verteidigung = daten.get("verteidigung", 0)
+        spieler.pp     = daten.get("pp", spieler.pp_max)
+        spieler.verteidigung  = daten.get("verteidigung", 0)
         spieler.basis_schaden = daten.get("basis_schaden", 5)
+        spieler.resistenzen   = dict(daten.get("resistenzen", {}))
+        spieler.angriffe      = list(daten.get("angriffe", []))
+        spieler.ep_gesamt     = daten.get("ep_gesamt", 0)
+        spieler.ep_verfuegbar = daten.get("ep_verfuegbar", 0)
+        spieler.skills        = daten.get("skills", {})
+        spieler.runden        = daten.get("runden", 0)
         return spieler

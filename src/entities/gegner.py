@@ -3,6 +3,8 @@
 import json
 import os
 
+from src.entities.entitaet import Entitaet
+
 
 def typen_laden():
     """Laedt alle Gegner-Typ-Definitionen aus data/enemies.json.
@@ -35,7 +37,7 @@ def typen_laden():
     return {k: v for k, v in daten.items() if not k.startswith("_")}
 
 
-class Gegner:
+class Gegner(Entitaet):
     """Repraesentiert einen einzelnen Gegner im Kampf (typ='einzel').
 
     Fuer Schwarm-Gegner (typ='schwarm') ist noch kein Code implementiert —
@@ -46,15 +48,15 @@ class Gegner:
                  ep_beute, angriffe, resistenzen=None, regen_hp=0, loot_pool=None,
                  verhalten="statisch", sicht_radius=20,
                  flucht_hp_pct=None, geschwindigkeit=1.0):
-        self.typ_id = typ_id
-        self.name = name
-        self.symbol = symbol
+        super().__init__(name=name, symbol=symbol)
         self.hp_max = hp_max
         self.hp = hp_max
         self.verteidigung = verteidigung
-        self.ep_beute = ep_beute
         self.angriffe = angriffe        # Liste von Angriffs-Dicts (schaden bereits skaliert)
         self.resistenzen = resistenzen if resistenzen is not None else {}
+        # Gegner-eigene Felder
+        self.typ_id = typ_id
+        self.ep_beute = ep_beute
         self.regen_hp = regen_hp
         self.loot_pool = loot_pool if loot_pool is not None else []
         # KI-Felder (aus JSON)
@@ -65,11 +67,6 @@ class Gegner:
         # KI-Laufzeitzustand (nicht serialisiert)
         self.ki_zustand = "idle"              # "idle" | "aktiv"
         self.bewegungs_zaehler = 0.0          # akkumuliert geschwindigkeit pro Zug
-
-    @property
-    def lebt(self):
-        """True solange der Gegner noch HP hat."""
-        return self.hp > 0
 
     @classmethod
     def aus_typ(cls, typ_id, alle_typen, staerke=1.0):
@@ -122,23 +119,18 @@ class Gegner:
 
     def als_dict(self):
         """Serialisiert den aktuellen Kampfzustand (fuer JSON-Spielstand)."""
-        return {
+        d = super().als_dict()
+        d.update({
             "typ_id": self.typ_id,
-            "name": self.name,
-            "symbol": self.symbol,
-            "hp_max": self.hp_max,
-            "hp": self.hp,
-            "verteidigung": self.verteidigung,
             "ep_beute": self.ep_beute,
-            "angriffe": self.angriffe,
-            "resistenzen": self.resistenzen,
             "regen_hp": self.regen_hp,
             "loot_pool": self.loot_pool,
             "verhalten": self.verhalten,
             "sicht_radius": self.sicht_radius,
             "flucht_hp_pct": self.flucht_hp_pct,
             "geschwindigkeit": self.geschwindigkeit,
-        }
+        })
+        return d
 
     @classmethod
     def aus_dict(cls, daten):

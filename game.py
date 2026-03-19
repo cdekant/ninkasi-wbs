@@ -503,7 +503,7 @@ def _zeichne_startbildschirm(console, zitat, hat_speicherstand=False):
     else:
         console.print(mx, 67, "[ ENTER ]  Neues Spiel", fg=(230, 215, 160))
         console.print(mx, 69, "[  Q    ]  Beenden",      fg=(150, 100, 70))
-    version_txt = "v0.5.5"
+    version_txt = "v0.5.6"
     console.print(w - 3 - len(version_txt), 71, version_txt, fg=(70, 45, 15))
 
 
