@@ -10,9 +10,7 @@
 
 ### Konzept
 
-Der Spieler kämpft sich durch alle Stufen der Bierherstellung — von der Aussaat des Getreides bis zum Verkauf an den Kunden. Jede Stufe ist ein eigenes Level mit zufälliger Karte.
-
-Der Spieler steuert Ninkasi, die frühgeschichtliche mesopotamische Göttin des Bierbrauens, die als Rachegöttin wiedererstanden ist, um die Welt vom "Dämon der Abstinenz", dem "Prohibitus" und seine dunklen Adepti Lobbyisti, gegen Veganer und Zölikultisten, intelligente Schleime, Schädlinge, Lebensmittelkontrolleure, schlitzohrige Landwirte, Gastronomen anzutreten und den Menschen die Drinkability zurückzubringen.
+Der Spieler steuert Ninkasi, die frühgeschichtliche mesopotamische Göttin des Bierbrauens, die als Rachegöttin wiedererstanden ist, um die Welt vom "Dämon der Abstinenz", dem "Prohibitus" und seine dunklen Adepti Lobbyisti, gegen Veganer und Zölikultisten, intelligente Schleime, Schädlinge, Lebensmittelkontrolleure, schlitzohrige Landwirte, Gastronomen anzutreten und den Menschen die Drinkability zurückzubringen. Es geht durch alle Stufen der Wertschöpfungskette, von der Aussaat des Getreides bis zum Verkauf im Getränkefachhandel.
 
 ### Ton
 
@@ -23,20 +21,20 @@ Humorvoll, sarkastisch, schwarz, respektlos, blutig, eklig, mikrobiologisch-schl
 Durchgehendes Thema für geheime Level?
 
 1. Pflanzenzüchtung
-1. Aussaat
-2. Ernte
-3. Getreidelager
-3. Mälzen
-3. Reinigen
-3. Schroten (geheimes Level: Schrotmühle)
-4. Maischen (geheimes Level: Sauergut)
-5. Läutern (geheimes Level: Maischefiltern)
-6. Kochen / Hopfengabe
-6. Whirlpool (geheimes Level: Bier-Rückgewinnung)
-7. Gärung (geheimes Level: Hefe-Propagation)
-8. Reifung
-9. Abfüllung
-10. Verkauf (Endboss)
+2. Aussaat
+3. Ernte
+4. Getreidelager
+5. Mälzen
+6. Reinigen
+7. Schroten (geheimes Level: Schrotmühle)
+8. Maischen (geheimes Level: Sauergut)
+9. Läutern (geheimes Level: Maischefiltern)
+10. Kochen / Hopfengabe
+11. Whirlpool (geheimes Level: Bier-Rückgewinnung)
+12. Gärung (geheimes Level: Hefe-Propagation)
+13. Reifung
+14. Abfüllung
+15. Verkauf (Endboss)
 
 ### Gegner
 
@@ -69,7 +67,7 @@ Level beschränkt.
 - **Hybrid-Struktur:** Baum-Graph + zufällige Querverbindungen
 - **Neu generiert:** Bei Tod UND Level-Wechsel (Seed wird nicht gespeichert)
 - **Zone-Graph:** Ein Pflicht-Ausgang (tief im Baum), zufällige Bonus/Geheim-Ausgänge
-- **Algorithmen:** BSP für Gebäude-Level, Noise für Außen-Level
+- **Algorithmen:** BSP für Gebäude-Level, Raster für gleichmäßige Innenraum-Level (Gewächshaus), Noise für Außen-Level
 - **Level-Grammatik:** Jedes Level definiert Algorithmus, Kacheln, Objekte, Gegner-Pool in `data/levels.json`
 - **Gegner-Pool:** Gewichtete Häufigkeit + Stärke-Skalierung pro Level (0.0–1.0)
 - **Geheim-Level:** Erben Grammatik vom regulären Level (`"basis": "..."`) mit überschriebenen Parametern (kleiner, höhere Loot-Chance)
@@ -83,7 +81,8 @@ Level beschränkt.
 - **Braukessel** (U+E000, `assets/tiles/braukessel.png`): Ausgang vom Hub ins Dungeon; Betreten startet neuen Run
 - **Dungeon-Ausgang** (`<`, hellblau): Liegt am vom Spieler-Spawn am weitesten entfernten Bodentile; Betreten kehrt zum Hub zurück
 - **Modus vs. Ort:** `modus` = "hub"/"kampf"/"tod" (Spielzustand); `ort` = "pilsstube"/"dungeon" (wo man sich befindet)
-- **TAB-Menü Skill-Baum** nur im Hub verfügbar (`ort == "pilsstube"`); **Inventar-Tab** in Hub und Dungeon verfügbar
+- **TAB-Menü Skill-Baum** nur im Hub verfügbar (`ort == "pilsstube"`); **Inventar-Tab** in Hub, Dungeon und im Kampf verfügbar
+- **15 Skill-Kategorien** (Details in HANDBUCH.md): Lebenskraft, Tennentänzerei, Kesselzorn, Sudwall, Kesselhexerei, SchnaPsi, Braukunde, Kornkunde, Maschinenkunde, Meta-Braukunde, Naturkunde, Zahlenkult, Schankkunst, Marktschreierei, Nachschub
 
 ## Technologie
 
@@ -121,7 +120,9 @@ bn/
 │   │   ├── gegner.py    # Gegner(Entitaet): typen_laden(), aus_typ() mit Staerke-Skalierung
 │   │   └── item.py      # typen_laden() — laedt data/items.json
 │   ├── map/             # Kartengenerierung
+│   │   ├── karte.py     # Algorithmus-Dispatcher: waehlt bsp/raster anhand Grammatik
 │   │   ├── bsp.py       # BSP-Generator (Raeume + Korridore + Objekte)
+│   │   ├── raster.py    # Raster-Generator (N×M-Gitter, Korridorbreite, Objekt-Positionierung)
 │   │   └── hub.py       # Hub-Generator: kreisrunder Raum (Radius 7), Braukessel-Ausgang
 │   ├── systems/         # Kampf, Inventar, Sichtfeld
 │   │   ├── kampf.py     # Kampfsystem: KampfZustand, runde_ausfuehren, Status-Effekte

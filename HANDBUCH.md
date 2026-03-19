@@ -316,9 +316,9 @@ Das ist das Roguelite-Versprechen: Der Tod kostet Zeit, nicht Fortschritt.
 
 ## Skill-Kategorien
 
-Die verfügbaren Skills sind in zwölf Kategorie aufgeteilt. Die Skills selbst sind keine Fähigkeiten, die der Charakter bekommt, es sind einerseits Modifier für die tatsächlichen Fähigkeiten (Level 5 in Hopfenmagie erhöht den Schaden aller Hopfen-Angriffszauber um 25 Prozent z.B.) und andererseits sind für bestimmte Fähigkeiten Mindestskill notwendig (für Hopfen-Creep braucht man mindestens Level 4 in Fortgeschrittene Hopfenmagie).
+Die verfügbaren Skills sind in 15 Kategorien aufgeteilt. Die Skills selbst sind keine Fähigkeiten, die der Charakter bekommt, es sind einerseits Modifier für die tatsächlichen Fähigkeiten (Level 5 in Hopfenmagie erhöht den Schaden aller Hopfen-Angriffszauber um 25 Prozent z.B.) und andererseits sind für bestimmte Fähigkeiten Mindestskill notwendig (für Hopfen-Creep braucht man mindestens Level 4 in Fortgeschrittene Hopfenmagie).
 
-### Körper
+### Lebenskraft – Vitalität
 
 **Der Bierbauch der Brauerin ist ebenso wie ihre Zöpfe ihr Stolz** – Nur mit Training übersteht sie die Strapazen von Schroten, Maischen, Ausschlagen und Anstellen.
 
@@ -326,57 +326,61 @@ Die verfügbaren Skills sind in zwölf Kategorie aufgeteilt. Die Skills selbst s
 
 - Saumagen
 
-### Bewegung
+### Tennentänzerei – Beweglichkeit
 
 **Agil und flink wie ein Wiesel ist sie Ninaksi, die zwei Ströme küsste** – Ausweichen von Angriffen, defekten Dampfventilen, Orientierung und Gewaltmärsche.
 
-### Waffen und Angriff
+### Kesselzorn – Waffen und Angriff
 
 **Ob Braupaddel, Milchrohrschlüssel oder mobile Keg-Anlage** – Wenn es beweglich ist, kann man es als Waffe verwenden (außer man kann es nicht tragen).
 
-### Rüstung und Verteidigung
+### Sudwall – Rüstung und Verteidigung
 
 **Die Verteidigung umfasst physische, magische, Psi, chemische und biologische Resistenzen** – Rüstungen zu tragen muss trainiert werden, möchte man nicht vom langsamsten Schleim eingeholt werden, Amulette, Ohrringe, Diademe sind leichter zu tragen und bieten oft magischen/Psi-Schutz
 
-### Bier-Magie
+### Kesselhexerei – Bier-Magie
 
 **Die Magie der Gaerung ist organisch, lebendig, unkontrollierbar** — Hefe tut was sie will, der Brauer lenkt sie nur. Bier-Magie wirkt auf (höhere) Lebewesen, Prozesse, Zufälle.
 
-### Schnaps-Psi oder SchnaPsi
+### SchnaPsi – Psi-Kraft
 
 **Das Psi der Destillation präzise, konzentrierte Klarheit** – SchnaPsi wirkt auf (niedere) Lebewesen, Materie, Zahlen, Technik. Psi-Punkte sind die Waehrung beider Systeme; welches System mehr verbraucht ist offen (`?`).
 
-### Brautechnologie
+### Braukunde
 
 **Ohne ein gerüttelt Maß an Brauerwissen ist Hopfen und Malz verloren** – ohne das Wissen über Brauprozesse und Geräte wird man sin in den dunkleren Ecken der Brauerei nur schwer behaupten können
 
-### Getreidetechnologie
+### Kornkunde
 
 **Das Wissen über Anbau, Ernte, Maelzen, Schroten ist eine eigene Form von Magie** – es erleichtert die Fortbewegung im Freien und den Kampf gegen viele Mikroorganismen
 
-### Anlagentechnik
+### Maschinenkunde
 
 **Als Anlagenflüsterer nutzt man die Maschinenumgebung situativ zu seinen Gunsten** – Begünstigt auch das Sammeln von Materialien und pro Run Verbesserungen
 
-### Verfahrenstechnik
+### Meta-Braukunde – Verfahrenstechnik
 
 **Als Meta-Skill-Tree holt sich Battle Ninkasi hier die letzten Optimierungen** – Prozessoptimierung, Effizienz, EP-Gewinn
 
-### Naturwissenschaften
+### Naturkunde
 
 **Die absolute Basis für viele fortgeschrittene Skills** – Biologie, Chemie, Mikrobiologie
 
-### Mathematik
+### Zahlenkult
 
 **Die letzte Stufe der Magie, die kaum eine Brauerin je erreichen wird ...** – Berechnungen, Rezepturen, Psi-Effizienz?
 
-### Gastronomie
+### Schankkunst – Gastronomie
 
 **Brauereinnen sind soziale Wesen und wissen wann sie freundlich zu sein haben** - das könnte auch die Kategorie Sozial sein
 
-### Handel und Marketin
+### Marktschreierei – Handel und Marketing
 
-### Logistik
+### Nachschub
+
+
+
+
 
 ### Offene Fragen
 

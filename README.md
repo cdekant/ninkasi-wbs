@@ -43,12 +43,14 @@ Siehe `HANDBUCH.md` fuer das vollstaendige Spieler-Handbuch.
 
 Fruehe Entwicklung. Laeufig mit:
 
-- Bewegung auf prozedural generierter Karte (BSP, Gaerkeller-Demo)
-- EP-System und Skill-Menue (TAB)
+- Level 1 Pflanzenzuechtung: Raster-Karte (3×2-Gitter, Gewaechshaus-Anmutung)
+- Zonen-System: 5–7 Zonen pro Level-Run, jede Zone etwas schwieriger (+5 % Staerke, +2 Gegner)
+- HP/PP/MP werden bei Hub-Rueckkehr vollstaendig aufgefuellt
+- EP-System und Skill-Menue (TAB im Hub); 15 Skill-Kategorien (Entwurf)
 - Gegner auf der Karte — Anlaufen startet rundenbasierten Kampf
 - Kampf-Panel mit HP-Balken, Kampf-Log und Status-Effekten (DoT, Debuffs)
 - Sichtfeld (FOV, Radius 8) und Fog of War — nur Erkundetes bleibt sichtbar
 - Gegner-KI: territorial, verfolgen, flucht; Geschwindigkeit und flucht_hp_pct je Typ
 - Tod-Reset: LP/PP auf Maximum, neue Karte, neue Gegner
-- Speichern/Laden: automatisch beim Hub-Eintritt, nach Tod und beim Beenden; Startbildschirm erkennt Speicherstand ("Weiter spielen" / "Neues Spiel")
-- Inventar-System: Loot-Drop nach Kampf, Auto-Pickup beim Betreten, TAB → Inventar-Menü (Hub + Dungeon + im Kampf), Consumables per ENTER benutzen
+- Speichern/Laden: automatisch beim Hub-Eintritt, nach Tod und beim Beenden
+- Inventar-System: Loot-Drop nach Kampf, Auto-Pickup, TAB → Inventar (Hub + Dungeon + im Kampf)
