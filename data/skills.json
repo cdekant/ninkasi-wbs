@@ -4,7 +4,7 @@
     {
       "id": "trinkfestigkeit",
       "name": "Trinkfestigkeit",
-      "kategorie": "Koerper",
+      "kategorie": "Lebenskraft",
       "beschreibung": "Alkohol hat im Brauerleben Vor- und Nachteile. Trinkfestigkeit mindert die negativen Effekte und verkuerzt deren Dauer — die angenehmen Seiten bleiben unveraendert.",
       "basis_kosten": 10,
       "voraussetzungen": [],

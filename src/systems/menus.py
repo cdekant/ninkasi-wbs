@@ -14,7 +14,23 @@ MENUES = [
 ]
 
 # Kategorie-Reihenfolge fuer die Skill-Liste
-KATEGORIE_REIHENFOLGE = ["Koerper", "Magie", "Braukunst", "Handel"]
+KATEGORIE_REIHENFOLGE = [
+    "Lebenskraft",      # Vitalitaet, LP-Boni, Trinkfestigkeit
+    "Tennentaenzerei",  # Beweglichkeit, Ausweichen
+    "Kesselzorn",       # Waffen und Angriff
+    "Sudwall",          # Ruestung und Verteidigung
+    "Kesselhexerei",    # Bier-Magie
+    "SchnaPsi",         # Psi-Kraft
+    "Braukunde",        # Brauprozess und Geraete
+    "Kornkunde",        # Anbau, Ernte, Maelzen
+    "Maschinenkunde",   # Anlagentechnik
+    "Meta-Braukunde",   # Verfahrenstechnik, EP-Effizienz
+    "Naturkunde",       # Biologie, Chemie, Mikrobiologie
+    "Zahlenkult",       # Berechnungen, Psi-Effizienz
+    "Schankkunst",      # Gastronomie, Soziales
+    "Marktschreierei",  # Handel und Marketing
+    "Nachschub",        # Logistik
+]
 
 
 def verfuegbare_menues(ort):
