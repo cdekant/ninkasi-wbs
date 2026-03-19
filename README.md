@@ -54,3 +54,4 @@ Fruehe Entwicklung. Laeufig mit:
 - Tod-Reset: LP/PP auf Maximum, neue Karte, neue Gegner
 - Speichern/Laden: automatisch beim Hub-Eintritt, nach Tod und beim Beenden
 - Inventar-System: Loot-Drop nach Kampf, Auto-Pickup, TAB → Inventar (Hub + Dungeon + im Kampf)
+- Custom-Tile-System: eigene 16×16 PNG-Sprites (Braukessel, Pflanze); `src/tiles.py` ist einzige Quelle der Wahrheit für Tile-Codepoints

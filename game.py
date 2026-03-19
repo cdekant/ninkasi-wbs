@@ -558,6 +558,7 @@ def starte(console, context):
     if hat_speicherstand:
         spieler = geladener_spieler
         aktuell = geladenes_aktuell
+        spieler.aktualisiere_lp_max(alle_skills)
 
     # Phase 1: Startbildschirm
     zitat = random.choice(_START_ZITATE)
@@ -677,6 +678,8 @@ def _handle_key(event):
                 sid = menus_system.ausgewaehlte_skill_id(alle_skills, menue_auswahl)
                 if sid:
                     ok, msg = spieler.skill_lernen(sid, alle_skills)
+                    if ok:
+                        spieler.aktualisiere_lp_max(alle_skills)
                     status_meldung = msg if ok else f"!{msg}"
 
             elif aktives_menue == "inventar" and spieler.inventar:

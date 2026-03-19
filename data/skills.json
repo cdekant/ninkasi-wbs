@@ -38,7 +38,7 @@
       "id": "gaergoettinleib",
       "name": "Gaergoettinleib",
       "kategorie": "Lebenskraft",
-      "beschreibung": "Wer tief genug ins Geheimnis der Gaerung eingedrungen ist, traegt den Leib einer Braugoettin — unverletzlich wie Kupferwand, strotzend wie reife Wuerze.",
+      "beschreibung": "Wer tief genug ins Geheimnis der Gaerung eingedrungen ist, traegt den Leib einer Braugoettin — unverletzlich wie Bronzeschild, strotzend wie reife Wuerze.",
       "basis_kosten": 30,
       "voraussetzungen": [{"id": "gaermutterleib", "stufe": 4}],
       "effekte": [
@@ -54,7 +54,7 @@
       "id": "leib_der_ninkasi",
       "name": "Leib der Ninkasi",
       "kategorie": "Lebenskraft",
-      "beschreibung": "Der Leib selbst wird zum Gaertank. Unverwuestlich, heilig, brodelnd. Wer diesen Weg vollendet, ist nicht mehr Mensch — ist Brauerin, ist Goettin, ist Bier.",
+      "beschreibung": "Der Leib selbst wird zum Gaertank. Unverwuestlich, heilig, brodelnd. Wenn Ninkasi diesen Weg vollendet, ist sie nicht mehr Mensch — sie ist Brauerin, ist Goettin, ist Bier.",
       "basis_kosten": 100,
       "voraussetzungen": [{"id": "gaergoettinleib", "stufe": 5}],
       "effekte": [

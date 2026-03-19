@@ -57,6 +57,8 @@ Level beschränkt.
 ### Darstellung
 - Aktuell: Cheepicus 16×16 Tileset (CP437) + custom Tiles via Unicode Private Use Area (U+E000+)
 - Custom Tiles: einzelne 16×16 PNGs, definiert in `src/tiles.py`, injiziert via `tileset.set_tile()`
+- **`src/tiles.py` ist die einzige Quelle der Wahrheit für PUA-Codepoints.** JSON-Dateien verwenden symbolische Namen (z.B. `"PFLANZE"`), die von `karte.py` beim Generieren aufgelöst werden — nie rohe Codepoints in JSON schreiben.
+- PUA-Cluster (U+E000–U+F8FF): Spezial E000–E03F (64), Umwelt E040–E13F (256), Brauerei E140–E23F (256), Architektur E240–E33F (256), Gegner E340–E3BF (128), Items E3C0–E43F (128), UI E440–E45F (32), Rest reserviert
 - Startbildschirm: 120×144 RGBA-Bild via Halbblock-Technik (▀, fg=oben, bg=unten) — doppelte Auflösung
 - Fenster: borderless (SDL_WINDOW_BORDERLESS), 120×72 Kacheln à 16×16 px
 - Weiterer Wechsel auf vollständiges Tile-Set möglich — Darstellung ist vollständig in `src/ui/` isoliert
@@ -120,7 +122,7 @@ bn/
 │   │   ├── gegner.py    # Gegner(Entitaet): typen_laden(), aus_typ() mit Staerke-Skalierung
 │   │   └── item.py      # typen_laden() — laedt data/items.json
 │   ├── map/             # Kartengenerierung
-│   │   ├── karte.py     # Algorithmus-Dispatcher: waehlt bsp/raster anhand Grammatik
+│   │   ├── karte.py     # Algorithmus-Dispatcher: waehlt bsp/raster anhand Grammatik; loest symbolische Tile-Namen auf
 │   │   ├── bsp.py       # BSP-Generator (Raeume + Korridore + Objekte)
 │   │   ├── raster.py    # Raster-Generator (N×M-Gitter, Korridorbreite, Objekt-Positionierung)
 │   │   └── hub.py       # Hub-Generator: kreisrunder Raum (Radius 7), Braukessel-Ausgang
@@ -138,7 +140,8 @@ bn/
     ├── Cheepicus_16x16.png        # Aktives Tileset (16×16 px, quadratisch, CP437)
     ├── ninkasi_brutality_120x144.png  # Startbildschirm-Hintergrundbild (Halbblock-Rendering)
     └── tiles/
-        └── braukessel.png         # Custom-Tile (16×16 px, U+E000) — Hub-Ausgang ins Dungeon
+        ├── braukessel.png         # Custom-Tile (16×16 px, U+E000, SPEZIAL) — Hub-Ausgang ins Dungeon
+        └── pflanze.png            # Custom-Tile (16×16 px, U+E040, UMWELT) — interaktive Pflanze
 ```
 
 ## Entwickler

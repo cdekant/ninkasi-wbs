@@ -1,6 +1,12 @@
 {
   "_hinweis": "Zentrales Register aller Effekt-Typen. einheit: 'pct' = Prozentwert, 'schaden_pro_runde' = DoT-Schaden. stapelbar: ob mehrere Quellen addiert werden. dauer_moeglich: ob der Effekt als Status-Effekt mit Ablauf-Runden auftreten kann.",
 
+  "lp_max_pct": {
+    "beschreibung": "Erhoeht das LP-Maximum [%]",
+    "einheit": "pct",
+    "stapelbar": true,
+    "dauer_moeglich": false
+  },
   "alkohol_negativ_pct": {
     "beschreibung": "Reduziert negative Alkohol-Effekte [%]",
     "einheit": "pct",

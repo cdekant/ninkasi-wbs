@@ -33,6 +33,12 @@ def lade_skills():
                         f"Unbekannter Effekttyp '{w['typ']}' in Skill '{skill['id']}' "
                         f"(Stufe {effekt['stufe']}). Bitte in data/effekttypen.json eintragen."
                     )
+            w = effekt.get("wert")
+            if w and w["typ"] not in bekannte_typen:
+                raise ValueError(
+                    f"Unbekannter Effekttyp '{w['typ']}' in Skill '{skill['id']}' "
+                    f"(Stufe {effekt['stufe']}). Bitte in data/effekttypen.json eintragen."
+                )
 
     return {skill["id"]: skill for skill in daten["skills"]}
 
@@ -50,8 +56,8 @@ def voraussetzungen_erfuellt(spieler, skill_def):
     Gibt (True, '') oder (False, Meldungstext) zurueck.
     """
     for vorraussetzung in skill_def.get("voraussetzungen", []):
-        benoetigt_id = vorraussetzung["skill_id"]
-        benoetigt_stufe = vorraussetzung["min_stufe"]
+        benoetigt_id = vorraussetzung["id"]
+        benoetigt_stufe = vorraussetzung["stufe"]
         aktuelle_stufe = spieler.skill_stufe(benoetigt_id)
         if aktuelle_stufe < benoetigt_stufe:
             return False, f"Benoetigt: {benoetigt_id} Stufe {benoetigt_stufe} (du hast Stufe {aktuelle_stufe})"
@@ -115,11 +121,13 @@ def effekt_summe(spieler, typ, alle_skills):
     for skill_id, stufe in spieler.skills.items():
         if skill_id not in alle_skills:
             continue
-        effekte = alle_skills[skill_id]["effekte"]
-        werte = effekte[stufe - 1].get("werte", [])
-        for w in werte:
+        stufe_def = alle_skills[skill_id]["effekte"][stufe - 1]
+        for w in stufe_def.get("werte", []):
             if w["typ"] == typ:
                 summe += w["wert"]
+        w = stufe_def.get("wert")
+        if w and w["typ"] == typ:
+            summe += w["wert"]
     return summe
 
 

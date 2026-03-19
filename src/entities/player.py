@@ -9,6 +9,7 @@ class Spieler(Entitaet):
 
     def __init__(self, name="Brauer"):
         super().__init__(name=name, symbol="@")
+        self.lp_max_basis = 20
         self.hp_max = 20
         self.hp = 20
         self.pp_max = 10
@@ -81,6 +82,11 @@ class Spieler(Entitaet):
         """Kauft die naechste Stufe eines Skills. Gibt (bool, meldung) zurueck."""
         return skills_system.skill_lernen(self, skill_id, alle_skills)
 
+    def aktualisiere_lp_max(self, alle_skills):
+        """Berechnet hp_max neu aus Basis-LP und Skill-Boni (lp_max_pct)."""
+        pct = skills_system.effekt_summe(self, "lp_max_pct", alle_skills)
+        self.hp_max = int(self.lp_max_basis * (1 + pct / 100))
+
     # ------------------------------------------------------------------
     # Serialisierung
     # ------------------------------------------------------------------
@@ -92,6 +98,7 @@ class Spieler(Entitaet):
         d["lp"] = d.pop("hp")
         d["lp_max"] = d.pop("hp_max")
         # Spieler-eigene Felder
+        d["lp_max_basis"] = self.lp_max_basis
         d["ep_gesamt"] = self.ep_gesamt
         d["ep_verfuegbar"] = self.ep_verfuegbar
         d["skills"] = dict(self.skills)
@@ -105,6 +112,7 @@ class Spieler(Entitaet):
         """Erstellt einen Spieler aus einem Dictionary (aus JSON geladen)."""
         spieler = cls(name=daten.get("name", "Brauer"))
         # lp/lp_max (aktuelles Format) mit Fallback auf hp/hp_max
+        spieler.lp_max_basis = daten.get("lp_max_basis", 20)
         spieler.hp_max = daten.get("lp_max", daten.get("hp_max", 20))
         spieler.hp     = daten.get("lp",     daten.get("hp", spieler.hp_max))
         spieler.pp_max = daten.get("pp_max", 10)
