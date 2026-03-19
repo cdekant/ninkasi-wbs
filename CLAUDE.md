@@ -83,7 +83,7 @@ Level beschränkt.
 - **Braukessel** (U+E000, `assets/tiles/braukessel.png`): Ausgang vom Hub ins Dungeon; Betreten startet neuen Run
 - **Dungeon-Ausgang** (`<`, hellblau): Liegt am vom Spieler-Spawn am weitesten entfernten Bodentile; Betreten kehrt zum Hub zurück
 - **Modus vs. Ort:** `modus` = "hub"/"kampf"/"tod" (Spielzustand); `ort` = "pilsstube"/"dungeon" (wo man sich befindet)
-- **TAB-Menü** nur im Hub verfügbar (`ort == "pilsstube"`), im Dungeon gesperrt
+- **TAB-Menü Skill-Baum** nur im Hub verfügbar (`ort == "pilsstube"`); **Inventar-Tab** in Hub und Dungeon verfügbar
 
 ## Technologie
 
@@ -107,9 +107,9 @@ bn/
 │   ├── skills.json      # Skill-Definitionen (Skelett — offen)
 │   ├── levels.json      # Level-Grammatiken (Algorithmus, Kacheln, Objekte, Gegner-Pool)
 │   ├── effekttypen.json # Zentrales Register aller Effekt-Typen (inkl. DoT, Debuffs)
-│   ├── enemies.json     # Gegner-Typ-Definitionen (einzel/schwarm, Angriffe, Resistenzen)
-│   ├── weapons.json     # (geplant)
-│   ├── items.json       # (geplant)
+│   ├── enemies.json     # Gegner-Typ-Definitionen (einzel/schwarm, Angriffe, Resistenzen, loot_pool)
+│   ├── items.json       # Item-Definitionen (verbrauchbar/waffe/schild/ruestung/material/quest; stapelbar, seltenheit, haltbarkeit_max)
+│   ├── weapons.json     # (aufgegangen in items.json)
 │   └── characters.json  # (geplant)
 ├── saves/               # Spielstände
 │   └── savegame.json
@@ -117,8 +117,9 @@ bn/
 │   ├── tiles.py         # Custom-Tile-Definitionen: Unicode-Platzhalter (U+E000+) + Dateipfade
 │   ├── entities/        # Spieler, Gegner, Items
 │   │   ├── entitaet.py  # Basis-Klasse: hp/hp_max, pp, mp, verteidigung, resistenzen, angriffe, lebt
-│   │   ├── player.py    # Spieler(Entitaet): EP, Skills, lp/lp_max-Aliases, Inventar (geplant)
-│   │   └── gegner.py    # Gegner(Entitaet): typen_laden(), aus_typ() mit Staerke-Skalierung
+│   │   ├── player.py    # Spieler(Entitaet): EP, Skills, lp/lp_max-Aliases, inventar, ausruestung
+│   │   ├── gegner.py    # Gegner(Entitaet): typen_laden(), aus_typ() mit Staerke-Skalierung
+│   │   └── item.py      # typen_laden() — laedt data/items.json
 │   ├── map/             # Kartengenerierung
 │   │   ├── bsp.py       # BSP-Generator (Raeume + Korridore + Objekte)
 │   │   └── hub.py       # Hub-Generator: kreisrunder Raum (Radius 7), Braukessel-Ausgang
@@ -127,8 +128,9 @@ bn/
 │   │   ├── ki.py        # Gegner-KI: ki_tick, verhalten (statisch/territorial/verfolgen/flucht)
 │   │   ├── sichtfeld.py # FOV: baue_transparenz, berechne_fov (tcod), Fog of War
 │   │   ├── skills.py    # Skill-Logik (laden, prüfen, kaufen)
-│   │   ├── menus.py     # Menue-Registry + State (verfügbar je ort: pilsstube/dungeon)
-│   │   └── speichern.py # Speichern/Laden + Tod-Reset (setzt LP/PP zurueck)
+│   │   ├── inventar.py  # Inventar-Logik: hinzufuegen, entfernen, benutzen
+│   │   ├── menus.py     # Menue-Registry + State (Skill-Baum: Hub; Inventar: Hub+Dungeon)
+│   │   └── speichern.py # Speichern/Laden + Tod-Reset (setzt LP/PP zurueck); bodenloot in aktuell
 │   └── ui/              # Darstellung, HUD
 │       └── menu_anzeige.py  # TAB-Menue-Overlay (Vollbild)
 └── assets/              # Tilesets und Bilder für tcod

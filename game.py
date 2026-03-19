@@ -4,6 +4,12 @@ import tcod
 import config
 
 try:
+    with open("VERSION", encoding="utf-8") as _vf:
+        _VERSION = "v" + _vf.read().split()[0]
+except Exception:
+    _VERSION = "v?"
+
+try:
     from PIL import Image as _PILImage
     _img = _PILImage.open("assets/ninkasi_brutality_120x144.png").convert("RGBA")
     _TITEL_PIXEL = list(_img.getdata())   # [(r,g,b,a), ...] flach, 120×144
@@ -14,8 +20,10 @@ except Exception:
 
 import src.systems.skills as skills_system
 import src.systems.menus as menus_system
+import src.systems.inventar as inventar_system
 from src.entities.player import Spieler
 from src.entities.gegner import typen_laden, Gegner
+from src.entities.item import typen_laden as items_laden
 from src.systems.kampf import KampfZustand, runde_ausfuehren
 from src.systems.speichern import tod_reset, STANDARD_AKTUELL, speichern, laden
 from src.ui.menu_anzeige import zeichne_menue
@@ -83,6 +91,7 @@ _TOTENKOPF = [
 
 alle_skills = skills_system.lade_skills()
 alle_gegner_typen = typen_laden()
+alle_items = items_laden()
 spieler = Spieler()
 
 # Spielmodus: "hub"   = Erkundung (Menues verfuegbar)
@@ -175,6 +184,9 @@ def _initialisiere_level():
                     DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y = x, y
 
     _spawne_gegner(12)
+
+    # Bodenloot zuruecksetzen (neue Karte, neues Loot)
+    aktuell["bodenloot"] = []
 
     # Sichtfeld initialisieren
     TRANSPARENZ = sichtfeld.baue_transparenz(KARTE)
@@ -286,6 +298,14 @@ def zeichne(console):
     if FOV[DUNGEON_AUSGANG_Y, DUNGEON_AUSGANG_X]:
         console.print(DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y, "<", fg=(80, 200, 255))
 
+    # Bodenloot — nur sichtbar wenn im FOV
+    for loot in aktuell.get("bodenloot", []):
+        if FOV[loot["y"], loot["x"]]:
+            item_def = alle_items.get(loot["id"])
+            if item_def:
+                console.print(loot["x"], loot["y"],
+                               item_def["symbol"], fg=tuple(item_def["farbe"]))
+
     # Gegner — nur sichtbar wenn im FOV
     for eintrag in gegner_auf_karte:
         if eintrag["gegner"].lebt and FOV[eintrag["y"], eintrag["x"]]:
@@ -312,7 +332,7 @@ def zeichne(console):
     # Menue-Overlay (uebermalt alles andere)
     if aktives_menue:
         verfuegbar = menus_system.verfuegbare_menues(ort)
-        zeichne_menue(console, aktives_menue, spieler, alle_skills,
+        zeichne_menue(console, aktives_menue, spieler, alle_skills, alle_items,
                       menue_auswahl, status_meldung, verfuegbar)
 
 
@@ -354,8 +374,13 @@ def _zeichne_kampf_panel(console):
 
     # --- Steuerungshinweis / Ergebnis ---
     if not zst.beendet:
-        console.print(2, y0 + KAMPF_PANEL_HOEHE - 1,
-                      "[LEERTASTE] Angreifen", fg=(80, 80, 80))
+        if aktives_menue:
+            console.print(2, y0 + KAMPF_PANEL_HOEHE - 1,
+                          "[ESC/TAB] Schliessen  [W/S] Navigieren  [ENTER] Benutzen",
+                          fg=(80, 80, 80))
+        else:
+            console.print(2, y0 + KAMPF_PANEL_HOEHE - 1,
+                          "[LEERTASTE] Angreifen  [TAB] Inventar", fg=(80, 80, 80))
     elif zst.ergebnis == "sieg":
         console.print(2, y0 + KAMPF_PANEL_HOEHE - 1,
                       f"SIEG!  [LEERTASTE] Weiter", fg=(100, 220, 100))
@@ -402,7 +427,7 @@ def _zeichne_hub(console):
     # Menue-Overlay
     if aktives_menue:
         verfuegbar = menus_system.verfuegbare_menues(ort)
-        zeichne_menue(console, aktives_menue, spieler, alle_skills,
+        zeichne_menue(console, aktives_menue, spieler, alle_skills, alle_items,
                       menue_auswahl, status_meldung, verfuegbar)
 
 
@@ -505,7 +530,7 @@ def _zeichne_startbildschirm(console, zitat, hat_speicherstand=False):
     else:
         console.print(mx, 67, "[ ENTER ]  Neues Spiel", fg=(230, 215, 160))
         console.print(mx, 69, "[  Q    ]  Beenden",      fg=(150, 100, 70))
-    version_txt = "v0.5.7"
+    version_txt = _VERSION
     console.print(w - 3 - len(version_txt), 71, version_txt, fg=(70, 45, 15))
 
 
@@ -573,10 +598,35 @@ def _handle_key(event):
         return
 
     # -----------------------------------------------------------------------
-    # Kampf laeuft — nur Kampf-Eingabe
+    # Kampf laeuft — Kampf-Eingabe oder Inventar
     # -----------------------------------------------------------------------
     if modus == "kampf":
-        if sym in (tcod.event.KeySym.SPACE, tcod.event.KeySym.RETURN):
+        if aktives_menue:
+            # Inventar im Kampf navigieren
+            if sym in (tcod.event.KeySym.ESCAPE, tcod.event.KeySym.TAB):
+                aktives_menue = None
+                status_meldung = ""
+            elif sym in (tcod.event.KeySym.UP, tcod.event.KeySym.w):
+                menue_auswahl = max(0, menue_auswahl - 1)
+                status_meldung = ""
+            elif sym in (tcod.event.KeySym.DOWN, tcod.event.KeySym.s):
+                n = menus_system.anzahl_auswaehlbar_fuer(aktives_menue, alle_skills, spieler)
+                if n > 0:
+                    menue_auswahl = min(n - 1, menue_auswahl + 1)
+                status_meldung = ""
+            elif sym == tcod.event.KeySym.RETURN:
+                if aktives_menue == "inventar" and spieler.inventar:
+                    idx = max(0, min(menue_auswahl, len(spieler.inventar) - 1))
+                    item_id = spieler.inventar[idx]["id"]
+                    ok, msg = inventar_system.benutzen(
+                        spieler.inventar, item_id, spieler, alle_items)
+                    status_meldung = msg if ok else f"!{msg}"
+                    menue_auswahl = min(menue_auswahl, max(0, len(spieler.inventar) - 1))
+        elif sym == tcod.event.KeySym.TAB:
+            aktives_menue = "inventar"
+            menue_auswahl = 0
+            status_meldung = ""
+        elif sym in (tcod.event.KeySym.SPACE, tcod.event.KeySym.RETURN):
             _kampf_aktion()
         return
 
@@ -602,8 +652,9 @@ def _handle_key(event):
             status_meldung = ""
 
         elif sym in (tcod.event.KeySym.DOWN, tcod.event.KeySym.s):
-            n = menus_system.anzahl_auswaehlbar(alle_skills)
-            menue_auswahl = min(n - 1, menue_auswahl + 1)
+            n = menus_system.anzahl_auswaehlbar_fuer(aktives_menue, alle_skills, spieler)
+            if n > 0:
+                menue_auswahl = min(n - 1, menue_auswahl + 1)
             status_meldung = ""
 
         elif sym == tcod.event.KeySym.RETURN:
@@ -612,6 +663,15 @@ def _handle_key(event):
                 if sid:
                     ok, msg = spieler.skill_lernen(sid, alle_skills)
                     status_meldung = msg if ok else f"!{msg}"
+
+            elif aktives_menue == "inventar" and spieler.inventar:
+                idx = max(0, min(menue_auswahl, len(spieler.inventar) - 1))
+                item_id = spieler.inventar[idx]["id"]
+                ok, msg = inventar_system.benutzen(
+                    spieler.inventar, item_id, spieler, alle_items)
+                status_meldung = msg if ok else f"!{msg}"
+                # Cursor korrigieren wenn Item verbraucht wurde
+                menue_auswahl = min(menue_auswahl, max(0, len(spieler.inventar) - 1))
 
         return
 
@@ -662,6 +722,16 @@ def _bewege(dx, dy):
         spieler.ep_hinzufuegen(1)
         FOV = sichtfeld.berechne_fov(TRANSPARENZ, spieler_x, spieler_y)
         sichtfeld.aktualisiere_erkundet(ERKUNDET, FOV)
+
+        # Item auf dem Feld aufheben (automatisch)
+        bodenloot = aktuell.setdefault("bodenloot", [])
+        aufzuheben = [l for l in bodenloot if l["x"] == nx and l["y"] == ny]
+        for loot in aufzuheben:
+            item_def = alle_items.get(loot["id"])
+            if item_def:
+                inventar_system.hinzufuegen(spieler.inventar, loot["id"], item_def)
+            bodenloot.remove(loot)
+
         # Gegner reagieren auf den Spielerzug
         angreifer = ki.ki_tick(gegner_auf_karte, spieler_x, spieler_y, KARTE)
         if angreifer:
@@ -729,6 +799,14 @@ def _kampf_aktion():
 
     # Kampf beendet — Ergebnis verarbeiten
     if aktiver_kampf.ergebnis == "sieg":
+        # Loot-Wuerfel: jedes Item im loot_pool wird unabhaengig gewuerfelt
+        for loot_eintrag in aktiver_kampf.gegner.loot_pool:
+            if random.random() < loot_eintrag["chance"]:
+                aktuell.setdefault("bodenloot", []).append({
+                    "x": aktiver_kampf_eintrag["x"],
+                    "y": aktiver_kampf_eintrag["y"],
+                    "id": loot_eintrag["id"],
+                })
         if aktiver_kampf_eintrag in gegner_auf_karte:
             gegner_auf_karte.remove(aktiver_kampf_eintrag)
         aktiver_kampf = None

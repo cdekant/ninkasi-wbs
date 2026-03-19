@@ -31,7 +31,7 @@ python main.py
 | A / Pfeil links | Links |
 | D / Pfeil rechts | Rechts |
 | LEERTASTE / ENTER | Kampfrunde ausfuehren (im Kampf) |
-| TAB | Menue oeffnen/wechseln |
+| TAB | Menue oeffnen/wechseln (auch im Kampf: Inventar) |
 | ESC | Menue schliessen |
 | Q | Beenden |
 
@@ -51,3 +51,4 @@ Fruehe Entwicklung. Laeufig mit:
 - Gegner-KI: territorial, verfolgen, flucht; Geschwindigkeit und flucht_hp_pct je Typ
 - Tod-Reset: LP/PP auf Maximum, neue Karte, neue Gegner
 - Speichern/Laden: automatisch beim Hub-Eintritt, nach Tod und beim Beenden; Startbildschirm erkennt Speicherstand ("Weiter spielen" / "Neues Spiel")
+- Inventar-System: Loot-Drop nach Kampf, Auto-Pickup beim Betreten, TAB → Inventar-Menü (Hub + Dungeon + im Kampf), Consumables per ENTER benutzen

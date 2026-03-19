@@ -9,7 +9,8 @@ import src.systems.skills as skills_system
 
 # Reihenfolge = TAB-Reihenfolge
 MENUES = [
-    {"id": "skills", "name": "Skill-Baum", "verfuegbar": ["pilsstube"]},
+    {"id": "skills",   "name": "Skill-Baum", "verfuegbar": ["pilsstube"]},
+    {"id": "inventar", "name": "Inventar",   "verfuegbar": ["pilsstube", "dungeon"]},
 ]
 
 # Kategorie-Reihenfolge fuer die Skill-Liste
@@ -77,3 +78,12 @@ def ausgewaehlte_skill_id(alle_skills, auswahl):
 def anzahl_auswaehlbar(alle_skills):
     """Anzahl auswaehlbarer Skills in der Flachliste (fuer Navigations-Grenzen)."""
     return sum(1 for it in skill_flat_liste(alle_skills) if it["typ"] == "skill")
+
+
+def anzahl_auswaehlbar_fuer(menue_id, alle_skills, spieler):
+    """Anzahl navigierbarer Eintraege fuer das aktive Menue."""
+    if menue_id == "skills":
+        return anzahl_auswaehlbar(alle_skills)
+    if menue_id == "inventar":
+        return len(spieler.inventar)
+    return 0

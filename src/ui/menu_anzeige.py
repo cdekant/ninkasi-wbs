@@ -25,11 +25,18 @@ F_FOOTER       = ( 80,  80,  80)
 BG_DUNKEL      = ( 12,  12,  25)
 BG_AUSGEWAEHLT = ( 40,  40,  80)
 
+# Seltenheits-Farben (fuer Item-Liste)
+_SELTENHEIT_FARBE = {
+    "gewoehnlich":   (200, 200, 200),
+    "ungewoehnlich": ( 80, 200,  80),
+    "selten":        ( 80, 150, 255),
+}
+
 # ---------------------------------------------------------------------------
 # Oeffentliche Funktion
 # ---------------------------------------------------------------------------
 
-def zeichne_menue(console, menue_id, spieler, alle_skills, auswahl,
+def zeichne_menue(console, menue_id, spieler, alle_skills, alle_items, auswahl,
                   status_meldung, verfuegbare_liste):
     """Zeichnet das aktive Menue als Vollbild-Overlay.
 
@@ -64,6 +71,8 @@ def zeichne_menue(console, menue_id, spieler, alle_skills, auswahl,
     # Inhalt (gibt Detail-Text fuer ausgewaehlten Eintrag zurueck)
     if menue_id == "skills":
         detail = _skills_inhalt(console, spieler, alle_skills, auswahl, w, h)
+    elif menue_id == "inventar":
+        detail = _inventar_inhalt(console, spieler, alle_items, auswahl, w, h)
     else:
         detail = ""
 
@@ -82,6 +91,8 @@ def zeichne_menue(console, menue_id, spieler, alle_skills, auswahl,
     # Steuerungshinweis
     if menue_id == "skills":
         footer = "[ENTER] kaufen   [TAB] naechstes   [Shift+TAB] vorheriges   [ESC] schliessen"
+    elif menue_id == "inventar":
+        footer = "[ENTER] benutzen   [TAB] naechstes   [Shift+TAB] vorheriges   [ESC] schliessen"
     else:
         footer = "[TAB] naechstes   [Shift+TAB] vorheriges   [ESC] schliessen"
     console.print(2, h - 2, footer[: w - 4], fg=F_FOOTER)
@@ -182,6 +193,112 @@ def _skills_inhalt(console, spieler, alle_skills, auswahl, w, h):
 # ---------------------------------------------------------------------------
 # Zeichenhilfen
 # ---------------------------------------------------------------------------
+
+def _inventar_inhalt(console, spieler, alle_items, auswahl, w, h):
+    """Zeichnet das Inventar. Gibt Detail-Text zurueck."""
+    inventar = spieler.inventar
+
+    # Kopfzeile
+    gesamt = sum(s["anzahl"] for s in inventar)
+    console.print(2, 4, f"Gegenstaende: {gesamt}   Slots: {len(inventar)}", fg=F_EP_INFO)
+
+    if not inventar:
+        console.print(2, 6, "Das Inventar ist leer.", fg=F_GESPERRT)
+        return ""
+
+    auswahl = max(0, min(auswahl, len(inventar) - 1))
+
+    y = 6
+    max_y = h - 6
+
+    for i, slot in enumerate(inventar):
+        if y >= max_y:
+            break
+        item_def = alle_items.get(slot["id"])
+        if item_def is None:
+            continue
+
+        ist_sel = (i == auswahl)
+        seltenheit = item_def.get("seltenheit", "gewoehnlich")
+        farbe_sel = _SELTENHEIT_FARBE.get(seltenheit, (200, 200, 200))
+
+        if ist_sel:
+            console.draw_rect(1, y, w - 2, 1, 32, bg=BG_AUSGEWAEHLT)
+            marker = "\u25ba"
+            farbe = F_AUSGEWAEHLT
+        else:
+            marker = " "
+            farbe = farbe_sel
+
+        symbol = item_def["symbol"]
+        name = item_def["name"][:26]
+
+        # Menge oder Haltbarkeit
+        if item_def.get("stapelbar", True):
+            menge_str = f"x{slot['anzahl']}"
+        else:
+            ht = slot.get("haltbarkeit", item_def.get("haltbarkeit_max", "?"))
+            ht_max = item_def.get("haltbarkeit_max", "?")
+            menge_str = f"[{ht}/{ht_max}]"
+
+        kat = item_def["kategorie"]
+        zeile = f"  {marker} {symbol} {name:<26} {menge_str:>8}   {kat}"
+        console.print(1, y, zeile, fg=farbe)
+        y += 1
+
+    # Detail-Text fuer ausgewaehltes Item
+    sel_slot = inventar[auswahl]
+    item_def = alle_items.get(sel_slot["id"])
+    if not item_def:
+        return ""
+    return _item_detail(item_def)
+
+
+def _item_detail(item_def):
+    """Baut den Detail-Text fuer die Infozeile am unteren Rand."""
+    beschreibung = item_def.get("beschreibung", "")
+    kat = item_def["kategorie"]
+
+    if kat == "verbrauchbar":
+        effekt = item_def.get("effekt")
+        if effekt:
+            typ_map = {"heilen_lp": "LP", "heilen_pp": "PP", "heilen_mp": "MP"}
+            ziel = typ_map.get(effekt["typ"], effekt["typ"])
+            return f"{beschreibung}  |  +{effekt['wert']} {ziel}"
+        return beschreibung
+
+    if kat == "waffe":
+        bonus = item_def.get("schaden_bonus", 0)
+        typ   = item_def.get("schaden_typ", "nah")
+        rw    = item_def.get("reichweite", 1)
+        slot  = item_def.get("slot", "waffe_haupt")
+        ht    = item_def.get("haltbarkeit_max", "?")
+        return f"{beschreibung}  |  +{bonus} Schaden ({typ}), Reichweite {rw}, Slot: {slot}, Haltbarkeit: {ht}"
+
+    if kat == "schild":
+        block_w = item_def.get("block_wert", 0)
+        block_c = int(item_def.get("block_chance", 0) * 100)
+        ht      = item_def.get("haltbarkeit_max", "?")
+        res     = item_def.get("resistenz_boni", {})
+        res_str = ", ".join(f"{k} +{v}%" for k, v in res.items())
+        detail = f"{beschreibung}  |  Block: {block_w} Schaden, {block_c}% Chance, Haltbarkeit: {ht}"
+        if res_str:
+            detail += f", Resistenzen: {res_str}"
+        return detail
+
+    if kat == "ruestung":
+        bonus = item_def.get("verteidigung_bonus", 0)
+        slot  = item_def.get("slot", "koerper")
+        ht    = item_def.get("haltbarkeit_max", "?")
+        res   = item_def.get("resistenz_boni", {})
+        res_str = ", ".join(f"{k} +{v}%" for k, v in res.items())
+        detail = f"{beschreibung}  |  +{bonus} Verteidigung, Slot: {slot}, Haltbarkeit: {ht}"
+        if res_str:
+            detail += f", Resistenzen: {res_str}"
+        return detail
+
+    return beschreibung
+
 
 def _rahmen(console, x, y, w, h):
     """Zeichnet einen doppelten Rahmen."""

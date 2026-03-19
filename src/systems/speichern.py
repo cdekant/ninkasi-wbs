@@ -18,6 +18,7 @@ STANDARD_AKTUELL = {
     "spieler_x": 2,
     "spieler_y": 2,
     "tod_zaehler": 0,
+    "bodenloot": [],   # [{x, y, id}] — Items auf dem Dungeon-Boden
 }
 
 

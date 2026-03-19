@@ -54,13 +54,24 @@
   - [x] `Spieler(Entitaet)`: lp/lp_max als Alias-Properties auf hp/hp_max — kampf.py/speichern.py unveraendert
   - [x] `Gegner(Entitaet)`: lebt-Property in Basis; als_dict/aus_dict via super()
 
+- [x] Inventar-System
+  - [x] `data/items.json`: verbrauchbar/waffe/ruestung/material/quest; stapelbar, seltenheit, haltbarkeit_max
+  - [x] `src/entities/item.py`: typen_laden()
+  - [x] `src/systems/inventar.py`: hinzufuegen (stapelbar vs. Instanz), entfernen, benutzen (heilen_lp/pp/mp)
+  - [x] `src/entities/player.py`: inventar, ausruestung (6 Slots) + Serialisierung
+  - [x] `src/systems/speichern.py`: bodenloot in STANDARD_AKTUELL
+  - [x] `data/enemies.json`: loot_pool befuellt (gaerkeller_schimmel, lebensmittelkontrolleur)
+  - [x] `src/systems/menus.py`: Inventar-Tab (Hub + Dungeon), anzahl_auswaehlbar_fuer()
+  - [x] `src/ui/menu_anzeige.py`: Inventar-Renderer (seltenheit-Farben, Haltbarkeit, Detail-Text)
+  - [x] `game.py`: bodenloot, Loot-Drop nach Sieg, Auto-Pickup beim Betreten, Rendering, ENTER benutzen
+  - [x] `game.py`: Inventar per TAB auch im Kampf oeffnen; Verbrauchsmaterialien ohne Kampfrunde benutzen
+  - [x] `game.py`: Versionsnummer aus `VERSION`-Datei lesen (keine Doppelpflege mehr)
+
 ### Mittelfristig
 
-- [ ] items.json + Inventar-System (Spieler.inventar, Item-Klasse, Loot)
-- [ ] weapons.json + Ausruestungsslots (Waffe ueberschreibt basis_schaden)
+- [ ] Ausruestungs-System (Anlegen/Ablegen, Kampf-Integration, Waffe ersetzt basis_schaden)
 - [ ] Zonen-System (Zone-Graph, Hybrid-Struktur, Uebergaenge)
 - [ ] Mini-Map (Fog of War, Zone-Graph-Anzeige)
-- [ ] Inventar-System (`data/items.json`, `data/weapons.json`)
 - [ ] Schwarm-Gegner (SchwarmGegner-Klasse, AoE-Logik)
 - [ ] Noise-Generator fuer Aussen-Level (Aussaat, Ernte)
 

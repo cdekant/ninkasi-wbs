@@ -1,0 +1,116 @@
+{
+  "_hinweis": "Item-Definitionen. kategorie: verbrauchbar/waffe/schild/ruestung/material/quest. stapelbar: true stapelt nach anzahl, false erzeugt Einzelinstanz mit haltbarkeit. seltenheit: gewoehnlich/ungewoehnlich/selten. effekt (verbrauchbar): {typ, wert} — Typen: heilen_lp/heilen_pp/heilen_mp. Waffe: schaden_bonus, schaden_typ, reichweite, haltbarkeit_max, slot (waffe_haupt/waffe_neben), effekte, skill_voraussetzung. Schild: block_wert, block_chance, resistenz_boni, haltbarkeit_max, slot=waffe_neben, bewegungs_malus, skill_voraussetzung. Ruestung: verteidigung_bonus, resistenz_boni, haltbarkeit_max, slot (kopf/koerper/beine/accessoire), bewegungs_malus, skill_voraussetzung.",
+
+  "hefepaste": {
+    "id": "hefepaste",
+    "name": "Hefepaste",
+    "beschreibung": "Konzentrierte Bierhefe aus dem Gaerkeller. Eklig, aber heilend.",
+    "kategorie": "verbrauchbar",
+    "symbol": "!",
+    "farbe": [220, 180, 80],
+    "stapelbar": true,
+    "seltenheit": "gewoehnlich",
+    "effekt": {"typ": "heilen_lp", "wert": 8}
+  },
+
+  "hopfen_extrakt": {
+    "id": "hopfen_extrakt",
+    "name": "Hopfenextrakt",
+    "beschreibung": "Bitterstoffe aus frischen Hopfendolden. Laedt die Psi-Reserven.",
+    "kategorie": "verbrauchbar",
+    "symbol": "!",
+    "farbe": [80, 200, 80],
+    "stapelbar": true,
+    "seltenheit": "gewoehnlich",
+    "effekt": {"typ": "heilen_pp", "wert": 10}
+  },
+
+  "malzwasser": {
+    "id": "malzwasser",
+    "name": "Malzwasser",
+    "beschreibung": "Verduenntes Malzextrakt. Staerkt die magischen Reserven.",
+    "kategorie": "verbrauchbar",
+    "symbol": "!",
+    "farbe": [180, 120, 60],
+    "stapelbar": true,
+    "seltenheit": "gewoehnlich",
+    "effekt": {"typ": "heilen_mp", "wert": 10}
+  },
+
+  "schimmelsporen": {
+    "id": "schimmelsporen",
+    "name": "Schimmelsporen",
+    "beschreibung": "Getrocknete Sporen des Gaerkeller-Schimmels. Vielleicht spaeter nuetzlich.",
+    "kategorie": "material",
+    "symbol": "*",
+    "farbe": [140, 120, 80],
+    "stapelbar": true,
+    "seltenheit": "gewoehnlich",
+    "effekt": null
+  },
+
+  "kontrolleur_akte": {
+    "id": "kontrolleur_akte",
+    "name": "Kontrolleur-Akte",
+    "beschreibung": "Dichte Buerokratie. Schwer, nutzlos und leicht feucht.",
+    "kategorie": "material",
+    "symbol": "*",
+    "farbe": [180, 180, 140],
+    "stapelbar": true,
+    "seltenheit": "gewoehnlich",
+    "effekt": null
+  },
+
+  "braupaddel": {
+    "id": "braupaddel",
+    "name": "Braupaddel",
+    "beschreibung": "Ein massiver Holzstiel mit breitem Paddel. Aus dem Sudhaus geliehen — oder gestohlen.",
+    "kategorie": "waffe",
+    "symbol": "/",
+    "farbe": [180, 130, 80],
+    "stapelbar": false,
+    "seltenheit": "gewoehnlich",
+    "schaden_bonus": 2,
+    "schaden_typ": "nah",
+    "reichweite": 1,
+    "haltbarkeit_max": 30,
+    "slot": "waffe_haupt",
+    "effekte": [],
+    "skill_voraussetzung": null
+  },
+
+  "gaerschuerze": {
+    "id": "gaerschuerze",
+    "name": "Gaerschuerze",
+    "beschreibung": "Lederbesetzte Schuerze aus dem Gaerkeller. Bietet Schutz gegen biologische Spritzer.",
+    "kategorie": "ruestung",
+    "symbol": "[",
+    "farbe": [160, 100, 60],
+    "stapelbar": false,
+    "seltenheit": "gewoehnlich",
+    "verteidigung_bonus": 1,
+    "resistenz_boni": {"biologisch": 10},
+    "haltbarkeit_max": 40,
+    "slot": "koerper",
+    "bewegungs_malus": 0.0,
+    "skill_voraussetzung": null
+  },
+
+  "gaerkeller_schaumdeckel": {
+    "id": "gaerkeller_schaumdeckel",
+    "name": "Gaerkeller-Schaumdeckel",
+    "beschreibung": "Massiver Edelstahldeckel eines Gaertanks. Schwer, aber biologisch versiegelt.",
+    "kategorie": "schild",
+    "symbol": "0",
+    "farbe": [160, 180, 200],
+    "stapelbar": false,
+    "seltenheit": "gewoehnlich",
+    "block_wert": 3,
+    "block_chance": 0.25,
+    "resistenz_boni": {"biologisch": 15},
+    "haltbarkeit_max": 50,
+    "slot": "waffe_neben",
+    "bewegungs_malus": 0.0,
+    "skill_voraussetzung": null
+  }
+}

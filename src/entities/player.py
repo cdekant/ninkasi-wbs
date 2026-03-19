@@ -21,6 +21,19 @@ class Spieler(Entitaet):
         self.ep_verfuegbar = 0    # Ausgebbare EP
         self.skills = {}          # {skill_id: stufe} — nur gekaufte Skills
         self.runden = 0           # Gesamte gespielte Runden
+        # Inventar: Liste von Slots {"id": str, "anzahl": int} oder
+        #           {"id": str, "anzahl": 1, "haltbarkeit": int} fuer Waffen/Ruestungen
+        self.inventar = []
+        # Ausruestungsslots: None oder Inventar-Slot-Dict
+        self.ausruestung = {
+            "waffe_haupt":  None,
+            "waffe_neben":  None,   # Waffe oder Schild
+            "kopf":         None,
+            "koerper":      None,
+            "beine":        None,
+            "accessoire_1": None,
+            "accessoire_2": None,
+        }
 
     # ------------------------------------------------------------------
     # Alias-Properties: lp / lp_max als Anzeige-Namen fuer hp / hp_max.
@@ -83,6 +96,8 @@ class Spieler(Entitaet):
         d["ep_verfuegbar"] = self.ep_verfuegbar
         d["skills"] = dict(self.skills)
         d["runden"] = self.runden
+        d["inventar"] = list(self.inventar)
+        d["ausruestung"] = dict(self.ausruestung)
         return d
 
     @classmethod
@@ -104,4 +119,10 @@ class Spieler(Entitaet):
         spieler.ep_verfuegbar = daten.get("ep_verfuegbar", 0)
         spieler.skills        = daten.get("skills", {})
         spieler.runden        = daten.get("runden", 0)
+        spieler.inventar      = list(daten.get("inventar", []))
+        spieler.ausruestung   = daten.get("ausruestung", {
+            "waffe_haupt": None, "waffe_neben": None,
+            "kopf": None, "koerper": None, "beine": None,
+            "accessoire_1": None, "accessoire_2": None,
+        })
         return spieler

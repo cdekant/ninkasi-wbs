@@ -4,7 +4,7 @@ lang: de-DE
 
 # Ninkasi – Wiedergeburt der Bier-Schlächterin
 
-Roguelite-Terminal-RPG. Du bist die als intoxierte Erynne auferstandene mesopotamische Biergöttin Ninkasi. Die Welt ist verrückt geworden und du musst dich gegen verrückte Anti-Alkoholiker, Zombie-Lobbyisten und jede Menge mutierte Schleime zur Wehr setzen. Am Ende musst du das Amok gelaufene vegane Konstrukt Nüchternikum besiegen und der Welt durch Bier Frieden bringen.
+Roguelite-Terminal-RPG. Du bist die als intoxierte Erynne auferstandene mesopotamische Biergöttin Ninkasi. Die Welt steht am Abgrund und wird beherrscht von durchgeknallten Anti-Alkoholikern, Zombie-Lobbyisten und jeder Menge mutierter Schleime. Am Ende musst du das Amok gelaufene vegane Konstrukt Prohibitus besiegen und der Welt durch Bier Frieden bringen.
 
 Kaempfe dich durch alle Stufen der Wertschöpfungskette — von der Aussaat bis zum
 Getränkefachgroßhandel. Jedes Level ist eine andere Etappe der Braukette, mit zufälliger Karte und passenden (und unpassenden) Gegnern.
@@ -18,8 +18,9 @@ Getränkefachgroßhandel. Jedes Level ist eine andere Etappe der Braukette, mit 
 5. [Erkundung](#erkundung)
 6. [Gegner](#gegner)
 7. [Kampf](#kampf)
-8. [Tod und Neubeginn](#tod-und-neubeginn)
-9. [Skill-Kategorien (Entwurf)](#skill-kategorien)
+8. [Inventar](#inventar)
+9. [Tod und Neubeginn](#tod-und-neubeginn)
+10. [Skill-Kategorien (Entwurf)](#skill-kategorien)
 
 ## Spielprinzip
 
@@ -248,6 +249,57 @@ erwartet.
 
 - **Sieg:** Gegner faellt auf 0 HP — ihr erhaltet EP und kehrt zur Erkundung zurueck.
 - **Niederlage:** Ninkasi faellt auf 0 LP — Tod-Reset (siehe naechstes Kapitel).
+
+
+## Inventar
+
+### Loot
+
+Besiegte Gegner hinterlassen manchmal Gegenstaende auf dem Boden — erkennbar an
+ihrem Symbol (`!` fuer Traenke, `*` fuer Materialien, `/` fuer Waffen, `[` fuer Ruestungen).
+Tritt auf das Feld des gefallenen Gegners, um alles automatisch aufzuheben.
+
+### Inventar oeffnen
+
+**TAB** (im Hub, im Dungeon oder mitten im Kampf) oeffnet das Inventar-Menue.
+Im Gegensatz zum Skill-Baum ist das Inventar ueberall zugaenglich — du kannst
+also mitten im Kampf einen Heiltrank benutzen, ohne eine Kampfrunde zu opfern.
+
+### Gegenstandstypen
+
+| Kategorie | Symbol | Wirkung |
+|---|---|---|
+| **Verbrauchbar** | `!` | ENTER benutzt das Item sofort (z.B. LP/PP/MP heilen) |
+| **Material** | `*` | Kann nicht direkt benutzt werden — Rohstoff fuer spaetere Systeme |
+| **Waffe** | `/` | Ausrüsten — noch nicht implementiert |
+| **Rüstung** | `[` | Ausrüsten — noch nicht implementiert |
+
+### Seltenheit
+
+Items sind farbkodiert nach Seltenheit:
+
+| Farbe | Seltenheit |
+|---|---|
+| Weiss | Gewoehnlich |
+| Gruen | Ungewoehnlich |
+| Blau | Selten |
+
+### Stapeln und Haltbarkeit
+
+Verbrauchbare und Materialien stapeln — mehrere Exemplare belegen einen Slot.
+Waffen und Ruestungen stapeln nicht: jedes Exemplar ist eine eigene Instanz mit
+eigener Haltbarkeit `[aktuell/max]`. Der Haltbarkeits-Mechanismus
+(Abbau, Reparatur) folgt mit dem Ausrüstungs-System.
+
+### Steuerung im Inventar-Menue
+
+| Taste | Wirkung |
+|---|---|
+| **W** / Pfeil oben | Auswahl nach oben |
+| **S** / Pfeil unten | Auswahl nach unten |
+| **ENTER** | Item benutzen |
+| **TAB** | Zum naechsten Tab wechseln |
+| **ESC** | Menue schliessen |
 
 
 ## Tod und Neubeginn
