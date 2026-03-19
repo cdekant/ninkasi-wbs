@@ -64,8 +64,6 @@ def zeichne_menue(console, menue_id, spieler, alle_skills, auswahl,
     # Inhalt (gibt Detail-Text fuer ausgewaehlten Eintrag zurueck)
     if menue_id == "skills":
         detail = _skills_inhalt(console, spieler, alle_skills, auswahl, w, h)
-    elif menue_id == "pilsstube":
-        detail = _pilsstube_inhalt(console, w, h)
     else:
         detail = ""
 
@@ -179,17 +177,6 @@ def _skills_inhalt(console, spieler, alle_skills, auswahl, w, h):
     return f"Stufe {nst}: {effekt}"
 
 
-def _pilsstube_inhalt(console, w, h):
-    zeilen = [
-        "Manni wischt die Theke ab und schaut dich mitleidig an.",
-        "",
-        '"Na, wieder zurueck aus dem Gaerkeller?"',
-        '"Noch nichts zu kaufen hier. Aber das Bier ist kalt."',
-    ]
-    start_y = h // 2 - len(zeilen) // 2
-    for i, z in enumerate(zeilen):
-        console.print(w // 2, start_y + i, z, fg=(180, 150, 100), alignment=tcod.CENTER)
-    return ""
 
 
 # ---------------------------------------------------------------------------

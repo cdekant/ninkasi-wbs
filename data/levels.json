@@ -19,8 +19,8 @@
     ],
     "gegner_pool": [
       {"id": "wildhefe",              "gewicht": 4, "staerke": 0.3},
-      {"id": "gaerkeller_schimmel",   "gewicht": 3, "staerke": 0.4},
-      {"id": "lebensmittelkontrolleur","gewicht": 1, "staerke": 0.5}
+      {"id": "gaerkeller_schimmel",   "gewicht": 3, "staerke": 0.3},
+      {"id": "lebensmittelkontrolleur","gewicht": 1, "staerke": 0.3}
     ],
     "bonus_ausgang_chance": 0.0
   }

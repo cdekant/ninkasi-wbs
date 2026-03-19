@@ -1,4 +1,6 @@
-"""Hub-Karte (Mannis Pilsstube): kreisrunder Raum um die Bildschirmmitte."""
+"""Hub-Karte: kreisrunder Raum um die Bildschirmmitte."""
+
+from src.tiles import BRAUKESSEL
 
 HUB_RADIUS = 7
 
@@ -27,11 +29,11 @@ def generiere_hub(breite, hoehe):
     # Ausgang als separates Objekt — '.' bleibt im Karten-String,
     # damit FOV / Transparenz korrekt funktionieren.
     ausgang = {
-        "symbol": "\u03a9",          # Ω  (CP437 234)
+        "symbol": BRAUKESSEL,          # eigenes Tile (U+E000)
         "x":      cx,
         "y":      cy,
         "typ":    "ausgang",
-        "farbe":  (255, 140, 0),     # Orange wie Feuer / Braukessel
+        "farbe":  (255, 255, 255),   # Weiss = originale PNG-Farben ungefaerbt
         "name":   "Braukessel (Ausgang)",
     }
 

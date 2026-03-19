@@ -17,7 +17,7 @@ import src.systems.menus as menus_system
 from src.entities.player import Spieler
 from src.entities.gegner import typen_laden, Gegner
 from src.systems.kampf import KampfZustand, runde_ausfuehren
-from src.systems.speichern import tod_reset, STANDARD_AKTUELL
+from src.systems.speichern import tod_reset, STANDARD_AKTUELL, speichern, laden
 from src.ui.menu_anzeige import zeichne_menue
 from src.map.bsp import generiere_karte
 from src.map.hub import generiere_hub as _generiere_hub
@@ -90,7 +90,7 @@ spieler = Spieler()
 #             "tod"   = Tod-Screen (nur Auferstehen moeglich)
 modus = "hub"
 
-# Ort: "pilsstube" = Hub (Mannis Pilsstube) | "dungeon" = laufender Run
+# Ort: "pilsstube" = Hub | "dungeon" = laufender Run
 ort = "pilsstube"
 
 # Menue-Zustand
@@ -122,6 +122,10 @@ TRANSPARENZ = None
 FOV         = None
 ERKUNDET    = None
 
+# Dungeon-Ausgang (Rueckkehr zum Hub)
+DUNGEON_AUSGANG_X = 0
+DUNGEON_AUSGANG_Y = 0
+
 # Hub-Zustand
 HUB_KARTE      = []
 HUB_OBJEKTE    = []
@@ -144,6 +148,7 @@ def _initialisiere_level():
     """
     global KARTE, spieler_x, spieler_y, gegner_auf_karte
     global TRANSPARENZ, FOV, ERKUNDET
+    global DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y
 
     KARTE = generiere_karte(alle_level["gaerkeller"], breite=config.BREITE, hoehe=config.HOEHE - 1)
 
@@ -158,7 +163,18 @@ def _initialisiere_level():
             continue
         break
 
-    _spawne_gegner(3)
+    # Ausgang auf dem Bodentile am weitesten vom Spieler
+    max_dist = -1
+    DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y = spieler_x, spieler_y
+    for y, zeile in enumerate(KARTE):
+        for x, kachel in enumerate(zeile):
+            if kachel == ".":
+                dist = abs(x - spieler_x) + abs(y - spieler_y)
+                if dist > max_dist:
+                    max_dist = dist
+                    DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y = x, y
+
+    _spawne_gegner(12)
 
     # Sichtfeld initialisieren
     TRANSPARENZ = sichtfeld.baue_transparenz(KARTE)
@@ -266,6 +282,10 @@ def zeichne(console):
                     console.print(x, y, zeichen, fg=(20, 20, 20))
             # Nie gesehen: nicht zeichnen (bleibt schwarz)
 
+    # Dungeon-Ausgang
+    if FOV[DUNGEON_AUSGANG_Y, DUNGEON_AUSGANG_X]:
+        console.print(DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y, "<", fg=(80, 200, 255))
+
     # Gegner — nur sichtbar wenn im FOV
     for eintrag in gegner_auf_karte:
         if eintrag["gegner"].lebt and FOV[eintrag["y"], eintrag["x"]]:
@@ -281,8 +301,8 @@ def zeichne(console):
                f"LP: {spieler.lp}/{spieler.lp_max}  "
                f"PP: {spieler.pp}/{spieler.pp_max}")
         console.print(1, console.height - 1, hud, fg=(100, 200, 120))
-        console.print(console.width - 20, console.height - 1,
-                      "[TAB] Menue  [Q] Beenden", fg=(80, 80, 80))
+        console.print(console.width - 32, console.height - 1,
+                      "[TAB] Menue  [<] Hub  [Q] Beenden", fg=(80, 80, 80))
 
     # Kampf-Panel
     if modus == "kampf" and aktiver_kampf:
@@ -290,7 +310,7 @@ def zeichne(console):
 
     # Menue-Overlay (uebermalt alles andere)
     if aktives_menue:
-        verfuegbar = menus_system.verfuegbare_menues(modus)
+        verfuegbar = menus_system.verfuegbare_menues(ort)
         zeichne_menue(console, aktives_menue, spieler, alle_skills,
                       menue_auswahl, status_meldung, verfuegbar)
 
@@ -348,7 +368,7 @@ def _zeichne_kampf_panel(console):
 # ---------------------------------------------------------------------------
 
 def _zeichne_hub(console):
-    """Hub (Mannis Pilsstube) zeichnen."""
+    """Hub zeichnen."""
     console.clear()
 
     # Karte mit FOV — warme Bodenfarbe (Holz/Stroh) statt Dungeon-Grau
@@ -375,11 +395,11 @@ def _zeichne_hub(console):
            f"PP: {spieler.pp}/{spieler.pp_max}")
     console.print(1, console.height - 1, hud, fg=(100, 200, 120))
     console.print(console.width - 38, console.height - 1,
-                  "[TAB] Menue  [\u03a9] Dungeon  [Q] Beenden", fg=(80, 80, 80))
+                  "[TAB] Menue  [Kessel] Dungeon  [Q] Beenden", fg=(80, 80, 80))
 
     # Menue-Overlay
     if aktives_menue:
-        verfuegbar = menus_system.verfuegbare_menues(modus)
+        verfuegbar = menus_system.verfuegbare_menues(ort)
         zeichne_menue(console, aktives_menue, spieler, alle_skills,
                       menue_auswahl, status_meldung, verfuegbar)
 
@@ -425,7 +445,7 @@ def _zeichne_tod_screen(console):
 # Spielschleife
 # ---------------------------------------------------------------------------
 
-def _zeichne_startbildschirm(console, zitat):
+def _zeichne_startbildschirm(console, zitat, hat_speicherstand=False):
     """Startbildschirm: Hintergrundbild (Halbblock), Titel-Overlay, Menue."""
     console.clear()
     w = console.width
@@ -475,25 +495,45 @@ def _zeichne_startbildschirm(console, zitat):
     console.print((w - len(zitat)) // 2, 63, zitat, fg=(160, 100, 40))
     for x in range(25, w - 25):
         console.print(x, 65, "-", fg=(80, 50, 15))
-    mx = (w - 24) // 2
-    console.print(mx, 67, "[ ENTER ]  Neues Spiel", fg=(230, 215, 160))
-    console.print(mx, 69, "[  Q    ]  Beenden",      fg=(150, 100, 70))
-    version_txt = "v0.5.3"
+    mx = (w - 26) // 2
+    if hat_speicherstand:
+        console.print(mx, 66, "[ ENTER ]  Weiter spielen", fg=(230, 215, 160))
+        console.print(mx, 68, "[  N    ]  Neues Spiel",    fg=(180, 140, 80))
+        console.print(mx, 70, "[  Q    ]  Beenden",        fg=(150, 100, 70))
+    else:
+        console.print(mx, 67, "[ ENTER ]  Neues Spiel", fg=(230, 215, 160))
+        console.print(mx, 69, "[  Q    ]  Beenden",      fg=(150, 100, 70))
+    version_txt = "v0.5.5"
     console.print(w - 3 - len(version_txt), 71, version_txt, fg=(70, 45, 15))
 
 
 def starte(console, context):
+    global spieler, aktuell
+
+    # Speicherstand pruefen
+    geladener_spieler, geladenes_aktuell = laden()
+    hat_speicherstand = geladener_spieler is not None
+    if hat_speicherstand:
+        spieler = geladener_spieler
+        aktuell = geladenes_aktuell
+
     # Phase 1: Startbildschirm
     zitat = random.choice(_START_ZITATE)
     im_start = True
     while im_start:
-        _zeichne_startbildschirm(console, zitat)
+        _zeichne_startbildschirm(console, zitat, hat_speicherstand)
         context.present(console)
         for event in tcod.event.wait():
             if isinstance(event, tcod.event.Quit):
                 raise SystemExit()
             if isinstance(event, tcod.event.KeyDown):
                 if event.sym in (tcod.event.KeySym.RETURN, tcod.event.KeySym.SPACE):
+                    # Weiter spielen (oder neues Spiel wenn kein Save vorhanden)
+                    im_start = False
+                elif event.sym == tcod.event.KeySym.n and hat_speicherstand:
+                    # Neues Spiel trotz vorhandenem Speicherstand
+                    spieler = Spieler()
+                    aktuell = dict(STANDARD_AKTUELL)
                     im_start = False
                 elif event.sym == tcod.event.KeySym.q:
                     raise SystemExit()
@@ -549,9 +589,9 @@ def _handle_key(event):
 
         elif sym == tcod.event.KeySym.TAB:
             if shift:
-                aktives_menue = menus_system.vorheriges_menue(aktives_menue, modus)
+                aktives_menue = menus_system.vorheriges_menue(aktives_menue, ort)
             else:
-                aktives_menue = menus_system.naechstes_menue(aktives_menue, modus)
+                aktives_menue = menus_system.naechstes_menue(aktives_menue, ort)
             menue_auswahl = 0
             status_meldung = ""
 
@@ -578,7 +618,7 @@ def _handle_key(event):
     # -----------------------------------------------------------------------
 
     if sym == tcod.event.KeySym.TAB:
-        verfuegbar = menus_system.verfuegbare_menues(modus)
+        verfuegbar = menus_system.verfuegbare_menues(ort)
         if verfuegbar:
             aktives_menue = verfuegbar[0]["id"]
             menue_auswahl = 0
@@ -591,6 +631,7 @@ def _handle_key(event):
         elif sym in (tcod.event.KeySym.LEFT,  tcod.event.KeySym.a): bewegen(-1,  0)
         elif sym in (tcod.event.KeySym.RIGHT, tcod.event.KeySym.d): bewegen( 1,  0)
         elif sym == tcod.event.KeySym.q:
+            speichern(spieler, aktuell)
             raise SystemExit()
 
 
@@ -606,6 +647,11 @@ def _bewege(dx, dy):
             aktiver_kampf_eintrag = eintrag
             modus = "kampf"
             return
+
+    # Ausgang betreten -> zurueck zum Hub
+    if nx == DUNGEON_AUSGANG_X and ny == DUNGEON_AUSGANG_Y:
+        _zurueck_zum_hub()
+        return
 
     # Freies Feld -> bewegen
     if ist_betretbar(nx, ny):
@@ -643,6 +689,13 @@ def _hub_bewege(dx, dy):
             sichtfeld.aktualisiere_erkundet(HUB_ERKUNDET, HUB_FOV)
 
 
+def _zurueck_zum_hub():
+    """Spieler verlaesst den Dungeon und kehrt zum Hub zurueck."""
+    global ort
+    ort = "pilsstube"
+    speichern(spieler, aktuell)
+
+
 def _betrete_dungeon():
     """Spieler tritt durch den Braukessel ins Dungeon."""
     global ort
@@ -661,6 +714,7 @@ def _tod_auferstehen():
     sichtfeld.aktualisiere_erkundet(HUB_ERKUNDET, HUB_FOV)
     ort   = "pilsstube"
     modus = "hub"
+    speichern(spieler, aktuell)
 
 
 def _kampf_aktion():

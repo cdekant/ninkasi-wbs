@@ -1,30 +1,29 @@
 """Menue-Registry und State-Hilfsfunktionen.
 
-MENUES definiert welche Menues in welchem Spielmodus verfuegbar sind.
-Modi:  "hub"  = zwischen den Runs (Mannis Pilsstube)
-       "run"  = aktives Level
+MENUES definiert welche Menues an welchem Ort verfuegbar sind.
+Ort:  "pilsstube" = Hub
+      "dungeon"   = aktiver Run
 """
 
 import src.systems.skills as skills_system
 
 # Reihenfolge = TAB-Reihenfolge
 MENUES = [
-    {"id": "skills",    "name": "Skill-Baum",       "verfuegbar": ["hub"]},
-    {"id": "pilsstube", "name": "Mannis Pilsstube",  "verfuegbar": ["hub"]},
+    {"id": "skills", "name": "Skill-Baum", "verfuegbar": ["pilsstube"]},
 ]
 
 # Kategorie-Reihenfolge fuer die Skill-Liste
 KATEGORIE_REIHENFOLGE = ["Koerper", "Magie", "Braukunst", "Handel"]
 
 
-def verfuegbare_menues(modus):
-    """Gibt Liste aller im aktuellen Modus freigeschalteten Menue-Definitionen zurueck."""
-    return [m for m in MENUES if modus in m["verfuegbar"]]
+def verfuegbare_menues(ort):
+    """Gibt Liste aller am aktuellen Ort freigeschalteten Menue-Definitionen zurueck."""
+    return [m for m in MENUES if ort in m["verfuegbar"]]
 
 
-def naechstes_menue(aktuelles_id, modus):
+def naechstes_menue(aktuelles_id, ort):
     """Gibt die ID des naechsten verfuegbaren Menues zurueck (zyklisch)."""
-    ids = [m["id"] for m in verfuegbare_menues(modus)]
+    ids = [m["id"] for m in verfuegbare_menues(ort)]
     if not ids:
         return None
     if aktuelles_id not in ids:
@@ -32,9 +31,9 @@ def naechstes_menue(aktuelles_id, modus):
     return ids[(ids.index(aktuelles_id) + 1) % len(ids)]
 
 
-def vorheriges_menue(aktuelles_id, modus):
+def vorheriges_menue(aktuelles_id, ort):
     """Gibt die ID des vorherigen verfuegbaren Menues zurueck (zyklisch)."""
-    ids = [m["id"] for m in verfuegbare_menues(modus)]
+    ids = [m["id"] for m in verfuegbare_menues(ort)]
     if not ids:
         return None
     if aktuelles_id not in ids:

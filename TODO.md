@@ -44,7 +44,10 @@
   - [x] `src/entities/gegner.py`: KI-Felder in __init__/aus_typ/als_dict/aus_dict; ki_zustand + bewegungs_zaehler als Laufzeitzustand
   - [x] `src/systems/ki.py`: ki_tick (statisch/territorial/verfolgen/flucht), geschwindigkeit-Akkumulation, flucht_hp_pct-Override, _schritt_zu/_schritt_weg
   - [x] `game.py`: ki_tick nach jedem Spielerzug; Gegner-Angriff loest Kampf aus
-- [ ] Speichern/Laden in die Spielschleife integrieren
+- [x] Hub-Dungeon-Rueckkehr: `<`-Kachel am weitesten Punkt vom Spawn, Betritt kehrt zum Hub zurueck
+- [x] Speichern/Laden in die Spielschleife integrieren
+  - [x] `game.py`: `starte()` laedt Speicherstand, zeigt "Weiter spielen" / "Neues Spiel" je nach Lage
+  - [x] Auto-Speichern beim Hub-Eintritt, nach Tod-Reset und beim Beenden (Q)
 
 ### Mittelfristig
 

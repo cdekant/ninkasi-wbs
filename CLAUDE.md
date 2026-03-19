@@ -57,9 +57,11 @@ Level beschränkt.
 - **Charaktererstellung:** Flexible Archetypen statt starrer Klassen
 
 ### Darstellung
-- Start: ASCII
-- Wechsel auf Tiles später möglich — Darstellung ist vollständig in `src/ui/`
-  isoliert, Umbau betrifft nur diese eine Schicht
+- Aktuell: Cheepicus 16×16 Tileset (CP437) + custom Tiles via Unicode Private Use Area (U+E000+)
+- Custom Tiles: einzelne 16×16 PNGs, definiert in `src/tiles.py`, injiziert via `tileset.set_tile()`
+- Startbildschirm: 120×144 RGBA-Bild via Halbblock-Technik (▀, fg=oben, bg=unten) — doppelte Auflösung
+- Fenster: borderless (SDL_WINDOW_BORDERLESS), 120×72 Kacheln à 16×16 px
+- Weiterer Wechsel auf vollständiges Tile-Set möglich — Darstellung ist vollständig in `src/ui/` isoliert
 
 ### Karten-System (Design-Entscheidungen)
 
@@ -74,6 +76,14 @@ Level beschränkt.
 - **Mini-Map:** Fog of War (nur Erkundetes sichtbar), aktuelle Zone hervorgehoben, Ausgänge erst bei Entdeckung, alles neu nach Tod
 - **Items:** Eigene `data/items.json`, Pflichtfeld `kategorie` (verbrauchbar, waffe, ruestung, material, quest)
 - **Objekte vs. Items:** Objekte bleiben auf der Karte (Gärtank, Hecke); Items wandern ins Inventar; Objekte haben `loot_pool`
+
+### Hub-System
+
+- **Hub** (`src/map/hub.py`): kreisrunder Raum (Radius 7) um die Bildschirmmitte; eigener FOV/Fog-of-War-Zustand
+- **Braukessel** (U+E000, `assets/tiles/braukessel.png`): Ausgang vom Hub ins Dungeon; Betreten startet neuen Run
+- **Dungeon-Ausgang** (`<`, hellblau): Liegt am vom Spieler-Spawn am weitesten entfernten Bodentile; Betreten kehrt zum Hub zurück
+- **Modus vs. Ort:** `modus` = "hub"/"kampf"/"tod" (Spielzustand); `ort` = "pilsstube"/"dungeon" (wo man sich befindet)
+- **TAB-Menü** nur im Hub verfügbar (`ort == "pilsstube"`), im Dungeon gesperrt
 
 ## Technologie
 
@@ -90,8 +100,9 @@ Level beschränkt.
 
 ```
 bn/
-├── main.py              # Einstiegspunkt, startet das Spiel (100×56, Cheepicus 16×16)
-├── game.py              # Hauptspielschleife (Bewegung, Kampf, Spawn, Rendering)
+├── main.py              # Einstiegspunkt: Tileset laden (Cheepicus + custom tiles), Fenster öffnen
+├── config.py            # Zentrale Anzeige-Konfiguration: BREITE, HOEHE, KACHEL_PX, SDL_FLAGS
+├── game.py              # Hauptspielschleife (Bewegung, Kampf, Spawn, Rendering, Hub, Tod-Screen)
 ├── data/                # Alle Spieldaten als JSON
 │   ├── skills.json      # Skill-Definitionen (Skelett — offen)
 │   ├── levels.json      # Level-Grammatiken (Algorithmus, Kacheln, Objekte, Gegner-Pool)
@@ -103,23 +114,27 @@ bn/
 ├── saves/               # Spielstände
 │   └── savegame.json
 ├── src/                 # Gesamter Spielcode
+│   ├── tiles.py         # Custom-Tile-Definitionen: Unicode-Platzhalter (U+E000+) + Dateipfade
 │   ├── entities/        # Spieler, Gegner, Items
 │   │   ├── player.py    # Spieler-Klasse: EP, Skills, LP/PP, Verteidigung
 │   │   └── gegner.py    # Gegner-Klasse: typen_laden(), aus_typ() mit Staerke-Skalierung
 │   ├── map/             # Kartengenerierung
-│   │   └── bsp.py       # BSP-Generator (Raeume + Korridore + Objekte)
+│   │   ├── bsp.py       # BSP-Generator (Raeume + Korridore + Objekte)
+│   │   └── hub.py       # Hub-Generator: kreisrunder Raum (Radius 7), Braukessel-Ausgang
 │   ├── systems/         # Kampf, Inventar, Sichtfeld
 │   │   ├── kampf.py     # Kampfsystem: KampfZustand, runde_ausfuehren, Status-Effekte
 │   │   ├── ki.py        # Gegner-KI: ki_tick, verhalten (statisch/territorial/verfolgen/flucht)
 │   │   ├── sichtfeld.py # FOV: baue_transparenz, berechne_fov (tcod), Fog of War
 │   │   ├── skills.py    # Skill-Logik (laden, prüfen, kaufen)
-│   │   ├── menus.py     # Menue-Registry + State (verfügbar je Modus)
+│   │   ├── menus.py     # Menue-Registry + State (verfügbar je ort: pilsstube/dungeon)
 │   │   └── speichern.py # Speichern/Laden + Tod-Reset (setzt LP/PP zurueck)
 │   └── ui/              # Darstellung, HUD
 │       └── menu_anzeige.py  # TAB-Menue-Overlay (Vollbild)
-└── assets/              # Tilesets für tcod
-    ├── Cheepicus_16x16.png   # Aktives Tileset (16×16 px, quadratisch, CP437)
-    └── IBMPlexMono-Regular.ttf  # Alt (nicht mehr verwendet)
+└── assets/              # Tilesets und Bilder für tcod
+    ├── Cheepicus_16x16.png        # Aktives Tileset (16×16 px, quadratisch, CP437)
+    ├── ninkasi_brutality_120x144.png  # Startbildschirm-Hintergrundbild (Halbblock-Rendering)
+    └── tiles/
+        └── braukessel.png         # Custom-Tile (16×16 px, U+E000) — Hub-Ausgang ins Dungeon
 ```
 
 ## Entwickler

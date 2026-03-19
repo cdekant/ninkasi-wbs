@@ -62,8 +62,7 @@ viele EP und ist das Ziel langfristiger Planung.
 
 ## Skill-Menue
 
-Das Menue ist nur zwischen den Runs verfuegbar — also in **Mannis Pilsstube**,
-nicht mitten im Level. Waehrend eines Runs ist TAB wirkungslos.
+Das Menue ist nur im Hub verfuegbar, nicht mitten im Level. Waehrend eines Runs ist TAB wirkungslos.
 
 ### Menue oeffnen und wechseln
 
@@ -74,7 +73,7 @@ nicht mitten im Level. Waehrend eines Runs ist TAB wirkungslos.
 | **Shift + TAB** | Zum vorherigen Tab wechseln |
 | **ESC** | Menue schliessen |
 
-Verfuegbare Tabs zwischen den Runs: **Skill-Baum** und **Mannis Pilsstube**.
+Verfuegbarer Tab im Hub: **Skill-Baum**.
 
 ### Im Skill-Baum navigieren
 
@@ -136,6 +135,14 @@ du nicht.
 
 Erkundetes bleibt erkundigt — auch nach dem Tod verschwindet das Wissen
 nicht sofort. Neue Karte bei Tod bedeutet: neues Dunkel, neues Erkunden.
+
+### Ausgang zurueck zum Hub
+
+Das Dungeon hat einen Ausgang — eine hellblaue `<`-Kachel. Sie liegt immer am
+Punkt der Karte, der am weitesten von deiner Startposition entfernt ist.
+Bewege dich auf die Kachel um den Dungeon zu verlassen und in den Hub
+zurueckzukehren. Dein Fortschritt im Hub bleibt erhalten; die Dungeon-Karte
+wird beim naechsten Betreten neu generiert.
 
 ### Gegner und Sichtfeld
 
@@ -257,7 +264,7 @@ Das ist das Roguelite-Versprechen: Der Tod kostet Zeit, nicht Fortschritt.
 
 ## Skill-Kategorien
 
-Die verfügbaren Skills sind in zwölf Kategorie aufgeteilt.
+Die verfügbaren Skills sind in zwölf Kategorie aufgeteilt. Die Skills selbst sind keine Fähigkeiten, die der Charakter bekommt, es sind einerseits Modifier für die tatsächlichen Fähigkeiten (Level 5 in Hopfenmagie erhöht den Schaden aller Hopfen-Angriffszauber um 25 Prozent z.B.) und andererseits sind für bestimmte Fähigkeiten Mindestskill notwendig (für Hopfen-Creep braucht man mindestens Level 4 in Fortgeschrittene Hopfenmagie).
 
 ### Körper
 
@@ -329,3 +336,649 @@ Die verfügbaren Skills sind in zwölf Kategorie aufgeteilt.
 
 - `?` **Groesse:** 12 Kategorien x ~12 Skills = ~144 Skills ist sehr ambitioniert.
   JA, konkrete Skills folgen demnächst
+
+
+## Kampfsystem — Designdokument
+
+### Übersicht
+
+| Thema | Entscheidung |
+|---|---|
+| **Standardaktion** | Bump combat (Nahkampf) + Fernkampf wenn Fähigkeit vorhanden |
+| **Welt-Takt im Kampf** | Andere Gegner bewegen sich alle 2 Kampfrunden (× eigene Geschwindigkeit) |
+| **Entscheidung pro Zug** | Position + Ressource + Zielwahl |
+| **Mehrere Gegner** | Möglich; Zielwahl per Kontextmenü |
+| **Gelände** | Taktisch nutzbar, Komplexität als Grenze |
+| **Gruppenbedrohung** | Status-Kombos, Schwarm+Königin, Flanking/Rückenangriff |
+| **Bosse** | Phasen, Lösungszwang, Telegraphed Specials, Spawn, Umwelt |
+| **Interface** | Festes Grundschema + Kontextmenü + Skill-Slots (nur im Hub bestücken) |
+| **Kampf-Panel** | LP/PP/MP/Psi-Balken für Ninkasi; HP + Statuseffekte je Gegner |
+| **Ressourcen** | LP, PP, MP (Magie) — Regeneration & MP-Name offen |
+| **Zufall** | Schadensbandbreite + Crits + Trefferchance + Synergien |
+| **Ausweichen** | Aktive Fähigkeit für Spieler und Gegner |
+| **Blickrichtung** | Nötig für Rückenangriff-Mechanik |
+
+## 2. Gebräuchliche Konzepte
+
+### A. Klassischer Kontakt-Nahkampf
+
+**Prinzip:**
+Der Spieler bewegt sich in einen Gegner hinein oder greift angrenzend an.
+
+**Typische Ausprägungen:**
+- Bump combat: Gegen Gegner laufen = Angriff
+- Expliziter Nahkampfbefehl
+- Waffen mit Nahkampfreichweite 1
+- Unterschiedliche Waffenprofile: Dolch, Schwert, Speer, Axt
+
+**Warum es oft benutzt wird:**
+- Sehr lesbar
+- Schnell
+- Ideal für Tastatursteuerung
+- Passt gut zu engem Grid-Gameplay
+
+**Varianten:**
+- Fester Schaden
+- Trefferwurf + Schadenswurf
+- Waffen mit Bonus gegen bestimmte Rüstungen
+- Gegenangriffe / Riposte
+
+**Stärken:**
+- Einfach zu verstehen
+- Gute Verbindung von Bewegung und Kampf
+
+**Schwächen:**
+- Kann flach wirken, wenn nur Zahlen getauscht werden
+
+### B. Fernkampf mit Sichtlinie
+
+**Prinzip:**
+Angriffe über Distanz, solange Ziel sichtbar ist.
+
+**Typische Elemente:**
+- Bögen, Armbrüste, Pistolen, Wurfmesser
+- Reichweitenlimit
+- Sichtlinie durch Wände blockiert
+- Munition oder Nachladezeit
+
+**Gebräuchliche Unterformen:**
+- Soforttreffer auf Ziel
+- Projektil fliegt Feld für Feld
+- Richtungsfeuer statt Zielauswahl
+- Streuung / Ungenauigkeit
+
+**Interessant in Terminal-Roguelikes, weil:**
+- Positionierung stark aufgewertet wird
+- Deckung, Korridore und Türschwellen wichtig werden
+
+**Häufige Balancer:**
+- Munitionsknappheit
+- Weniger Schaden im Nahkampf
+- Vorbereitungszeit
+- Geräusch zieht weitere Gegner an
+
+### C. Magie als Ressourcen-Kampf
+
+**Prinzip:**
+Zauber sind spezialisierte Angriffe, Kontrolleffekte oder Utility mit eigener Kostenlogik.
+
+**Sehr gebräuchliche Modelle:**
+- Mana-Pool
+- Spell Charges
+- Cooldowns
+- Verbrauchsrollen statt frei wirkbarer Magie
+- HP als Magiekosten
+- Vorbereitung vor dem Dungeon
+
+**Typische Zauberarten:**
+- Direktschaden
+- Flächenschaden
+- Debuffs
+- Summons
+- Teleport
+- Wand erschaffen / zerstören
+- Sicht, Licht, Unsichtbarkeit
+- Crowd Control
+
+**Warum beliebt:**
+- Ermöglicht kreative Lösungen
+- Bricht starres „ich haue zu“-Gameplay auf
+
+### D. Spezielle Aktionen / Combat Abilities
+
+**Prinzip:**
+Neben Standardangriffen gibt es aktive Manöver.
+
+**Sehr häufige Beispiele:**
+- Stoßen / Knockback
+- Sprint / Dash
+- Cleave gegen mehrere Gegner
+- Stun
+- Disarm
+- Defensive Haltung
+- Überwachen / Opportunity Attack
+- Warten / vorbereiteter Schlag
+
+**Nutzen:**
+- Macht Klassen oder Builds unterscheidbar
+- Erzeugt Mikroentscheidungen
+- Gibt Nahkampf mehr Tiefe
+
+### E. Einzelziel vs. Mehrziel
+
+#### Einzelziel
+Klassisch bei:
+- Nahkampf
+- Präzisionsfernkampf
+- Starken Debuffs
+- Bossfights
+
+**Gut für:**
+- Prioritäten setzen
+- Ressourcenmanagement
+- Elite-Gegner
+
+#### Mehrziel
+Typische Formen:
+- Kegel
+- Linie
+- Radius
+- Ring
+- Kettenblitz
+- Spaltender Schlag
+- „Trifft alle benachbarten Gegner“
+
+**Gut für:**
+- Schwarmgegner
+- Raumkontrolle
+- Positionsspiel
+
+### F. Statussysteme
+
+Sehr gebräuchlich in Roguelikes.
+
+**Standardstatus:**
+- Gift
+- Brennen
+- Blutung
+- Verlangsamung
+- Stun
+- Freeze
+- Blindheit
+- Verwirrung
+- Schlaf
+- Silence
+- Schwäche / Rüstungsbruch
+
+**Starke Vorteile:**
+- Macht Kampf nicht nur zu Schadensvergleich
+- Gut für Build-Synergien
+- Gut für Gegnertypen mit Identität
+
+**Risiko:**
+- Zu viele ähnliche Status werden unübersichtlich
+
+### G. Gegnerauswahl per Zielcursor oder Richtung
+
+In terminalbasierten Spielen sehr relevant.
+
+**Gebräuchliche Modelle:**
+
+#### 1. Automatisches Ziel
+- Nächstgelegener Gegner
+- Sichtbares Ziel in Richtung
+- Schwächster / stärkster Gegner
+
+**Plus:** schnell
+**Minus:** weniger Kontrolle
+
+#### 2. Richtungseingabe
+- Pfeil/HJKL/Numpad bestimmt Angriffsrichtung
+
+**Plus:** sehr terminalfreundlich
+**Minus:** ungenau bei mehreren möglichen Zielen
+
+#### 3. Zielcursor
+- Cursor durch sichtbare Felder bewegen
+- Enter bestätigt
+
+**Plus:** präzise
+**Minus:** langsamer
+
+#### 4. Kontextsensitives Targeting
+- System schlägt sinnvolles Ziel vor
+- Tab schaltet weiter
+
+**Oft sehr guter Kompromiss**
+
+### H. Aktion-Ökonomie
+
+Auch sehr gebräuchlich.
+
+**Modelle:**
+- Ein Zug = eine Aktion
+- Bewegung und Angriff getrennt
+- Aktionspunkte
+- Zeitbasierte Systeme (schnelle Waffen handeln öfter)
+- Initiativeleisten
+- Energy-System
+
+**Wirkung auf das Kampfgefühl:**
+- Einfache Züge wirken sauber und roguelike-klassisch
+- AP-Systeme erlauben feinere Taktik
+- Zeitsysteme fühlen sich simulativer an
+
+## 3. Weniger gebräuchliche, aber interessante Konzepte
+
+### A. Reichweitenzonen im Nahkampf
+
+Nicht nur angrenzend, sondern Waffenprofile über Distanz.
+
+**Beispiele:**
+- Speer trifft auf Distanz 2, nicht direkt angrenzend
+- Peitsche trifft durch Verbündete hindurch
+- Lanze braucht Anlauf
+- Dolch ist stark nur bei Rückseite oder aus Stealth
+
+**Effekt:**
+- Macht Waffen wirklich verschieden
+- Erhöht taktischen Wert von Positionen
+
+### B. Facing / Blickrichtung
+
+In klassischen Roguelikes seltener, aber spannend.
+
+**Prinzip:**
+- Einheit schaut in eine Richtung
+- Rücken ist verwundbarer
+- Schilde schützen nur frontal
+- Cone-Angriffe orientieren sich an Blickrichtung
+
+**Vorteile:**
+- Taktisch reich
+- Gut für Schleich- und Duellsysteme
+
+**Nachteile:**
+- Mehr Bedienaufwand
+- Schwerer lesbar in ASCII
+
+### C. Momentum / Combo-Systeme
+
+Eher selten, aber stark.
+
+**Ideen:**
+- Treffer bauen Momentum auf
+- Bewegen vor Angriff erhöht Schaden
+- Wiederholte gleiche Aktion wird schwächer
+- Verschiedene Aktionsfolgen erzeugen Spezialeffekte
+
+**Beispiele:**
+- Schlag → Stoß → Finisher
+- Feuerstatus + Windstoß = Explosion
+- Drei Nahkampftreffer laden Cleave
+
+**Gut für:**
+- Spielerische Tiefe ohne Echtzeit
+
+### D. Geräusch als Kampfmechanik
+
+In traditionellen Roguelikes vorhanden, aber oft nicht als volles Kampfsystem genutzt.
+
+**Konzepte:**
+- Schüsse erzeugen Lärm
+- Zauber ziehen Gegner an
+- Explosionen alarmieren Räume
+- Leise Waffen haben strategischen Wert
+
+**Sehr stark für:**
+- Spannungsaufbau
+- Entscheidung „diesen Kampf gewinne ich, aber was danach?“
+
+### E. Gelände als aktive Waffe
+
+Nicht nur Hindernis, sondern eigentlicher Kampfbestandteil.
+
+**Beispiele:**
+- Gegner in Feuer, Säure oder Abgründe stoßen
+- Öl entzünden
+- Türen blockieren
+- Wasser leitet Blitz
+- Eis macht Bewegung riskant
+- Pflanzen brennen oder fesseln
+
+**Besonders gut in Roguelikes, weil:**
+- Grid-Systeme das klar abbilden
+- ASCII/Terminal dafür reicht, wenn Symbole sauber sind
+
+### F. Slot-basierte Spezialaktionen statt Mana
+
+Weniger klassisch als Mana, aber oft eleganter.
+
+**Modelle:**
+- Pro Kampf 1–3 Charges
+- Jede Fähigkeit belegt Ausrüstungsslot
+- Karten-/Runen-Hand statt Zauberliste
+- Nur vorbereitete Skills verfügbar
+- Cooldowns, die an Kills oder Bewegung hängen
+
+**Vorteil:**
+- Weniger abstrakte Ressourcenverwaltung
+- Entscheidungen bleiben kompakt
+
+### G. Gegnertypen mit „Lösungszwang“
+
+Ein Gegner ist nicht nur stärker, sondern verlangt eine andere Antwort.
+
+**Beispiele:**
+- Gepanzerter Feind: nur Stöße, Magie oder Rear-Attacks wirksam
+- Beschwörer: Prioritätsziel
+- Schwarm: AoE nötig
+- Teleporter: Zonenkontrolle nötig
+- Schildträger: frontal zäh, seitlich schwach
+- Explodierender Feind: Distanz halten
+- Heiler: Fokusfeuer wichtig
+
+**Das ist extrem wertvoll**, weil daraus echte Taktik entsteht.
+
+### H. Angriffsvorhersage / Telegraphed Turns
+
+Eher bekannt aus modernen Taktik-Roguelites, in klassischen Roguelikes weniger Standard.
+
+**Prinzip:**
+- Gegner zeigen an, was sie nächste Runde tun
+- Spieler reagiert mit Positionierung, Interrupt, Block oder Lockmittel
+
+**Effekt:**
+- Weniger Zufallsfrust
+- Mehr Planung
+- Sehr gut für schweres, aber faires Gameplay
+
+### I. Simultane oder halb-simultane Auflösung
+
+Seltener in Terminal-Roguelikes.
+
+**Modelle:**
+- Spieler und Gegner wählen Aktionen, dann werden alle aufgelöst
+- Alle handeln nach Initiative fast gleichzeitig
+- Befehle als „Programmierung“ für die nächsten Züge
+
+**Spannend, aber schwierig:**
+- Sehr tief
+- Schwerer zu lesen
+- Fehler fühlen sich härter an
+
+### J. Körperteil- oder Trefferzonen-System
+
+Eher selten, aber atmosphärisch stark.
+
+**Beispiele:**
+- Kopf, Torso, Arme, Beine
+- Armverletzung senkt Trefferchance
+- Beinverletzung reduziert Bewegung
+- Auge zerstört Sicht
+- Gegner verlieren Fähigkeiten durch Teilbeschädigung
+
+**Gut für:**
+- Simulation
+- Horror / Survival
+- sehr spezifische Build-Systeme
+
+**Problem:**
+- Hohe Komplexität
+
+### K. Haltungssysteme / Stances
+
+Weniger gebräuchlich, aber gut für Nahkampfklassen.
+
+**Beispiele:**
+- Offensive Haltung
+- Defensive Haltung
+- Reichweitenhaltung
+- Konterhaltung
+- Flächenhaltung
+
+**Kann bewirken:**
+- andere Reichweite
+- andere AP-Kosten
+- andere Verteidigung
+- Spezialreaktionen
+
+### L. Risiko-Zauber / instabile Magie
+
+Interessant für Roguelites.
+
+**Konzepte:**
+- Magie erzeugt Korruption
+- Überladung kann Explosion auslösen
+- Zauber mutieren Gegner
+- Mächtige Effekte haben unkontrollierbare Nebeneffekte
+- Fail-Forward statt reines Scheitern
+
+**Das gibt Magie Identität**, statt nur Fernkampfschaden in anderer Farbe zu sein.
+
+## 4. Sehr brauchbare Muster für Gegnerauswahl
+
+Weil das in Terminalspielen oft unterschätzt wird:
+
+### Für schnelle Spiele
+- Nahkampf: automatisch per Bewegung
+- Fernkampf: Autoziel + Tab zum Wechseln
+- Zauber: Richtung oder kleiner Zielcursor
+
+### Für taktische Spiele
+- Cursor für alles
+- Vorschau: Trefferchance, Schaden, AoE, Kollateralschaden
+- Markierung betroffener Felder
+
+### Für viele Gegner gleichzeitig
+- Zieltypen statt Einzelziel:
+  - nächster Gegner
+  - stärkster sichtbarer Gegner
+  - Gegnergruppe
+  - freie Kachel
+  - Linie in Richtung
+
+Das reduziert Interface-Reibung stark.
+
+## 5. Gute Mehrziel-Formen für Terminal-Roguelikes
+
+Einige Formen sind besonders lesbar:
+
+- **Linie**
+  Sehr gut für Blitz, Speerstoß, Laser
+
+- **Kegel**
+  Gut für Atemwaffen, Schrot, Furcht
+
+- **Kreis/Radius**
+  Klassisch für Feuerball, Bombe
+
+- **Kette**
+  Gut für Blitzmagie, Seuchen, Markierungen
+
+- **Benachbarte Felder**
+  Perfekt für Cleave, Wirbelangriff
+
+- **Durchdringendes Projektil**
+  Trifft alle Gegner in einer Reihe
+
+- **Ziel + Splash**
+  Hauptziel stark, Umfeld schwach
+
+Lesbarkeit ist wichtiger als exotische Form.
+
+## 6. Mischformen, die oft besonders gut funktionieren
+
+### A. Bump-Nahkampf + gezielte Spezialaktionen
+Sehr klassisch und robust.
+
+- Standardkampf schnell
+- Tiefe entsteht durch wenige aktive Skills
+- Gut für klare Tastaturbedienung
+
+### B. Fernkampf + Lärm + Munition
+Sehr stark für Spannung.
+
+- Fernkampf ist mächtig
+- Aber nicht gratis
+- Jeder Schuss hat Folgekosten
+
+### C. Magie + Umweltinteraktion
+Stärker als reine Schadenszauber.
+
+- Eis friert Wasser
+- Feuer entzündet Öl
+- Blitz trifft nasse Gegner härter
+- Wind verschiebt Gaswolken
+
+### D. Einzelziel-Fokus + Schwarmkontrolle
+Gute Build-Differenzierung.
+
+- Assassin/Bogenschütze eliminiert Schlüsselziel
+- Tank/Magier kontrolliert Gruppen
+
+### E. Telegraphed Enemies + harte Specials
+Fair und taktisch.
+
+- Gegner kündigen Großangriffe an
+- Spieler darf clever reagieren
+- Schwierigkeit steigt, Frust sinkt
+
+## 7. Konzepte, die oft problematisch sind
+
+Nicht schlecht, aber in Terminal-Roguelikes schnell schwierig:
+
+### Zu viele Trefferwürfe und Unterwürfe
+Beispiel:
+- Hit roll
+- Crit roll
+- Armor roll
+- Dodge roll
+- Block roll
+- Status roll
+
+Das kann Kampf undurchsichtig machen.
+
+### Zu viele fast gleiche Fähigkeiten
+- Slash I, Slash II, Heavy Slash, Strong Slash, Power Slash
+Besser wenige Fähigkeiten mit klarer Identität.
+
+### Präzisionszielung ohne gute UI
+Ein tolles System scheitert schnell an umständlicher Cursorbedienung.
+
+### Mehrziel-Systeme ohne klare Vorschau
+Wenn der Spieler nicht sofort sieht, was betroffen ist, leidet Lesbarkeit.
+
+## 8. Besonders interessante seltenere Ideen
+
+Ein paar Konzepte mit viel Potenzial:
+
+### 1. Kampf über Distanzkontrolle statt rohen Schaden
+- Gegner binden
+- Gegner trennen
+- Gegner verschieben
+- Türen schließen
+- Räume aufteilen
+
+### 2. „Soft Lock“-Kampf
+Nicht töten, sondern:
+- betäuben
+- vertreiben
+- umleiten
+- verbannen
+- isolieren
+
+### 3. Reaktive Kämpfe
+- Gegenangriffe
+- Fallen im Zug des Gegners
+- vorbereitete Schüsse
+- Schildhaltung gegen Projektilrichtung
+
+### 4. Intent-basierte AI-Kämpfe
+Gegner haben lesbare Absichten:
+- rush
+- flank
+- halten
+- casten
+- beschwören
+- retreaten
+
+### 5. Asymmetrische Ressourcen
+- Nahkampf nutzt Stamina
+- Fernkampf nutzt Munition
+- Magie nutzt Hitze/Korruption/Fokus
+- Spezialaktionen laden sich durch Risiko auf
+
+Das macht Systeme differenzierter als „alles kostet Mana“.
+
+## 9. Ein brauchbares Raster für die eigene Entwurfsarbeit
+
+Wenn du so ein System entwerfen willst, helfen diese Fragen:
+
+1. **Was ist die Standardaktion?**
+   Bump, expliziter Angriff, Zielcursor?
+
+2. **Was ist die Hauptentscheidung pro Zug?**
+   Position, Ziel, Ressource, Timing?
+
+3. **Wie wichtig ist Gelände?**
+   Nur Hindernis oder zentrale Waffe?
+
+4. **Wie werden Gruppen gefährlich?**
+   Zahl, Flanking, Fernkampf, Status, Beschwörung?
+
+5. **Wie werden Eliten/Bosse interessant?**
+   Nur HP-Schwamm oder mit Mechanik?
+
+6. **Wie viele aktive Fähigkeiten verträgt das Interface?**
+   Terminalspiele profitieren meist von weniger, klareren Optionen.
+
+7. **Ist der Kampf lesbar in 1–2 Sekunden Blickzeit?**
+   Das ist oft wichtiger als Komplexität.
+
+## 10. Kompakte System-Baukästen
+
+### Sehr klassisch
+- Bump-Nahkampf
+- Fernkampf mit Munition
+- Mana-Zauber
+- Einzelziel + Radiuszauber
+- Status wie Gift/Brennen
+- Zielauswahl per Tab/Cursor
+
+### Taktisch-modern
+- Aktionspunkte
+- Telegraphs
+- Push/Pull
+- Umweltgefahren
+- Kegel/Linienangriffe
+- klare Gegnerrollen
+
+### Ungewöhnlich
+- Facing
+- Haltungssystem
+- Geräuschsimulation
+- Körperzonen
+- Momentum/Combo
+- instabile Magie
+- simultane Auflösung
+
+## 11. Empfehlenswerte Prioritäten für ein gutes Terminal-Kampfsystem
+
+Wenn es nicht nur vollständig, sondern auch gut sein soll, sind diese Dinge meist am wichtigsten:
+
+- **Lesbare Zielwahl**
+- **starke Positionsrelevanz**
+- **wenige, markante Spezialaktionen**
+- **klare Gegnerrollen**
+- **Mehrzieloptionen mit klarer Vorschau**
+- **Umwelt oder Status als zweite Ebene**
+- **Ressourcen, die Entscheidungen erzwingen**
+
+Weniger wichtig sind meist:
+- extrem viele Waffenwerte
+- zu feine Schadenssimulation
+- riesige Skilllisten ohne klaren Einsatzbereich
+
+Ich kann daraus als Nächstes auch eine **systematische Taxonomie als Tabelle** bauen, etwa mit Spalten wie:
+`Konzept | gebräuchlich? | Bedienaufwand | taktische Tiefe | gut für Terminal? | typische Probleme`.
