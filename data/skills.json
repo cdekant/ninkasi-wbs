@@ -23,8 +23,40 @@
       "name": "Gaermutterleib",
       "kategorie": "Lebenskraft",
       "beschreibung": "Ein Schroten und Maischen und Kochen und Pichen. Die Plag der Brauer übt den Leib. Ninkasis Kraft kommt vom Werk des Sudes.",
-      "basis_kosten": 20,
+      "basis_kosten": 10,
       "voraussetzungen": [],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "LP-Maximum +17 %",           "wert": { "typ": "lp_max_pct", "wert": 17 } },
+        { "stufe": 2, "beschreibung": "LP-Maximum +34 %",           "wert": { "typ": "lp_max_pct", "wert": 34 } },
+        { "stufe": 3, "beschreibung": "LP-Maximum +51 %",           "wert": { "typ": "lp_max_pct", "wert": 51 } },
+        { "stufe": 4, "beschreibung": "LP-Maximum +68 %",           "wert": { "typ": "lp_max_pct", "wert": 68 } },
+        { "stufe": 5, "beschreibung": "LP-Maximum +85 %",           "wert": { "typ": "lp_max_pct", "wert": 85 } },
+        { "stufe": 6, "beschreibung": "LP-Maximum +102 % — Zoigl",  "wert": { "typ": "lp_max_pct", "wert": 102 } }
+      ]
+    },
+    {
+      "id": "gaergoettinleib",
+      "name": "Gaergoettinleib",
+      "kategorie": "Lebenskraft",
+      "beschreibung": "Wer tief genug ins Geheimnis der Gaerung eingedrungen ist, traegt den Leib einer Braugoettin — unverletzlich wie Kupferwand, strotzend wie reife Wuerze.",
+      "basis_kosten": 30,
+      "voraussetzungen": [{"id": "gaermutterleib", "stufe": 4}],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "LP-Maximum +17 %",           "wert": { "typ": "lp_max_pct", "wert": 17 } },
+        { "stufe": 2, "beschreibung": "LP-Maximum +34 %",           "wert": { "typ": "lp_max_pct", "wert": 34 } },
+        { "stufe": 3, "beschreibung": "LP-Maximum +51 %",           "wert": { "typ": "lp_max_pct", "wert": 51 } },
+        { "stufe": 4, "beschreibung": "LP-Maximum +68 %",           "wert": { "typ": "lp_max_pct", "wert": 68 } },
+        { "stufe": 5, "beschreibung": "LP-Maximum +85 %",           "wert": { "typ": "lp_max_pct", "wert": 85 } },
+        { "stufe": 6, "beschreibung": "LP-Maximum +102 % — Zoigl",  "wert": { "typ": "lp_max_pct", "wert": 102 } }
+      ]
+    },
+    {
+      "id": "leib_der_ninkasi",
+      "name": "Leib der Ninkasi",
+      "kategorie": "Lebenskraft",
+      "beschreibung": "Der Leib selbst wird zum Gaertank. Unverwuestlich, heilig, brodelnd. Wer diesen Weg vollendet, ist nicht mehr Mensch — ist Brauerin, ist Goettin, ist Bier.",
+      "basis_kosten": 100,
+      "voraussetzungen": [{"id": "gaergoettinleib", "stufe": 5}],
       "effekte": [
         { "stufe": 1, "beschreibung": "LP-Maximum +17 %",           "wert": { "typ": "lp_max_pct", "wert": 17 } },
         { "stufe": 2, "beschreibung": "LP-Maximum +34 %",           "wert": { "typ": "lp_max_pct", "wert": 34 } },
