@@ -75,6 +75,7 @@ def tod_reset(spieler, aktuell_dict):
     """
     spieler.lp = spieler.lp_max
     spieler.pp = spieler.pp_max
+    spieler.mp = spieler.mp_max
 
     tod_zaehler = aktuell_dict.get("tod_zaehler", 0) + 1
     neues_aktuell = dict(STANDARD_AKTUELL)

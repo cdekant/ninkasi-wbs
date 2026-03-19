@@ -11,7 +11,8 @@ class Entitaet:
 
     Kampfrelevante Felder:
         hp / hp_max    -- Trefferpunkte
-        pp / pp_max    -- Psi-Punkte (fuer Faehigkeiten)
+        pp / pp_max    -- Psi-Punkte (SchnaPsi)
+        mp / mp_max    -- Magie-Punkte (Bier-Magie)
         verteidigung   -- flacher Schadensabzug
         basis_schaden  -- Rohschaden ohne Waffe/Angriff
         resistenzen    -- {schadenstyp: 0.0..1.0}
@@ -25,6 +26,8 @@ class Entitaet:
         self.hp_max = 0
         self.pp = 0
         self.pp_max = 0
+        self.mp = 0
+        self.mp_max = 0
         self.verteidigung = 0
         self.basis_schaden = 0
         self.resistenzen = {}
@@ -44,6 +47,8 @@ class Entitaet:
             "hp_max": self.hp_max,
             "pp": self.pp,
             "pp_max": self.pp_max,
+            "mp": self.mp,
+            "mp_max": self.mp_max,
             "verteidigung": self.verteidigung,
             "basis_schaden": self.basis_schaden,
             "resistenzen": dict(self.resistenzen),

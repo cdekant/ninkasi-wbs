@@ -116,7 +116,7 @@ bn/
 ├── src/                 # Gesamter Spielcode
 │   ├── tiles.py         # Custom-Tile-Definitionen: Unicode-Platzhalter (U+E000+) + Dateipfade
 │   ├── entities/        # Spieler, Gegner, Items
-│   │   ├── entitaet.py  # Basis-Klasse: hp/hp_max, pp, verteidigung, resistenzen, angriffe, lebt
+│   │   ├── entitaet.py  # Basis-Klasse: hp/hp_max, pp, mp, verteidigung, resistenzen, angriffe, lebt
 │   │   ├── player.py    # Spieler(Entitaet): EP, Skills, lp/lp_max-Aliases, Inventar (geplant)
 │   │   └── gegner.py    # Gegner(Entitaet): typen_laden(), aus_typ() mit Staerke-Skalierung
 │   ├── map/             # Kartengenerierung

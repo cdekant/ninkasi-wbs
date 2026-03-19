@@ -13,6 +13,8 @@ class Spieler(Entitaet):
         self.hp = 20
         self.pp_max = 10
         self.pp = 10
+        self.mp_max = 10
+        self.mp = 10
         self.basis_schaden = 5
         # Spieler-eigene Felder
         self.ep_gesamt = 0        # Alle je verdienten EP (nie zurueckgesetzt)
@@ -92,6 +94,8 @@ class Spieler(Entitaet):
         spieler.hp     = daten.get("lp",     daten.get("hp", spieler.hp_max))
         spieler.pp_max = daten.get("pp_max", 10)
         spieler.pp     = daten.get("pp", spieler.pp_max)
+        spieler.mp_max = daten.get("mp_max", 10)
+        spieler.mp     = daten.get("mp", spieler.mp_max)
         spieler.verteidigung  = daten.get("verteidigung", 0)
         spieler.basis_schaden = daten.get("basis_schaden", 5)
         spieler.resistenzen   = dict(daten.get("resistenzen", {}))
