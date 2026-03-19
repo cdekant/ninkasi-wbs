@@ -1,5 +1,6 @@
 import json
 import random
+import time
 import tcod
 import config
 
@@ -18,6 +19,7 @@ except Exception:
     _TITEL_PIXEL = None
     _TITEL_W = _TITEL_H = 0
 
+import src.tiles as tiles
 import src.systems.skills as skills_system
 import src.systems.menus as menus_system
 import src.systems.inventar as inventar_system
@@ -37,7 +39,14 @@ from src.systems import ki
 # Konstanten
 # ---------------------------------------------------------------------------
 
-KAMPF_PANEL_HOEHE = 9   # Zeilen fuer das Kampf-Panel am unteren Rand
+_nachrichtenlog = []   # letzte Meldungen fuer den Log-Bereich unten
+
+
+def _log(text):
+    """Fuegt einen Eintrag zum Nachrichtenlog hinzu (max. 40 Eintraege)."""
+    _nachrichtenlog.append(text)
+    if len(_nachrichtenlog) > 40:
+        _nachrichtenlog.pop(0)
 
 
 # ---------------------------------------------------------------------------
@@ -58,22 +67,26 @@ _GLYPH = {
 
 _START_ZITATE = [
     '"Hopfen und Malz, Gott erhalts."',
-    '"Der Prohibitus wird fallen. Oder wir trinken seinen Ruin."',
-    '"Die Hefe tut was sie will. Der Brauer lenkt sie nur."',
-    '"Tod ist nur ein Neustart ohne Stammwuerze."',
+    '"Wen der Hopfen einmal kratzt, den laesst er nicht mehr los."',
+    '"Der Prohibitus wird fallen und wir trinken auf seinen Ruin."',
+    '"Die Hefe tut was sie will. Die Goettin lenkt sie nur."',
+    '"Das Leben ist zu kurz fuer schlechtes Bier."',
+    '"Der Tod ist nur ein Neustart ohne Stammwuerze."',
     '"Nieder mit dem Daemon der Abstinenz!"',
-    '"Bier ist der Beweis, dass die Goetter uns lieben."',
+    '"Bier ist der Beweis, dass die Goettin uns liebt."',
+    '"Durst wird durch Bier erst schoen."',
 ]
 
 _TOD_ZITATE = [
     "Das Bier raeche sich. Du nicht.",
-    "Selbst Goetter koennen sterben. Manche sogar mehrfach.",
+    "Selbst Goettinnen koennen sterben. Manche sogar mehrfach.",
     "Tod ist nur eine Pause zwischen zwei Gaerungen.",
     "Der Prohibitus lacht. Noch.",
     "Niemand hat gesagt, Brauen sei einfach.",
     "Hefe 1, Ninkasi 0.",
     "Du riechst nach Niederlage. Und ein bisschen nach Schimmel.",
     "Komm wieder wenn du kein Wasser mehr trinkst.",
+    "Du musst auhoeren weniger zu trinken!",
 ]
 
 _TOTENKOPF = [
@@ -110,6 +123,7 @@ status_meldung = ""
 # Kampf-Zustand
 aktiver_kampf = None          # KampfZustand oder None
 aktiver_kampf_eintrag = None  # Dict-Referenz in gegner_auf_karte
+_letzter_bewegungszeitpunkt = 0.0   # fuer Haltetasten-Rate-Limit
 
 # Spielstand-Dict (level_index, tod_zaehler, ...)
 aktuell = dict(STANDARD_AKTUELL)
@@ -160,7 +174,7 @@ def _initialisiere_level():
     global DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y
 
     level_name = aktuell.get("level_name", "pflanzenzuechtung")
-    KARTE = generiere_karte(alle_level[level_name], breite=config.BREITE, hoehe=config.HOEHE - 1)
+    KARTE = generiere_karte(alle_level[level_name], breite=config.BREITE, hoehe=config.KARTE_HOEHE)
 
     # Spieler auf die erste freie Bodenkachel setzen
     spieler_x, spieler_y = 1, 1
@@ -244,7 +258,7 @@ def _initialisiere_hub():
     global hub_spieler_x, hub_spieler_y
     global HUB_TRANSPARENZ, HUB_FOV, HUB_ERKUNDET
 
-    HUB_KARTE, sx, sy, ausgang = _generiere_hub(config.BREITE, config.HOEHE - 1)
+    HUB_KARTE, sx, sy, ausgang = _generiere_hub(config.BREITE, config.KARTE_HOEHE)
     HUB_START_X   = sx
     HUB_START_Y   = sy
     hub_spieler_x = sx
@@ -263,6 +277,11 @@ _initialisiere_hub()
 # ---------------------------------------------------------------------------
 # Hilfsfunktionen
 # ---------------------------------------------------------------------------
+
+def _ist_wand(zeichen):
+    """True fuer '#' und alle wandartigen Custom-Tiles (Fenster etc.)."""
+    return zeichen == "#" or zeichen in tiles.WAND_TILES
+
 
 def ist_betretbar(x, y):
     if y < 0 or y >= len(KARTE):
@@ -285,64 +304,59 @@ def _balken(aktuell, maximum, breite=16):
 
 def zeichne(console):
     console.clear()
+    KY = config.KARTE_Y0
 
     # Karte mit FOV / Fog of War
     for y, zeile in enumerate(KARTE):
         for x, zeichen in enumerate(zeile):
+            cy = y + KY
             if FOV[y, x]:
-                # Gerade sichtbar — volle Helligkeit
-                if zeichen == "#":
-                    console.print(x, y, zeichen, fg=(160, 160, 160))
+                if zeichen == tiles.FENSTER_GITTER:
+                    console.print(x, cy, zeichen, fg=(140, 210, 140))
+                elif _ist_wand(zeichen):
+                    console.print(x, cy, zeichen, fg=(200, 200, 200))
                 else:
-                    console.print(x, y, zeichen, fg=(90, 90, 90))
+                    console.print(x, cy, zeichen, fg=(90, 90, 90))
             elif ERKUNDET[y, x]:
-                # Schon gesehen, aber gerade nicht im Blickfeld — abgedunkelt
-                if zeichen == "#":
-                    console.print(x, y, zeichen, fg=(50, 50, 50))
+                if zeichen == tiles.FENSTER_GITTER:
+                    console.print(x, cy, zeichen, fg=(45, 70, 45))
+                elif _ist_wand(zeichen):
+                    console.print(x, cy, zeichen, fg=(60, 60, 60))
                 else:
-                    console.print(x, y, zeichen, fg=(20, 20, 20))
+                    console.print(x, cy, zeichen, fg=(20, 20, 20))
             # Nie gesehen: nicht zeichnen (bleibt schwarz)
 
     # Dungeon-Ausgang
     if FOV[DUNGEON_AUSGANG_Y, DUNGEON_AUSGANG_X]:
-        console.print(DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y, "<", fg=(80, 200, 255))
+        console.print(DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y + KY, "<", fg=(80, 200, 255))
 
     # Bodenloot — nur sichtbar wenn im FOV
     for loot in aktuell.get("bodenloot", []):
         if FOV[loot["y"], loot["x"]]:
             item_def = alle_items.get(loot["id"])
             if item_def:
-                console.print(loot["x"], loot["y"],
+                console.print(loot["x"], loot["y"] + KY,
                                item_def["symbol"], fg=tuple(item_def["farbe"]))
 
     # Gegner — nur sichtbar wenn im FOV
     for eintrag in gegner_auf_karte:
         if eintrag["gegner"].lebt and FOV[eintrag["y"], eintrag["x"]]:
-            console.print(eintrag["x"], eintrag["y"],
+            console.print(eintrag["x"], eintrag["y"] + KY,
                           eintrag["gegner"].symbol, fg=(200, 80, 80))
 
     # Spieler
-    console.print(spieler_x, spieler_y, "@", fg=(255, 215, 0))
+    console.print(spieler_x, spieler_y + KY, "@", fg=(255, 215, 0))
 
-    # HUD (nur ausserhalb des Kampfes)
-    if modus != "kampf":
-        zone_txt = ""
-        if ort == "dungeon":
-            z  = aktuell.get("zone_index",   0) + 1
-            zg = aktuell.get("zonen_gesamt", 1)
-            zone_txt = f"  Zone {z}/{zg}"
-        hud = (f"EP: {spieler.ep_verfuegbar}  "
-               f"LP: {spieler.lp}/{spieler.lp_max}  "
-               f"PP: {spieler.pp}/{spieler.pp_max}  "
-               f"MP: {spieler.mp}/{spieler.mp_max}"
-               f"{zone_txt}")
-        console.print(1, console.height - 1, hud, fg=(100, 200, 120))
-        console.print(console.width - 32, console.height - 1,
-                      "[TAB] Menue  [<] Hub  [Q] Beenden", fg=(80, 80, 80))
+    # Statuszeile (Zeilen 0-1)
+    _zeichne_statuszeile(console)
 
-    # Kampf-Panel
+    # Schwebendes Kampffenster
     if modus == "kampf" and aktiver_kampf:
         _zeichne_kampf_panel(console)
+
+    # Nachrichtenlog + Shortcuts
+    shortcut = "" if modus == "kampf" else "[TAB] Menue  [<] Hub  [Q] Beenden"
+    _zeichne_log(console, shortcut)
 
     # Menue-Overlay (uebermalt alles andere)
     if aktives_menue:
@@ -351,57 +365,126 @@ def zeichne(console):
                       menue_auswahl, status_meldung, verfuegbar)
 
 
+def _zeichne_statuszeile(console):
+    """Statuszeile: Zeile 0 (LP/PP/MP-Balken) + Zeile 1 (Zone/Kontext)."""
+    w = console.width
+    console.draw_rect(0, 0, w, 2, 32, bg=(10, 5, 20))
+
+    # Zeile 0: drei Balken + EP rechts
+    lp_b = _balken(spieler.lp,  spieler.lp_max,  14)
+    pp_b = _balken(spieler.pp,  spieler.pp_max,  14)
+    mp_b = _balken(spieler.mp,  spieler.mp_max,  14)
+    console.print( 2, 0, f"LP [{lp_b}] {spieler.lp:>3}/{spieler.lp_max:<3}", fg=(100, 220, 100))
+    console.print(40, 0, f"PP [{pp_b}] {spieler.pp:>3}/{spieler.pp_max:<3}", fg=(100, 150, 255))
+    console.print(78, 0, f"MP [{mp_b}] {spieler.mp:>3}/{spieler.mp_max:<3}", fg=(200, 100, 255))
+    ep_txt = f"EP: {spieler.ep_verfuegbar}"
+    console.print(w - 2 - len(ep_txt), 0, ep_txt, fg=(100, 200, 120))
+
+    # Zeile 1: Zone (spaeter: Statuseffekte)
+    if ort == "dungeon":
+        z  = aktuell.get("zone_index",   0) + 1
+        zg = aktuell.get("zonen_gesamt", 1)
+        console.print(2, 1, f"Zone {z}/{zg}", fg=(110, 110, 110))
+
+
+def _zeichne_log(console, shortcut=""):
+    """Nachrichtenlog (Zeilen 61-65) + Shortcut-Zeile (Zeile 66)."""
+    w = console.width
+    console.draw_rect(0, config.LOG_Y0, w, config.LOG_HOEHE + 1, 32, bg=(8, 4, 12))
+
+    eintraege = _nachrichtenlog[-config.LOG_HOEHE:]
+    for i, text in enumerate(eintraege):
+        # Neueste Eintraege heller
+        hell = 80 + i * (120 // max(1, config.LOG_HOEHE))
+        console.print(2, config.LOG_Y0 + i, text[:w - 4], fg=(hell, hell, hell))
+
+    if shortcut:
+        console.print(w - 2 - len(shortcut), config.SHORTCUT_Y,
+                      shortcut, fg=(65, 65, 65))
+
+
+def _rahmen_kampf(console, x, y, w, h):
+    """Einfacher Rahmen fuer das Kampffenster."""
+    BG = (15, 8, 8)
+    FG = (100, 40, 10)
+    console.print(x,     y,     "\u250c", fg=FG, bg=BG)  # ┌
+    console.print(x+w-1, y,     "\u2510", fg=FG, bg=BG)  # ┐
+    console.print(x,     y+h-1, "\u2514", fg=FG, bg=BG)  # └
+    console.print(x+w-1, y+h-1, "\u2518", fg=FG, bg=BG)  # ┘
+    for i in range(1, w - 1):
+        console.print(x+i, y,     "\u2500", fg=FG, bg=BG)  # ─
+        console.print(x+i, y+h-1, "\u2500", fg=FG, bg=BG)
+    for j in range(1, h - 1):
+        console.print(x,     y+j, "\u2502", fg=FG, bg=BG)  # │
+        console.print(x+w-1, y+j, "\u2502", fg=FG, bg=BG)
+
+
+def _linie_kampf(console, x, y, w):
+    """Horizontale Trennlinie innerhalb des Kampffensters."""
+    BG = (15, 8, 8)
+    FG = (80, 40, 10)
+    console.print(x,     y, "\u251c", fg=FG, bg=BG)  # ├
+    console.print(x+w-1, y, "\u2524", fg=FG, bg=BG)  # ┤
+    for i in range(1, w - 1):
+        console.print(x+i, y, "\u2500", fg=FG, bg=BG)  # ─
+
+
 def _zeichne_kampf_panel(console):
-    """Kampf-Panel am unteren Bildschirmrand."""
+    """Schwebendes Kampffenster (zentriert in der Karte)."""
     zst = aktiver_kampf
-    w  = console.width
-    h  = console.height
-    y0 = h - KAMPF_PANEL_HOEHE
+    fx  = config.KAMPF_FENSTER_X
+    fy  = config.KAMPF_FENSTER_Y
+    fw  = config.KAMPF_FENSTER_BREITE
+    fh  = config.KAMPF_FENSTER_HOEHE
+    inn = fw - 2   # nutzbare Innenbreite
 
-    # Hintergrund
-    for y in range(y0, h):
-        for x in range(w):
-            console.print(x, y, " ", bg=(15, 8, 8))
+    # Hintergrund + Rahmen
+    console.draw_rect(fx, fy, fw, fh, 32, bg=(15, 8, 8))
+    _rahmen_kampf(console, fx, fy, fw, fh)
 
-    # Trennlinie
-    console.print(0, y0, "-" * w, fg=(80, 40, 10))
+    # --- Kopfzeile: Gegner links / Spieler rechts ---
+    g     = zst.gegner
+    mitte = fw // 2
+    console.print(fx + 1, fy + 1, f"{g.symbol} {g.name}", fg=(220, 80, 80))
+    console.print(fx + mitte, fy + 1, f"@ {zst.spieler.name}", fg=(255, 215, 0))
 
-    # --- Gegner (linke Haelfte) ---
-    g    = zst.gegner
-    mitte = w // 2
-    console.print(2, y0 + 1, f"{g.symbol} {g.name}", fg=(220, 80, 80))
-    console.print(2, y0 + 2,
-                  f"HP [{_balken(g.hp, g.hp_max)}] {g.hp}/{g.hp_max}",
-                  fg=(180, 60, 60))
-
-    # --- Spieler (rechte Haelfte) ---
-    console.print(mitte, y0 + 1,
-                  f"@ {zst.spieler.name}", fg=(255, 215, 0))
-    console.print(mitte, y0 + 2,
-                  f"LP [{_balken(zst.spieler.lp, zst.spieler.lp_max)}] "
-                  f"{zst.spieler.lp}/{zst.spieler.lp_max}",
+    # HP / LP Balken
+    gp_bar = _balken(g.hp, g.hp_max, 12)
+    sp_bar = _balken(zst.spieler.lp, zst.spieler.lp_max, 12)
+    console.print(fx + 1, fy + 2,
+                  f"HP [{gp_bar}] {g.hp}/{g.hp_max}", fg=(180, 60, 60))
+    console.print(fx + mitte, fy + 2,
+                  f"LP [{sp_bar}] {zst.spieler.lp}/{zst.spieler.lp_max}",
                   fg=(100, 200, 120))
 
-    # --- Kampf-Log (letzte 4 Eintraege) ---
-    log = zst.log[-4:] if zst.log else ["Kampf beginnt!"]
+    # Trennlinie nach Kopf
+    _linie_kampf(console, fx, fy + 3, fw)
+
+    # --- Kampf-Log (scrollend, aeltere Zeilen dunkler) ---
+    log_zeilen = fh - 7   # Rahmen(2) + Kopf(2) + Trennl.(1) + Trennl.(1) + Hint(1)
+    log = zst.log[-log_zeilen:] if zst.log else ["Kampf beginnt!"]
     for i, zeile in enumerate(log):
-        console.print(2, y0 + 3 + i, zeile[:w - 4], fg=(155, 155, 155))
+        hell = 80 + i * (120 // max(1, len(log)))
+        console.print(fx + 1, fy + 4 + i, zeile[:inn], fg=(hell, hell, hell))
+
+    # Trennlinie vor Steuerung
+    _linie_kampf(console, fx, fy + fh - 3, fw)
 
     # --- Steuerungshinweis / Ergebnis ---
     if not zst.beendet:
         if aktives_menue:
-            console.print(2, y0 + KAMPF_PANEL_HOEHE - 1,
-                          "[ESC/TAB] Schliessen  [W/S] Navigieren  [ENTER] Benutzen",
-                          fg=(80, 80, 80))
+            hint  = "[ESC/TAB] Schliessen  [W/S] Navigieren  [ENTER] Benutzen"
+            farbe = (80, 80, 80)
         else:
-            console.print(2, y0 + KAMPF_PANEL_HOEHE - 1,
-                          "[LEERTASTE] Angreifen  [TAB] Inventar", fg=(80, 80, 80))
+            hint  = "[LEERTASTE] Angreifen  [TAB] Inventar"
+            farbe = (80, 80, 80)
     elif zst.ergebnis == "sieg":
-        console.print(2, y0 + KAMPF_PANEL_HOEHE - 1,
-                      f"SIEG!  [LEERTASTE] Weiter", fg=(100, 220, 100))
+        hint  = "SIEG!  [LEERTASTE] Weiter"
+        farbe = (100, 220, 100)
     else:
-        console.print(2, y0 + KAMPF_PANEL_HOEHE - 1,
-                      "NIEDERLAGE  [LEERTASTE] Neu starten", fg=(220, 80, 80))
+        hint  = "NIEDERLAGE  [LEERTASTE] Neu starten"
+        farbe = (220, 80, 80)
+    console.print(fx + 1, fy + fh - 2, hint[:inn], fg=farbe)
 
 
 # ---------------------------------------------------------------------------
@@ -411,33 +494,30 @@ def _zeichne_kampf_panel(console):
 def _zeichne_hub(console):
     """Hub zeichnen."""
     console.clear()
+    KY = config.KARTE_Y0
 
     # Karte mit FOV — warme Bodenfarbe (Holz/Stroh) statt Dungeon-Grau
     for y, zeile in enumerate(HUB_KARTE):
         for x, zeichen in enumerate(zeile):
+            cy = y + KY
             if HUB_FOV[y, x]:
-                fg = (160, 160, 160) if zeichen == "#" else (110, 80, 35)
-                console.print(x, y, zeichen, fg=fg)
+                fg = (200, 200, 200) if _ist_wand(zeichen) else (110, 80, 35)
+                console.print(x, cy, zeichen, fg=fg)
             elif HUB_ERKUNDET[y, x]:
-                fg = (50, 50, 50) if zeichen == "#" else (40, 28, 10)
-                console.print(x, y, zeichen, fg=fg)
+                fg = (60, 60, 60) if _ist_wand(zeichen) else (40, 28, 10)
+                console.print(x, cy, zeichen, fg=fg)
 
     # Hub-Objekte (Braukessel/Ausgang etc.)
     for obj in HUB_OBJEKTE:
         if HUB_FOV[obj["y"], obj["x"]]:
-            console.print(obj["x"], obj["y"], obj["symbol"], fg=obj["farbe"])
+            console.print(obj["x"], obj["y"] + KY, obj["symbol"], fg=obj["farbe"])
 
     # Spieler
-    console.print(hub_spieler_x, hub_spieler_y, "@", fg=(255, 215, 0))
+    console.print(hub_spieler_x, hub_spieler_y + KY, "@", fg=(255, 215, 0))
 
-    # HUD
-    hud = (f"EP: {spieler.ep_verfuegbar}  "
-           f"LP: {spieler.lp}/{spieler.lp_max}  "
-           f"PP: {spieler.pp}/{spieler.pp_max}  "
-           f"MP: {spieler.mp}/{spieler.mp_max}")
-    console.print(1, console.height - 1, hud, fg=(100, 200, 120))
-    console.print(console.width - 38, console.height - 1,
-                  "[TAB] Menue  [Kessel] Dungeon  [Q] Beenden", fg=(80, 80, 80))
+    # Statuszeile + Log
+    _zeichne_statuszeile(console)
+    _zeichne_log(console, "[TAB] Menue  [Kessel] Dungeon  [Q] Beenden")
 
     # Menue-Overlay
     if aktives_menue:
@@ -598,9 +678,12 @@ def starte(console, context):
                 _handle_key(event)
 
 
+_BEWEGUNG_WIEDERHOLRATE = 0.12   # Sekunden zwischen Schritten beim Halten (ca. 8/s)
+
 def _handle_key(event):
     global spieler_x, spieler_y, aktives_menue, menue_auswahl, status_meldung
     global aktiver_kampf, aktiver_kampf_eintrag, modus, ort
+    global _letzter_bewegungszeitpunkt
 
     sym   = event.sym
     shift = bool(event.mod & tcod.event.KMOD_SHIFT)
@@ -706,10 +789,22 @@ def _handle_key(event):
 
     else:
         bewegen = _hub_bewege if ort == "pilsstube" else _bewege
-        if   sym in (tcod.event.KeySym.UP,    tcod.event.KeySym.w): bewegen( 0, -1)
-        elif sym in (tcod.event.KeySym.DOWN,  tcod.event.KeySym.s): bewegen( 0,  1)
-        elif sym in (tcod.event.KeySym.LEFT,  tcod.event.KeySym.a): bewegen(-1,  0)
-        elif sym in (tcod.event.KeySym.RIGHT, tcod.event.KeySym.d): bewegen( 1,  0)
+        bewegungstasten = (
+            tcod.event.KeySym.UP, tcod.event.KeySym.DOWN,
+            tcod.event.KeySym.LEFT, tcod.event.KeySym.RIGHT,
+            tcod.event.KeySym.w, tcod.event.KeySym.s,
+            tcod.event.KeySym.a, tcod.event.KeySym.d,
+        )
+        if sym in bewegungstasten:
+            if event.repeat:
+                jetzt = time.monotonic()
+                if jetzt - _letzter_bewegungszeitpunkt < _BEWEGUNG_WIEDERHOLRATE:
+                    return
+                _letzter_bewegungszeitpunkt = jetzt
+            if   sym in (tcod.event.KeySym.UP,    tcod.event.KeySym.w): bewegen( 0, -1)
+            elif sym in (tcod.event.KeySym.DOWN,  tcod.event.KeySym.s): bewegen( 0,  1)
+            elif sym in (tcod.event.KeySym.LEFT,  tcod.event.KeySym.a): bewegen(-1,  0)
+            elif sym in (tcod.event.KeySym.RIGHT, tcod.event.KeySym.d): bewegen( 1,  0)
         elif sym == tcod.event.KeySym.q:
             speichern(spieler, aktuell)
             raise SystemExit()
@@ -752,6 +847,7 @@ def _bewege(dx, dy):
             item_def = alle_items.get(loot["id"])
             if item_def:
                 inventar_system.hinzufuegen(spieler.inventar, loot["id"], item_def)
+                _log(f"{item_def['name']} aufgehoben.")
             bodenloot.remove(loot)
 
         # Gegner reagieren auf den Spielerzug
@@ -792,6 +888,7 @@ def _zurueck_zum_hub():
     spieler.lp = spieler.lp_max
     spieler.pp = spieler.pp_max
     spieler.mp = spieler.mp_max
+    _log("Zurueck im Hub. LP/PP/MP aufgefuellt.")
     ort = "pilsstube"
     speichern(spieler, aktuell)
 
@@ -809,6 +906,7 @@ def _betrete_dungeon():
     aktuell["zone_index"]   = 0
     aktuell["zonen_gesamt"] = random.randint(zonen_min, zonen_max)
     _initialisiere_level()
+    _log(f"Dungeon betreten. {aktuell['zonen_gesamt']} Zone(n) warten.")
     ort = "dungeon"
 
 
@@ -836,6 +934,7 @@ def _kampf_aktion():
 
     # Kampf beendet — Ergebnis verarbeiten
     if aktiver_kampf.ergebnis == "sieg":
+        _log(f"{aktiver_kampf.gegner.name} besiegt.")
         # Loot-Wuerfel: jedes Item im loot_pool wird unabhaengig gewuerfelt
         for loot_eintrag in aktiver_kampf.gegner.loot_pool:
             if random.random() < loot_eintrag["chance"]:

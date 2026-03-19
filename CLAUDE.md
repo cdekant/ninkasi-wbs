@@ -2,23 +2,21 @@
 
 ## Projekt
 
-- Solo-Rollenspiel im Terminal
-- Roguelite (Tod = zurück zum Level-Anfang, nicht zum Spielanfang)
+- Solo-Roguelite im Terminal
 - privates, nicht-kommerzielles Projekt
+- Ansprache an den Projektleiter: Ninkasi
 
 ## Spieldesign
 
 ### Konzept
 
-Der Spieler steuert Ninkasi, die frühgeschichtliche mesopotamische Göttin des Bierbrauens, die als Rachegöttin wiedererstanden ist, um die Welt vom "Dämon der Abstinenz", dem "Prohibitus" und seine dunklen Adepti Lobbyisti, gegen Veganer und Zölikultisten, intelligente Schleime, Schädlinge, Lebensmittelkontrolleure, schlitzohrige Landwirte, Gastronomen anzutreten und den Menschen die Drinkability zurückzubringen. Es geht durch alle Stufen der Wertschöpfungskette, von der Aussaat des Getreides bis zum Verkauf im Getränkefachhandel.
+Der Spieler steuert Ninkasi, die frühgeschichtliche mesopotamische Göttin des Bierbrauens, die als Rachegöttin wiedererstanden ist, um die Welt vom "Dämon der Abstinenz", dem "Prohibitus" und seinen dunklen Adepti Lobbyisti zu befreien. Sie kämpft gegen Veganer und Zölikultisten, eklige Bakterienschleime und Wildhefen, Schädlinge, Lebensmittelkontrolleure und bringt den Menschen die Drinkability zurück.
 
 ### Ton
 
-Humorvoll, sarkastisch, schwarz, respektlos, blutig, eklig, mikrobiologisch-schleimig.
+Humorvoll, sarkastisch, schwarz, respektlos, blutig, eklig, mikrobiologisch-schleimig, weiblich, zeitlich nicht eingeordnet, aus allen Zeiten assets willkommen.
 
-### Level (Braukette)
-
-Durchgehendes Thema für geheime Level?
+### Level (Bier-Wertschöpfungskette)
 
 1. Pflanzenzüchtung
 2. Aussaat
