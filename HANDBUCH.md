@@ -189,26 +189,30 @@ ist, kehrt bei 30 % HP um und sucht das Weite.
 ## Kampf
 
 Laeuft ein Gegner-Symbol deinen Weg, beginnt der Kampf automatisch sobald du
-dich auf sein Feld bewegst. Ein Kampf-Panel erscheint am unteren Bildschirmrand.
+dich auf sein Feld bewegst. Ein schwebendes Kampffenster blendet sich ueber
+die Karte ein.
 
-### Kampf-Panel
+### Kampffenster
 
 ```
-----------------------------------------------------------
-m Gaerkeller-Schimmel          @ Ninkasi
-HP [######..........] 6/12     LP [############....] 15/20
-  Gaerkeller-Schimmel: Sporenausstoss - 2 Schaden (LP 15/20)
-  dot_biologisch -> 1 Schaden (LP 14/20)
-  dot_biologisch klingt ab.
-  Ninkasi greift an: 3 Schaden (Gaerkeller-Schimmel HP 3/12)
-[LEERTASTE] Angreifen
-----------------------------------------------------------
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ m Gaerkeller-Schimmel              @ Ninkasi                                 │
+│ HP [████░░░░░░░░] 6/12             LP [████████░░░░] 15/20                   │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Runde 1:                                                                     │
+│ Gaerkeller-Schimmel: Sporenausstoss — 2 Schaden (LP 17/20)                  │
+│ dot_biologisch -> 1 Schaden (LP 16/20)                                       │
+│ Ninkasi greift an: 3 Schaden (Gaerkeller-Schimmel HP 9/12)                  │
+│ ...                                                                          │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ [LEERTASTE] Angreifen  [TAB] Inventar                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-- **Links:** Gegner mit HP-Balken
-- **Rechts:** Ninkasi mit LP-Balken
-- **Mitte:** Kampf-Log der letzten vier Ereignisse
-- **Unten:** Aktuelle Aktion oder Ergebnis
+- **Links oben:** Gegner mit HP-Balken
+- **Rechts oben:** Ninkasi mit LP-Balken
+- **Mitte:** Scrollender Kampf-Log (letzte 13 Runden; aeltere Eintraege dunkler)
+- **Unten:** Aktuelle Steuerung oder Ergebnis
 
 ### Kampfablauf pro Runde
 

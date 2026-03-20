@@ -44,6 +44,11 @@ test_*.py
 # Archiv (lokale Ablage, nicht versioniert)
 Archiv/
 
+# Planungsdokumente (lokal, nicht versioniert)
+Plaene/
+# Utils
+Utils/
+
 # Logs
 *.log
 

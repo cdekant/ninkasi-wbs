@@ -1,106 +1,61 @@
-# Battle Ninkasi  RPG im Terminal
+---
+lang: 'de-DE'
+---
+
+# Battle Ninkasi — RPG im Terminal
 
 ## Projekt
 
-- Solo-Roguelite im Terminal
-- privates, nicht-kommerzielles Projekt
+- Solo-Roguelite im Terminal, privat, nicht-kommerziell
 - Ansprache an den Projektleiter: Ninkasi
+- Spielinhalt, Spielregeln, Lore: siehe `HANDBUCH.md`
 
-## Spieldesign
+## Technische Darstellung
 
-### Konzept
+- Cheepicus 16×16 Tileset (CP437) als Basis + eigene Tiles via `set_tile()` — so schnell es geht vollständig auf custom Tiles umstellen (Plan: `Plaene/2026-03-20_tileset-benennung-und-transition.md`)
+- Custom Tiles: einzelne 16×16 PNGs unter `assets/tiles/<gruppe>/`, definiert in `src/tiles.py`, injiziert via `tileset.set_tile()`
+- **`src/tiles.py` ist die einzige Quelle der Wahrheit für Tile-Codepoints und -Namen.** JSON-Dateien verwenden symbolische Namen (z.B. `"INTER_PFLANZE"`), die von `karte.py` aufgelöst werden — nie rohe Codepoints in JSON schreiben.
+- Benennungsschema: `GRUPPE_NAME[_VARIANTE]` — Details und PUA-Cluster-Einteilung in `src/tiles.py` (Kommentar-Header) und im Plan
+- Startbildschirm: 120×144 RGBA-Bild via Halbblock-Technik (▀, fg=oben, bg=unten)
+- Fenster: borderless (SDL_WINDOW_BORDERLESS), 120×67 Kacheln à 16×16 px = 1920×1072 px
+- UI-Layout: Statuszeile (Zeilen 0–1), Karte (Zeilen 2–60, 59 Zeilen), Nachrichtenlog (Zeilen 61–65), Shortcut-Zeile (Zeile 66)
+- Schwebendes Kampffenster: 80×20 Kacheln, Konsolen-Position x=20/y=21, überlagert die Karte
+- Darstellung vollständig in `src/ui/` isoliert — Tileset-Tausch möglich ohne Spiellogik-Änderung
 
-Der Spieler steuert Ninkasi, die frühgeschichtliche mesopotamische Göttin des Bierbrauens, die als Rachegöttin wiedererstanden ist, um die Welt vom "Dämon der Abstinenz", dem "Prohibitus" und seinen dunklen Adepti Lobbyisti zu befreien. Sie kämpft gegen Veganer und Zölikultisten, eklige Bakterienschleime und Wildhefen, Schädlinge, Lebensmittelkontrolleure und bringt den Menschen die Drinkability zurück.
-
-### Ton
-
-Humorvoll, sarkastisch, schwarz, respektlos, blutig, eklig, mikrobiologisch-schleimig, weiblich, zeitlich nicht eingeordnet, aus allen Zeiten assets willkommen.
-
-### Level (Bier-Wertschöpfungskette)
-
-1. Pflanzenzüchtung
-2. Aussaat
-3. Ernte
-4. Getreidelager
-5. Mälzen
-6. Reinigen
-7. Schroten (geheimes Level: Schrotmühle)
-8. Maischen (geheimes Level: Sauergut)
-9. Läutern (geheimes Level: Maischefiltern)
-10. Kochen / Hopfengabe
-11. Whirlpool (geheimes Level: Bier-Rückgewinnung)
-12. Gärung (geheimes Level: Hefe-Propagation)
-13. Reifung
-14. Abfüllung
-15. Verkauf (Endboss)
-
-### Gegner
-
-Vielfältig je nach Level — z.B. Insekten/Vögel (Aussaat), Bakterien/Wildhefen
-(Gärung), Gesundheitsinspektor/Konkurrenz (Verkauf). Kein Gegner-Typ ist auf ein
-Level beschränkt.
-
-### Kampf
-
-- Rundenbasiert (klassisch)
-- taktisch?
-- Rätselelemente je nach Level möglich
-
-### Progression
-- **Tod:** Neustart am Anfang des aktuellen Levels
-- **Permanente Verbesserungen:** Skills bleiben erhalten + Währung zum Freischalten
-- **Skill-Entwicklung:** Fähigkeiten verbessern sich durch Wiederholung
-- **Charaktererstellung:** Flexible Archetypen statt starrer Klassen
-
-### Darstellung
-- Aktuell: Cheepicus 16×16 Tileset (CP437) + custom Tiles via Unicode Private Use Area (U+E000+)
-- Custom Tiles: einzelne 16×16 PNGs, definiert in `src/tiles.py`, injiziert via `tileset.set_tile()`
-- **`src/tiles.py` ist die einzige Quelle der Wahrheit für PUA-Codepoints.** JSON-Dateien verwenden symbolische Namen (z.B. `"PFLANZE"`), die von `karte.py` beim Generieren aufgelöst werden — nie rohe Codepoints in JSON schreiben.
-- PUA-Cluster (U+E000–U+F8FF): Spezial E000–E03F (64), Umwelt E040–E13F (256), Brauerei E140–E23F (256), Architektur E240–E33F (256), Gegner E340–E3BF (128), Items E3C0–E43F (128), UI E440–E45F (32), Rest reserviert
-- Startbildschirm: 120×144 RGBA-Bild via Halbblock-Technik (▀, fg=oben, bg=unten) — doppelte Auflösung
-- Fenster: borderless (SDL_WINDOW_BORDERLESS), 120×72 Kacheln à 16×16 px
-- Weiterer Wechsel auf vollständiges Tile-Set möglich — Darstellung ist vollständig in `src/ui/` isoliert
-
-### Karten-System (Design-Entscheidungen)
+## Karten-System
 
 - **Zonen-basiert:** Kein Scrolling; jede Zone passt ins Terminal-Fenster
 - **Hybrid-Struktur:** Baum-Graph + zufällige Querverbindungen
 - **Neu generiert:** Bei Tod UND Level-Wechsel (Seed wird nicht gespeichert)
 - **Zone-Graph:** Ein Pflicht-Ausgang (tief im Baum), zufällige Bonus/Geheim-Ausgänge
-- **Algorithmen:** BSP für Gebäude-Level, Raster für gleichmäßige Innenraum-Level (Gewächshaus), Noise für Außen-Level
-- **Level-Grammatik:** Jedes Level definiert Algorithmus, Kacheln, Objekte, Gegner-Pool in `data/levels.json`
+- **Algorithmen:** BSP (Gebäude-Level), Raster (Innenraum/Gewächshaus), Noise (Außen-Level — geplant)
+- **Level-Grammatik:** `data/levels.json` — Algorithmus, Kacheln, Objekte, Gegner-Pool je Level
 - **Gegner-Pool:** Gewichtete Häufigkeit + Stärke-Skalierung pro Level (0.0–1.0)
-- **Geheim-Level:** Erben Grammatik vom regulären Level (`"basis": "..."`) mit überschriebenen Parametern (kleiner, höhere Loot-Chance)
-- **Mini-Map:** Fog of War (nur Erkundetes sichtbar), aktuelle Zone hervorgehoben, Ausgänge erst bei Entdeckung, alles neu nach Tod
-- **Items:** Eigene `data/items.json`, Pflichtfeld `kategorie` (verbrauchbar, waffe, ruestung, material, quest)
+- **Geheim-Level:** `"basis": "<level_name>"` erbt Grammatik, überschreibt einzelne Parameter
+- **Items:** `data/items.json`, Pflichtfeld `kategorie` (verbrauchbar, waffe, ruestung, material, quest)
 - **Objekte vs. Items:** Objekte bleiben auf der Karte (Gärtank, Hecke); Items wandern ins Inventar; Objekte haben `loot_pool`
 
-### Hub-System
+## Hub-System
 
-- **Hub** (`src/map/hub.py`): kreisrunder Raum (Radius 7) um die Bildschirmmitte; eigener FOV/Fog-of-War-Zustand
-- **Braukessel** (U+E000, `assets/tiles/braukessel.png`): Ausgang vom Hub ins Dungeon; Betreten startet neuen Run
-- **Dungeon-Ausgang** (`<`, hellblau): Liegt am vom Spieler-Spawn am weitesten entfernten Bodentile; Betreten kehrt zum Hub zurück
-- **Modus vs. Ort:** `modus` = "hub"/"kampf"/"tod" (Spielzustand); `ort` = "pilsstube"/"dungeon" (wo man sich befindet)
-- **TAB-Menü Skill-Baum** nur im Hub verfügbar (`ort == "pilsstube"`); **Inventar-Tab** in Hub, Dungeon und im Kampf verfügbar
-- **15 Skill-Kategorien** (Details in HANDBUCH.md): Lebenskraft, Tennentänzerei, Kesselzorn, Sudwall, Kesselhexerei, SchnaPsi, Braukunde, Kornkunde, Maschinenkunde, Meta-Braukunde, Naturkunde, Zahlenkult, Schankkunst, Marktschreierei, Nachschub
+- `src/map/hub.py`: kreisrunder Raum (Radius 7) um die Bildschirmmitte; eigener FOV/Fog-of-War-Zustand
+- **Braukessel** (U+E000, `assets/tiles/braukessel.png`): Ausgang vom Hub ins Dungeon
+- **Dungeon-Ausgang** (`<`, hellblau): am vom Spawn-Punkt am weitesten entfernten Bodentile
+- `modus` = "hub"/"kampf"/"tod" (Spielzustand); `ort` = "pilsstube"/"dungeon" (Aufenthaltsort)
+- TAB-Menü Skill-Baum nur im Hub (`ort == "pilsstube"`); Inventar in Hub, Dungeon und Kampf
+- 15 Skill-Kategorien (Details in HANDBUCH.md)
 
 ## Technologie
 
-- Windows 11
-- Python 3.13.9 (Befehl: `python`)
-- pip (vorhanden)
-- Terminal-Bibliothek: `tcod`
-- Code-Editor: Notepad++
-- Git (vorhanden)
-- Speicherformat: JSON (Spielstand); Umstieg auf SQLite möglich ohne Änderung an der Spiellogik
-- Spieldaten (Gegner, Waffen, Items, Charaktere usw.) liegen als JSON-Dateien unter `data/` — Erweiterungen ohne Code-Änderungen möglich
+- Windows 11, Python 3.13.9 (Befehl: `python`), tcod, Notepad++, Git
+- Spieldaten unter `data/` als JSON — Erweiterungen ohne Code-Änderungen möglich
+- Spielstand: `saves/savegame.json`; Umstieg auf SQLite möglich ohne Änderung der Spiellogik
 
 ## Projektstruktur
 
 ```
 bn/
 ├── main.py              # Einstiegspunkt: Tileset laden (Cheepicus + custom tiles), Fenster öffnen
-├── config.py            # Zentrale Anzeige-Konfiguration: BREITE, HOEHE, KACHEL_PX, SDL_FLAGS
+├── config.py            # Zentrale Anzeige-Konfiguration: BREITE, HOEHE, KACHEL_PX, SDL_FLAGS, UI-Layout-Konstanten
 ├── game.py              # Hauptspielschleife (Bewegung, Kampf, Spawn, Rendering, Hub, Tod-Screen)
 ├── data/                # Alle Spieldaten als JSON
 │   ├── skills.json      # Skill-Definitionen (Skelett — offen)
@@ -145,8 +100,16 @@ bn/
 ## Entwickler
 
 - Keinerlei Programmiererfahrung — Erklärungen und Code so einfach wie möglich halten
-- Ausnahme: Klare Vorteile für zukünftige Erweiterungen (insbesondere Modularisierbarkeit/Portierbarkeit) können die Regel "möglichst einfacher Code" überstimmen — dann aber mit Erklärung warum.
+- Ausnahme: Klare Vorteile für Modularisierbarkeit/Portierbarkeit können Einfachheit überstimmen — dann mit Erklärung warum.
+- **Sprechende Namen:** Dateien, Funktionen, Variablen, Konstanten und JSON-Schlüssel immer so benennen, dass der Name ohne Kommentar verständlich ist. Lieber `schaden_pro_runde` als `dpr`, lieber `wand_fenster.png` als `w2.png`. Abkürzungen nur wenn allgemein bekannt (z.B. `hp`, `ui`, `fov`).
 
 ## Dokumentation
 
-**Pflicht:** Erst wenn eine Aufgabe vollständig abgeschlossen ist, @CLAUDE.md, @TODO.md, @README.md, @HANDBUCH.md und @VERSION einlesen, auf Konsistenz prüfen und bei Bedarf nachziehen. Während der Aufgabe diese Dateien nicht laden.
+**Pflicht:** Erst wenn eine Aufgabe vollständig abgeschlossen ist, `CLAUDE.md`, `TODO.md`, `README.md`, `HANDBUCH.md` und `VERSION` einlesen, auf Konsistenz prüfen und bei Bedarf nachziehen. Während der Aufgabe diese Dateien nicht automatisch laden.
+
+## Pläne
+
+Implementierungspläne liegen unter `Plaene/` im Projektroot.
+- Dateiname: `JJJJ-MM-TT_stichwort.md` (ISO-Datum vorangestellt)
+- Nicht versioniert (in `.gitignore` eingetragen)
+- Inhalt: Ziel, betroffene Dateien, Codebeispiele, offene Fragen

@@ -1,6 +1,6 @@
 # Ninkasi – Wiedergeburt der Bier-Schlächterin
 
-Roguelite-Terminal-RPG. Du bist die als intoxierte Erynne auferstandene mesopotamische Biergöttin Ninkasi. Die Welt ist verrückt geworden und du musst dich gegen verrückte Anti-Alkoholiker, Zombie-Lobbyisten und jede Menge mutierte Schleime zur Wehr setzen. Am Ende musst du das Amok gelaufene vegane Konstrukt Nüchternikum besiegen und der Welt durch Bier Frieden bringen.
+Roguelite-Terminal-RPG. Du bist die als intoxierte Erynne auferstandene mesopotamische Biergöttin Ninkasi. Die Welt ist verrückt geworden und du musst dich gegen verrückte Anti-Alkoholiker, Zombie-Lobbyisten und jede Menge mutierte Schleime zur Wehr setzen. Am Ende musst du das Amok gelaufene vegane Konstrukt Prohibitus besiegen und der Welt durch Bier Frieden bringen.
 
 Kaempfe dich durch alle Stufen der Wertschöpfungskette — von der Aussaat bis zum
 Getränkefachgroßhandel. Jedes Level ist eine andere Etappe der Braukette, mit zufälliger Karte und passenden (und unpassenden) Gegnern.
