@@ -26,31 +26,36 @@
   },
   "pflanzenzuechtung": {
     "algorithmus": "raster",
-    "raster_spalten": 3,
-    "raster_zeilen": 2,
-    "raster_belegung": 1.0,
-    "zonen_anzahl_min": 5,
-    "zonen_anzahl_max": 7,
-    "raeume_min": 6,
-    "raeume_max": 6,
-    "raum_breite_min": 7,
-    "raum_breite_max": 15,
+    "boden_tile": "BODEN_FLIESSE",
+    "raster_spalten": 6,
+    "raster_zeilen": 5,
+    "raster_belegung": 0.7,
+    "zonen_anzahl_min": 3,
+    "zonen_anzahl_max": 5,
+    "raeume_min": 18,
+    "raeume_max": 30,
+    "raum_breite_min": 5,
+    "raum_breite_max": 9,
     "raum_hoehe_min": 5,
-    "raum_hoehe_max": 15,
-    "korridor_breite": 2,
+    "raum_hoehe_max": 9,
+    "korridor_breite": 3,
     "kacheln": {
       "boden": ".",
       "wand": "#",
-      "objekt_hochbeet": "H",
-      "objekt_pflanze":  "PFLANZE"
+      "objekt_hochbeet": "OBJ_VEG_GRAS",
+      "objekt_pflanze":  "INTER_PFLANZE"
     },
     "objekte": [
-      {"typ": "hochbeet", "min": 1, "max": 2, "position": "mitte",  "abstand_wand": 2},
-      {"typ": "pflanze",  "min": 2, "max": 4, "position": "zufall", "abstand_wand": 1}
+      {"typ": "hochbeet", "min": 0, "max": 2, "position": "mitte",  "abstand_wand": 2},
+      {"typ": "pflanze",  "min": 0, "max": 4, "position": "zufall", "abstand_wand": 1}
     ],
     "gegner_pool": [
-      {"id": "gaerkeller_schimmel",    "gewicht": 3, "staerke": 0.2},
-      {"id": "lebensmittelkontrolleur","gewicht": 0.75, "staerke": 0.3}
+      {"id": "gaerkeller_schimmel",    "gewicht": 3, "staerke": 0.3},
+      {"id": "lebensmittelkontrolleur","gewicht": 0.75, "staerke": 0.4}
+    ],
+    "fenster": [
+      {"typ": "WAND_GITTER", "gruppe_min": 3, "gruppe_max": 4},
+      {"typ": "WAND_FENSTER","gruppe_min": 1, "gruppe_max": 2}
     ],
     "bonus_ausgang_chance": 0.2
   }

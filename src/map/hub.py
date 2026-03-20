@@ -1,6 +1,6 @@
 """Hub-Karte: kreisrunder Raum um die Bildschirmmitte."""
 
-from src.tiles import BRAUKESSEL
+from src.tiles import HUB_BRAUKESSEL
 
 HUB_RADIUS = 7
 
@@ -29,7 +29,7 @@ def generiere_hub(breite, hoehe):
     # Ausgang als separates Objekt — '.' bleibt im Karten-String,
     # damit FOV / Transparenz korrekt funktionieren.
     ausgang = {
-        "symbol": BRAUKESSEL,          # eigenes Tile (U+E000)
+        "symbol": HUB_BRAUKESSEL,      # eigenes Tile (U+E000)
         "x":      cx,
         "y":      cy,
         "typ":    "ausgang",

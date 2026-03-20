@@ -39,7 +39,8 @@ from src.systems import ki
 # Konstanten
 # ---------------------------------------------------------------------------
 
-_nachrichtenlog = []   # letzte Meldungen fuer den Log-Bereich unten
+_nachrichtenlog  = []   # letzte Meldungen fuer den Log-Bereich unten
+_karte_boden_tile = None  # optionales Custom-Tile fuer Boden-Rendering (None = ".")
 
 
 def _log(text):
@@ -172,9 +173,13 @@ def _initialisiere_level():
     global KARTE, spieler_x, spieler_y, gegner_auf_karte
     global TRANSPARENZ, FOV, ERKUNDET
     global DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y
+    global _karte_boden_tile
 
     level_name = aktuell.get("level_name", "pflanzenzuechtung")
-    KARTE = generiere_karte(alle_level[level_name], breite=config.BREITE, hoehe=config.KARTE_HOEHE)
+    grammatik  = alle_level[level_name]
+    KARTE = generiere_karte(grammatik, breite=config.BREITE, hoehe=config.KARTE_HOEHE)
+    roh = grammatik.get("boden_tile")
+    _karte_boden_tile = tiles.TILE_NAMEN.get(roh) if roh else None
 
     # Spieler auf die erste freie Bodenkachel setzen
     spieler_x, spieler_y = 1, 1
@@ -310,20 +315,34 @@ def zeichne(console):
     for y, zeile in enumerate(KARTE):
         for x, zeichen in enumerate(zeile):
             cy = y + KY
+            # "." ggf. durch Level-spezifisches Boden-Tile ersetzen
+            anzeige = _karte_boden_tile if (zeichen == "." and _karte_boden_tile) else zeichen
             if FOV[y, x]:
-                if zeichen == tiles.FENSTER_GITTER:
-                    console.print(x, cy, zeichen, fg=(140, 210, 140))
+                if zeichen == tiles.WAND_GITTER:
+                    console.print(x, cy, anzeige, fg=(140, 210, 140))
+                elif zeichen == tiles.OBJ_VEG_GRAS:
+                    console.print(x, cy, anzeige, fg=(255, 255, 255))
                 elif _ist_wand(zeichen):
-                    console.print(x, cy, zeichen, fg=(200, 200, 200))
+                    console.print(x, cy, anzeige, fg=(200, 200, 200))
+                elif anzeige == tiles.BODEN_FLIESSE:
+                    # jede 7. Fliese leicht bläulich (deterministisch per Position)
+                    if (x * 3 + y * 7) % 7 == 0:
+                        console.print(x, cy, anzeige, fg=(160, 180, 220))
+                    else:
+                        console.print(x, cy, anzeige, fg=(200, 200, 200))
                 else:
-                    console.print(x, cy, zeichen, fg=(90, 90, 90))
+                    console.print(x, cy, anzeige, fg=(90, 90, 90))
             elif ERKUNDET[y, x]:
-                if zeichen == tiles.FENSTER_GITTER:
-                    console.print(x, cy, zeichen, fg=(45, 70, 45))
+                if zeichen == tiles.WAND_GITTER:
+                    console.print(x, cy, anzeige, fg=(45, 70, 45))
+                elif zeichen == tiles.OBJ_VEG_GRAS:
+                    console.print(x, cy, anzeige, fg=(60, 60, 60))
                 elif _ist_wand(zeichen):
-                    console.print(x, cy, zeichen, fg=(60, 60, 60))
+                    console.print(x, cy, anzeige, fg=(60, 60, 60))
+                elif anzeige == tiles.BODEN_FLIESSE:
+                    console.print(x, cy, anzeige, fg=(40, 45, 60))
                 else:
-                    console.print(x, cy, zeichen, fg=(20, 20, 20))
+                    console.print(x, cy, anzeige, fg=(20, 20, 20))
             # Nie gesehen: nicht zeichnen (bleibt schwarz)
 
     # Dungeon-Ausgang
@@ -345,7 +364,7 @@ def zeichne(console):
                           eintrag["gegner"].symbol, fg=(200, 80, 80))
 
     # Spieler
-    console.print(spieler_x, spieler_y + KY, "@", fg=(255, 215, 0))
+    console.print(spieler_x, spieler_y + KY, tiles.HUB_NINKASI, fg=(255, 215, 0))
 
     # Statuszeile (Zeilen 0-1)
     _zeichne_statuszeile(console)
@@ -513,7 +532,7 @@ def _zeichne_hub(console):
             console.print(obj["x"], obj["y"] + KY, obj["symbol"], fg=obj["farbe"])
 
     # Spieler
-    console.print(hub_spieler_x, hub_spieler_y + KY, "@", fg=(255, 215, 0))
+    console.print(hub_spieler_x, hub_spieler_y + KY, tiles.HUB_NINKASI, fg=(255, 215, 0))
 
     # Statuszeile + Log
     _zeichne_statuszeile(console)
@@ -613,20 +632,20 @@ def _zeichne_startbildschirm(console, zitat, hat_speicherstand=False):
                 if i < len(text) - 1:
                     x += 1
 
-    # --- Menue (im abgedunkelten Bereich unten) ---
-    console.print((w - len(zitat)) // 2, 63, zitat, fg=(160, 100, 40))
+    # --- Menue (im abgedunkelten Bereich unten, Zeilen 62-66) ---
+    console.print((w - len(zitat)) // 2, 62, zitat, fg=(160, 100, 40))
     for x in range(25, w - 25):
-        console.print(x, 65, "-", fg=(80, 50, 15))
+        console.print(x, 63, "-", fg=(80, 50, 15))
     mx = (w - 26) // 2
     if hat_speicherstand:
-        console.print(mx, 66, "[ ENTER ]  Weiter spielen", fg=(230, 215, 160))
-        console.print(mx, 68, "[  N    ]  Neues Spiel",    fg=(180, 140, 80))
-        console.print(mx, 70, "[  Q    ]  Beenden",        fg=(150, 100, 70))
+        console.print(mx, 64, "[ ENTER ]  Weiter spielen", fg=(230, 215, 160))
+        console.print(mx, 65, "[  N    ]  Neues Spiel",    fg=(180, 140, 80))
+        console.print(mx, 66, "[  Q    ]  Beenden",        fg=(150, 100, 70))
     else:
-        console.print(mx, 67, "[ ENTER ]  Neues Spiel", fg=(230, 215, 160))
-        console.print(mx, 69, "[  Q    ]  Beenden",      fg=(150, 100, 70))
+        console.print(mx, 64, "[ ENTER ]  Neues Spiel", fg=(230, 215, 160))
+        console.print(mx, 66, "[  Q    ]  Beenden",     fg=(150, 100, 70))
     version_txt = _VERSION
-    console.print(w - 3 - len(version_txt), 71, version_txt, fg=(70, 45, 15))
+    console.print(w - 3 - len(version_txt), 66, version_txt, fg=(70, 45, 15))
 
 
 def starte(console, context):

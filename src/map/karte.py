@@ -3,7 +3,7 @@
 Liest 'algorithmus' aus der Level-Grammatik und ruft den
 passenden Generator auf. Neue Algorithmen hier eintragen.
 
-Symbolische Tile-Namen (z.B. "PFLANZE") in der Grammatik werden
+Symbolische Tile-Namen (z.B. "INTER_PFLANZE") in der Grammatik werden
 automatisch gegen src/tiles.py aufgeloest, bevor der Generator
 aufgerufen wird — levels.json muss keine rohen Unicode-Codepoints kennen.
 """
@@ -16,7 +16,7 @@ from src.map.raster import generiere_karte as _raster
 def _kacheln_aufloesen(grammatik):
     """Ersetzt symbolische Tile-Namen in grammatik['kacheln'] durch echte Zeichen.
 
-    Beispiel: "PFLANZE" -> tiles.PFLANZE ("\uE040")
+    Beispiel: "INTER_PFLANZE" -> tiles.INTER_PFLANZE ("\uE0C0")
     Unbekannte Namen und direkte Zeichen bleiben unveraendert.
     """
     kacheln = grammatik.get("kacheln", {})
@@ -26,8 +26,20 @@ def _kacheln_aufloesen(grammatik):
     }
 
 
+def _fenster_aufloesen(grammatik):
+    """Loest symbolische Tile-Namen in fenster[*].typ auf."""
+    return [
+        {**f, "typ": tiles.TILE_NAMEN.get(f["typ"], f["typ"])}
+        for f in grammatik.get("fenster", [])
+    ]
+
+
 def generiere_karte(grammatik, breite, hoehe, seed=None):
-    grammatik = {**grammatik, "kacheln": _kacheln_aufloesen(grammatik)}
+    grammatik = {
+        **grammatik,
+        "kacheln": _kacheln_aufloesen(grammatik),
+        "fenster": _fenster_aufloesen(grammatik),
+    }
     algo = grammatik.get("algorithmus", "bsp")
     if algo == "raster":
         return _raster(grammatik, breite, hoehe, seed)
