@@ -136,7 +136,93 @@ def generiere_karte(grammatik, breite, hoehe, seed=None):
                     karte[oy][ox] = obj_char
                     gesetzt += 1
 
+    # Fenster in Wandsegmente einsetzen
+    _platziere_fenster(karte, hoehe, breite, wand, boden,
+                       grammatik.get("fenster", []))
+
     return ["".join(zeile) for zeile in karte]
+
+
+def _platziere_fenster(karte, hoehe, breite, wand, boden, fenster_defs):
+    """Fuellt alle horizontalen Raumperimeter-Wandsegmente mit Fenster-Tiles.
+
+    Wandsegment: zusammenhaengender Lauf von Wand-Kacheln in einer Zeile,
+    bei denen mindestens eine Kachel direkt an Boden angrenzt.
+    Jedes Segment wird von innen (1px Rand freihalten) vollstaendig belegt —
+    zufaellige Mischung aus den uebergebenen Fenster-Typen nach Gruppengroesse.
+    """
+    if not fenster_defs:
+        return
+
+    def fuelle_segment(positionen, setze):
+        """Fuelle eine Liste von Positionen mit zufaelligen Fenster-Gruppen.
+        1px Rand an beiden Enden bleibt Wand."""
+        pos  = 1                        # 1px Rand links/oben freihalten
+        ende = len(positionen) - 1      # 1px Rand rechts/unten freihalten
+        while pos < ende:
+            restplatz = ende - pos
+            moeglich = [f for f in fenster_defs
+                        if restplatz >= f.get("gruppe_min", 1)]
+            if not moeglich:
+                break
+            fdef  = random.choice(moeglich)
+            g_len = random.randint(fdef.get("gruppe_min", 1),
+                                   min(fdef.get("gruppe_max", 2), restplatz))
+            for i in range(g_len):
+                setze(positionen[pos + i], fdef["typ"])
+            pos += g_len
+
+    # Horizontale Segmente (Wand mit Boden oben oder unten)
+    for r in range(1, hoehe - 1):
+        start = None
+        for c in range(0, breite + 1):
+            in_seg = (c < breite and karte[r][c] == wand
+                      and (karte[r - 1][c] == boden or karte[r + 1][c] == boden))
+            if in_seg:
+                if start is None:
+                    start = c
+            else:
+                if start is not None:
+                    cols = list(range(start, c))
+                    def setze_h(col, ch, _r=r):
+                        karte[_r][col] = ch
+                    fuelle_segment(cols, setze_h)
+                    start = None
+
+    # Vertikale Segmente (Wand mit Boden links oder rechts)
+    for c in range(1, breite - 1):
+        start = None
+        for r in range(0, hoehe + 1):
+            in_seg = (r < hoehe and karte[r][c] == wand
+                      and (karte[r][c - 1] == boden or karte[r][c + 1] == boden))
+            if in_seg:
+                if start is None:
+                    start = r
+            else:
+                if start is not None:
+                    rows = list(range(start, r))
+                    def setze_v(row, ch, _c=c):
+                        karte[row][_c] = ch
+                    fuelle_segment(rows, setze_v)
+                    start = None
+
+    # Cleanup: Ecken und Segment-Enden ersetzen.
+    # Jede verbleibende Wand-Kachel die an Boden oder ein Fenster-Tile angrenzt
+    # wird durch das kleinste verfuegbare Fenster-Tile ersetzt.
+    fenster_chars = {fdef["typ"] for fdef in fenster_defs}
+    einzel = min(fenster_defs, key=lambda f: f.get("gruppe_min", 1))["typ"]
+    geaendert = True
+    while geaendert:
+        geaendert = False
+        for r in range(1, hoehe - 1):
+            for c in range(1, breite - 1):
+                if karte[r][c] != wand:
+                    continue
+                nachbarn = [karte[r-1][c], karte[r+1][c],
+                            karte[r][c-1], karte[r][c+1]]
+                if any(n == boden or n in fenster_chars for n in nachbarn):
+                    karte[r][c] = einzel
+                    geaendert = True
 
 
 def _korridor(karte, boden, h, w, x1, y1, x2, y2, breite):
