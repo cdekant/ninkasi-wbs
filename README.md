@@ -14,7 +14,7 @@ das Fortschrittssymbol des Spiels.
 ## Voraussetzungen
 
 - Python 3.13+
-- tcod (`pip install tcod`)
+- `pip install tcod`
 
 ## Starten
 
