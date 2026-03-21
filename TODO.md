@@ -1,5 +1,7 @@
 # TODO
 
+- @CLAUDE.md Refaktor, dann @README.md Refaktor, dann entscheiden, wie neben CLAUDE.md eine gute onboarding Dokumentation aussehen kann.
+
 ## 1 BUGS UND LOGIKFEHLER
 
 ## 2 NEUE FEATURES
