@@ -69,7 +69,7 @@
     "verteidigung_basis": 2,
     "ep_beute": 25,
     "verhalten": "verfolgen",
-    "sicht_radius": 15,
+    "sicht_radius": 7,
     "geschwindigkeit": 1.0,
     "angriffe": [
       {
