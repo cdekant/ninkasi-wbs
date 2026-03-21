@@ -26,7 +26,7 @@ import src.systems.inventar as inventar_system
 from src.entities.player import Spieler
 from src.entities.gegner import typen_laden, Gegner
 from src.entities.item import typen_laden as items_laden
-from src.systems.kampf import KampfZustand, runde_ausfuehren
+from src.systems.kampf import KampfZustand, runde_ausfuehren, abschlag_ausfuehren
 from src.systems.speichern import tod_reset, STANDARD_AKTUELL, speichern, laden
 from src.ui.menu_anzeige import zeichne_menue
 from src.map.karte import generiere_karte
@@ -124,6 +124,7 @@ status_meldung = ""
 # Kampf-Zustand
 aktiver_kampf = None          # KampfZustand oder None
 aktiver_kampf_eintrag = None  # Dict-Referenz in gegner_auf_karte
+_kampfrunden_zaehler = 0      # Zeitlupe: alle 3 Runden ein Welt-Tick
 _letzter_bewegungszeitpunkt = 0.0   # fuer Haltetasten-Rate-Limit
 
 # Spielstand-Dict (level_index, tod_zaehler, ...)
@@ -149,6 +150,9 @@ ERKUNDET    = None
 # Dungeon-Ausgang (Rueckkehr zum Hub)
 DUNGEON_AUSGANG_X = 0
 DUNGEON_AUSGANG_Y = 0
+
+# Interaktive Dungeon-Objekte [{x, y, typ, loot_pool}]
+DUNGEON_OBJEKTE = []
 
 # Hub-Zustand
 HUB_KARTE      = []
@@ -189,11 +193,12 @@ def _initialisiere_level():
     global KARTE, spieler_x, spieler_y, gegner_auf_karte
     global TRANSPARENZ, FOV, ERKUNDET
     global DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y
+    global DUNGEON_OBJEKTE
     global _karte_boden_tile
 
     level_name = aktuell.get("level_name", "pflanzenzuechtung")
     grammatik  = alle_level[level_name]
-    KARTE = generiere_karte(grammatik, breite=config.BREITE, hoehe=config.KARTE_HOEHE)
+    KARTE, DUNGEON_OBJEKTE = generiere_karte(grammatik, breite=config.BREITE, hoehe=config.KARTE_HOEHE)
     roh = grammatik.get("boden_tile")
     _karte_boden_tile = tiles.TILE_NAMEN.get(roh) if roh else None
 
@@ -229,7 +234,7 @@ def _initialisiere_level():
     # Sichtfeld initialisieren
     TRANSPARENZ = sichtfeld.baue_transparenz(KARTE)
     ERKUNDET    = sichtfeld.neues_erkundet(KARTE)
-    FOV         = sichtfeld.berechne_fov(TRANSPARENZ, spieler_x, spieler_y)
+    FOV         = sichtfeld.berechne_fov(TRANSPARENZ, spieler_x, spieler_y, spieler.berechne_sichtweite(alle_skills))
     sichtfeld.aktualisiere_erkundet(ERKUNDET, FOV)
 
 
@@ -289,7 +294,7 @@ def _initialisiere_hub():
 
     HUB_TRANSPARENZ = sichtfeld.baue_transparenz(HUB_KARTE)
     HUB_ERKUNDET    = sichtfeld.neues_erkundet(HUB_KARTE)
-    HUB_FOV         = sichtfeld.berechne_fov(HUB_TRANSPARENZ, hub_spieler_x, hub_spieler_y)
+    HUB_FOV         = sichtfeld.berechne_fov(HUB_TRANSPARENZ, hub_spieler_x, hub_spieler_y, spieler.berechne_sichtweite(alle_skills))
     sichtfeld.aktualisiere_erkundet(HUB_ERKUNDET, HUB_FOV)
 
 
@@ -339,6 +344,8 @@ def zeichne(console):
                     console.print(x, cy, anzeige, fg=(140, 210, 140))
                 elif zeichen == tiles.OBJ_VEG_GRAS:
                     console.print(x, cy, anzeige, fg=(255, 255, 255))
+                elif zeichen == tiles.INTER_FASS:
+                    console.print(x, cy, anzeige, fg=(160, 110, 60))
                 elif _ist_wand(zeichen):
                     console.print(x, cy, anzeige, fg=(200, 200, 200))
                 elif anzeige == tiles.BODEN_FLIESSE:
@@ -354,6 +361,8 @@ def zeichne(console):
                     console.print(x, cy, anzeige, fg=(45, 70, 45))
                 elif zeichen == tiles.OBJ_VEG_GRAS:
                     console.print(x, cy, anzeige, fg=(60, 60, 60))
+                elif zeichen == tiles.INTER_FASS:
+                    console.print(x, cy, anzeige, fg=(50, 35, 20))
                 elif _ist_wand(zeichen):
                     console.print(x, cy, anzeige, fg=(60, 60, 60))
                 elif anzeige == tiles.BODEN_FLIESSE:
@@ -391,7 +400,7 @@ def zeichne(console):
         _zeichne_kampf_panel(console)
 
     # Nachrichtenlog + Shortcuts
-    shortcut = "" if modus == "kampf" else "[TAB] Menue  [<] Hub  [Q] Beenden"
+    shortcut = "[WASD] Fliehen  [LEERTASTE] Angreifen  [TAB] Inventar" if modus == "kampf" else "[TAB] Menue  [<] Hub  [Q] Beenden"
     _zeichne_log(console, shortcut)
 
     # Menue-Overlay (uebermalt alles andere)
@@ -763,6 +772,10 @@ def _handle_key(event):
             status_meldung = ""
         elif sym in (tcod.event.KeySym.SPACE, tcod.event.KeySym.RETURN):
             _kampf_aktion()
+        elif sym in (tcod.event.KeySym.UP,    tcod.event.KeySym.w): _flucht_versuchen( 0, -1)
+        elif sym in (tcod.event.KeySym.DOWN,  tcod.event.KeySym.s): _flucht_versuchen( 0,  1)
+        elif sym in (tcod.event.KeySym.LEFT,  tcod.event.KeySym.a): _flucht_versuchen(-1,  0)
+        elif sym in (tcod.event.KeySym.RIGHT, tcod.event.KeySym.d): _flucht_versuchen( 1,  0)
         return
 
     # -----------------------------------------------------------------------
@@ -848,6 +861,7 @@ def _handle_key(event):
 
 def _bewege(dx, dy):
     global spieler_x, spieler_y, aktiver_kampf, aktiver_kampf_eintrag, modus, FOV
+    global _kampfrunden_zaehler
 
     nx, ny = spieler_x + dx, spieler_y + dy
 
@@ -856,7 +870,23 @@ def _bewege(dx, dy):
         if eintrag["x"] == nx and eintrag["y"] == ny and eintrag["gegner"].lebt:
             aktiver_kampf = KampfZustand(spieler, eintrag["gegner"])
             aktiver_kampf_eintrag = eintrag
+            _kampfrunden_zaehler = 0
             modus = "kampf"
+            return
+
+    # Interaktives Objekt? (Bump-Interaktion)
+    for obj in DUNGEON_OBJEKTE:
+        if obj["x"] == nx and obj["y"] == ny:
+            for loot_eintrag in obj.get("loot_pool", []):
+                if random.random() < loot_eintrag["chance"]:
+                    aktuell.setdefault("bodenloot", []).append(
+                        {"x": nx, "y": ny, "id": loot_eintrag["id"]}
+                    )
+            zeile = list(KARTE[ny])
+            zeile[nx] = "."
+            KARTE[ny] = "".join(zeile)
+            DUNGEON_OBJEKTE.remove(obj)
+            _log("Holzfass zerstört.")
             return
 
     # Ausgang betreten -> naechste Zone oder Hub
@@ -873,7 +903,7 @@ def _bewege(dx, dy):
         spieler_x, spieler_y = nx, ny
         spieler.runden += 1
         spieler.ep_hinzufuegen(1)
-        FOV = sichtfeld.berechne_fov(TRANSPARENZ, spieler_x, spieler_y)
+        FOV = sichtfeld.berechne_fov(TRANSPARENZ, spieler_x, spieler_y, spieler.berechne_sichtweite(alle_skills))
         sichtfeld.aktualisiere_erkundet(ERKUNDET, FOV)
 
         # Item auf dem Feld aufheben (automatisch)
@@ -891,6 +921,7 @@ def _bewege(dx, dy):
         if angreifer:
             aktiver_kampf = KampfZustand(spieler, angreifer["gegner"])
             aktiver_kampf_eintrag = angreifer
+            _kampfrunden_zaehler = 0
             modus = "kampf"
 
 
@@ -911,7 +942,7 @@ def _hub_bewege(dx, dy):
     if 0 <= ny < len(HUB_KARTE) and 0 <= nx < len(HUB_KARTE[ny]):
         if HUB_KARTE[ny][nx] == ".":
             hub_spieler_x, hub_spieler_y = nx, ny
-            HUB_FOV = sichtfeld.berechne_fov(HUB_TRANSPARENZ, hub_spieler_x, hub_spieler_y)
+            HUB_FOV = sichtfeld.berechne_fov(HUB_TRANSPARENZ, hub_spieler_x, hub_spieler_y, spieler.berechne_sichtweite(alle_skills))
             sichtfeld.aktualisiere_erkundet(HUB_ERKUNDET, HUB_FOV)
 
 
@@ -953,19 +984,89 @@ def _tod_auferstehen():
     aktuell = tod_reset(spieler, aktuell)
     hub_spieler_x = HUB_START_X
     hub_spieler_y = HUB_START_Y
-    HUB_FOV = sichtfeld.berechne_fov(HUB_TRANSPARENZ, hub_spieler_x, hub_spieler_y)
+    HUB_FOV = sichtfeld.berechne_fov(HUB_TRANSPARENZ, hub_spieler_x, hub_spieler_y, spieler.berechne_sichtweite(alle_skills))
     sichtfeld.aktualisiere_erkundet(HUB_ERKUNDET, HUB_FOV)
     ort   = "pilsstube"
     modus = "hub"
     speichern(spieler, aktuell)
 
 
+def _flucht_versuchen(dx, dy):
+    """Spieler versucht, im Kampf zu fliehen.
+
+    Erlaubte Richtungen: nur direkt weg vom Gegner (gerade Linie).
+    Bei Diagonalstellung des Gegners sind beide Achsen gueltig.
+    Bei Erfolg: Gegner fuehrt Abschlag aus, Spieler bewegt sich,
+    Gegner rueckt einen Schritt nach, Kampf endet.
+    """
+    global spieler_x, spieler_y, aktiver_kampf, aktiver_kampf_eintrag, modus, FOV
+    global tod_gegner_name, tod_zitat, _kampfrunden_zaehler
+
+    feind_x = aktiver_kampf_eintrag["x"]
+    feind_y = aktiver_kampf_eintrag["y"]
+    rel_dx  = feind_x - spieler_x   # positiv = Feind rechts
+    rel_dy  = feind_y - spieler_y   # positiv = Feind unterhalb
+
+    # Gueltige Fluchtrichtungen: exakt entgegengesetzt zum Feind
+    gueltig = set()
+    if rel_dx > 0:   gueltig.add((-1,  0))
+    elif rel_dx < 0: gueltig.add(( 1,  0))
+    if rel_dy > 0:   gueltig.add(( 0, -1))
+    elif rel_dy < 0: gueltig.add(( 0,  1))
+
+    if (dx, dy) not in gueltig:
+        return  # falsche Richtung, ignorieren
+
+    nx, ny = spieler_x + dx, spieler_y + dy
+    if not ist_betretbar(nx, ny):
+        _log("Kein Ausweg.")
+        return
+
+    # Abschlag: Feind greift noch einmal an
+    gestorben = abschlag_ausfuehren(aktiver_kampf)
+    for zeile in aktiver_kampf.log:
+        _log(zeile)
+
+    if gestorben:
+        tod_gegner_name = aktiver_kampf.gegner.name
+        tod_zitat       = random.choice(_TOD_ZITATE)
+        aktiver_kampf       = None
+        aktiver_kampf_eintrag = None
+        modus = "tod"
+        return
+
+    # Spieler flieht auf das Zielfeld
+    spieler_x, spieler_y = nx, ny
+    FOV = sichtfeld.berechne_fov(TRANSPARENZ, spieler_x, spieler_y, spieler.berechne_sichtweite(alle_skills))
+    sichtfeld.aktualisiere_erkundet(ERKUNDET, FOV)
+
+    # Feind rueckt einen Schritt nach (Richtung neue Spielerposition)
+    adx = nx - feind_x
+    ady = ny - feind_y
+    if abs(adx) >= abs(ady) and adx != 0:
+        aktiver_kampf_eintrag["x"] += 1 if adx > 0 else -1
+    elif ady != 0:
+        aktiver_kampf_eintrag["y"] += 1 if ady > 0 else -1
+
+    _log(f"Geflohen! {aktiver_kampf.gegner.name} setzt nach.")
+    aktiver_kampf       = None
+    aktiver_kampf_eintrag = None
+    _kampfrunden_zaehler  = 0
+    modus = "hub"
+
+
 def _kampf_aktion():
     """LEERTASTE / ENTER im Kampf: naechste Runde oder Ergebnis bestaetigen."""
     global modus, aktiver_kampf, aktiver_kampf_eintrag, tod_gegner_name, tod_zitat
+    global _kampfrunden_zaehler
 
     if not aktiver_kampf.beendet:
         runde_ausfuehren(aktiver_kampf)
+        _kampfrunden_zaehler += 1
+        if _kampfrunden_zaehler % 3 == 0:
+            # Zeitlupe: alle 3 Kampfrunden einen Welt-Tick
+            ki.ki_tick(gegner_auf_karte, spieler_x, spieler_y, KARTE)
+            # Rueckgabewert ignoriert: kein neuer Kampf waehrend laufendem Kampf
         return
 
     # Kampf beendet — Ergebnis verarbeiten
