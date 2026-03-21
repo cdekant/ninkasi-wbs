@@ -19,7 +19,7 @@
     ],
     "gegner_pool": [
       {"id": "wildhefe",              "gewicht": 4, "staerke": 0.3},
-      {"id": "gaerkeller_schimmel",   "gewicht": 3, "staerke": 0.3},
+      {"id": "schleimblob_einfach",    "gewicht": 3, "staerke": 0.3},
       {"id": "lebensmittelkontrolleur","gewicht": 0.75, "staerke": 0.3}
     ],
     "bonus_ausgang_chance": 0.0
@@ -50,7 +50,7 @@
       {"typ": "pflanze",  "min": 0, "max": 4, "position": "zufall", "abstand_wand": 1}
     ],
     "gegner_pool": [
-      {"id": "gaerkeller_schimmel",    "gewicht": 3, "staerke": 0.3},
+      {"id": "schleimblob_einfach",     "gewicht": 3, "staerke": 0.3},
       {"id": "lebensmittelkontrolleur","gewicht": 0.75, "staerke": 0.4}
     ],
     "fenster": [

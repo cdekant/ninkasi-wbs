@@ -30,7 +30,7 @@
     "schwarm": {"einheiten_min": 4, "einheiten_max": 8}
   },
 
-  "gaerkeller_schimmel": {
+  "schleimblob_einfach": {
     "typ": "einzel",
     "name": "Gaerkeller-Schimmel",
     "symbol": "GEGNER_SCHLEIM_GESICHT",
