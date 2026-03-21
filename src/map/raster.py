@@ -92,11 +92,13 @@ def generiere_karte(grammatik, breite, hoehe, seed=None):
                           korr_b)
 
     # Objekte platzieren
+    interaktive_objekte = []
     for obj_def in grammatik.get("objekte", []):
-        obj_typ  = obj_def["typ"]
-        obj_char = kacheln.get(f"objekt_{obj_typ}", "?")
-        abstand  = obj_def.get("abstand_wand", 0)
-        position = obj_def.get("position", "zufall")
+        obj_typ   = obj_def["typ"]
+        obj_char  = kacheln.get(f"objekt_{obj_typ}", "?")
+        abstand   = obj_def.get("abstand_wand", 0)
+        position  = obj_def.get("position", "zufall")
+        loot_pool = obj_def.get("loot_pool")
 
         for raum in alle_raeume:
             anzahl   = random.randint(obj_def["min"], obj_def["max"])
@@ -119,13 +121,19 @@ def generiere_karte(grammatik, breite, hoehe, seed=None):
                 if (0 <= oy < hoehe and 0 <= ox < breite
                         and karte[oy][ox] == boden):
                     karte[oy][ox] = obj_char
+                    if loot_pool is not None:
+                        interaktive_objekte.append({
+                            "x": ox, "y": oy,
+                            "typ": obj_typ,
+                            "loot_pool": loot_pool,
+                        })
                     gesetzt += 1
 
     # Fenster in Wandsegmente einsetzen
     _platziere_fenster(karte, hoehe, breite, wand, boden,
                        grammatik.get("fenster", []))
 
-    return ["".join(zeile) for zeile in karte]
+    return ["".join(zeile) for zeile in karte], interaktive_objekte
 
 
 def _platziere_fenster(karte, hoehe, breite, wand, boden, fenster_defs):

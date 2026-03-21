@@ -228,9 +228,11 @@ def generiere_karte(grammatik: dict, breite: int, hoehe: int, seed=None) -> list
     _verbinde_knoten(wurzel, karte, boden)
 
     # --- Objekte platzieren ---
+    interaktive_objekte = []
     for obj_def in grammatik.get("objekte", []):
-        obj_typ  = obj_def["typ"]
-        obj_char = kacheln.get(f"objekt_{obj_typ}", "?")
+        obj_typ   = obj_def["typ"]
+        obj_char  = kacheln.get(f"objekt_{obj_typ}", "?")
+        loot_pool = obj_def.get("loot_pool")
         for raum in raeume:
             anzahl_obj = random.randint(obj_def["min"], obj_def["max"])
             platziert  = 0
@@ -240,11 +242,17 @@ def generiere_karte(grammatik: dict, breite: int, hoehe: int, seed=None) -> list
                 oy = random.randint(raum.y1, raum.y2 - 1)
                 if karte[oy][ox] == boden:
                     karte[oy][ox] = obj_char
+                    if loot_pool is not None:
+                        interaktive_objekte.append({
+                            "x": ox, "y": oy,
+                            "typ": obj_typ,
+                            "loot_pool": loot_pool,
+                        })
                     platziert += 1
                 versuche += 1
 
     # 2D-Liste in Liste von Strings umwandeln
-    return ["".join(zeile) for zeile in karte]
+    return ["".join(zeile) for zeile in karte], interaktive_objekte
 
 
 # ---------------------------------------------------------------------------

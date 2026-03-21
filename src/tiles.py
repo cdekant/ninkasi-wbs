@@ -47,6 +47,7 @@ WAND_GITTER  = "\uE081"     # Wandkachel mit Fenstergitter
 # ---------------------------------------------------------------------------
 
 INTER_PFLANZE = "\uE0C0"    # Interaktive Pflanze (Pflanzenzuechtung)
+INTER_FASS    = "\uE0C1"    # Zerstoerbarer Behaelter (Holzfass)
 
 # ---------------------------------------------------------------------------
 # OBJ  U+E1C0 – U+E2BF
@@ -88,6 +89,7 @@ TILE_NAMEN = {
     "WAND_FENSTER":   WAND_FENSTER,
     "WAND_GITTER":    WAND_GITTER,
     "INTER_PFLANZE":  INTER_PFLANZE,
+    "INTER_FASS":     INTER_FASS,
     "OBJ_VEG_GRAS":            OBJ_VEG_GRAS,
     "GEGNER_SCHLEIM_GESICHT":           GEGNER_SCHLEIM_GESICHT,
     "GEGNER_LEBENSMITTELKONTROLLEUR":   GEGNER_LEBENSMITTELKONTROLLEUR,
@@ -104,6 +106,7 @@ TILE_DATEIEN = {
     ord(WAND_FENSTER):   "assets/tiles/wand/wand_fenster.png",
     ord(WAND_GITTER):    "assets/tiles/wand/wand_gitter.png",
     ord(INTER_PFLANZE):  "assets/tiles/inter/inter_pflanze.png",
+    ord(INTER_FASS):     "assets/tiles/inter/inter_fass.png",
     ord(OBJ_VEG_GRAS):            "assets/tiles/obj/obj_veg_gras.png",
     ord(GEGNER_SCHLEIM_GESICHT):          "assets/tiles/gegner/schleim-gesicht.png",
     ord(GEGNER_LEBENSMITTELKONTROLLEUR):  "assets/tiles/gegner/lebensmittelkontrolleur.png",
