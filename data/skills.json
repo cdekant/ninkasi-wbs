@@ -51,6 +51,54 @@
       ]
     },
     {
+      "id": "dunkelgewohnt",
+      "name": "Dunkelgewohnt",
+      "kategorie": "Wahrnehmung",
+      "beschreibung": "Die Brauerin kennt den Malzkeller bei Nacht. Wer taeglich im Dunkel tastet, lernt, mit anderen Augen zu sehen — weiter, schaerfer, ruehiger.",
+      "basis_kosten": 10,
+      "voraussetzungen": [],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Sichtweite +1",              "wert": { "typ": "sichtweite_bonus", "wert": 1 } },
+        { "stufe": 2, "beschreibung": "Sichtweite +2",              "wert": { "typ": "sichtweite_bonus", "wert": 2 } },
+        { "stufe": 3, "beschreibung": "Sichtweite +3",              "wert": { "typ": "sichtweite_bonus", "wert": 3 } },
+        { "stufe": 4, "beschreibung": "Sichtweite +4",              "wert": { "typ": "sichtweite_bonus", "wert": 4 } },
+        { "stufe": 5, "beschreibung": "Sichtweite +5",              "wert": { "typ": "sichtweite_bonus", "wert": 5 } },
+        { "stufe": 6, "beschreibung": "Sichtweite +6 — Zoigl",      "wert": { "typ": "sichtweite_bonus", "wert": 6 } }
+      ]
+    },
+    {
+      "id": "kellerseherin",
+      "name": "Kellerseherin",
+      "kategorie": "Wahrnehmung",
+      "beschreibung": "Die Lagerkeller haben ihre Geheimnisse preisgegeben. Ninkasi sieht Bewegung im Schatten, Umrisse im Nebel der Gaerung — was andere uebersehen, entgeht ihr nicht.",
+      "basis_kosten": 30,
+      "voraussetzungen": [{"id": "dunkelgewohnt", "stufe": 4}],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Sichtweite +1",              "wert": { "typ": "sichtweite_bonus", "wert": 1 } },
+        { "stufe": 2, "beschreibung": "Sichtweite +2",              "wert": { "typ": "sichtweite_bonus", "wert": 2 } },
+        { "stufe": 3, "beschreibung": "Sichtweite +3",              "wert": { "typ": "sichtweite_bonus", "wert": 3 } },
+        { "stufe": 4, "beschreibung": "Sichtweite +4",              "wert": { "typ": "sichtweite_bonus", "wert": 4 } },
+        { "stufe": 5, "beschreibung": "Sichtweite +5",              "wert": { "typ": "sichtweite_bonus", "wert": 5 } },
+        { "stufe": 6, "beschreibung": "Sichtweite +6 — Zoigl",      "wert": { "typ": "sichtweite_bonus", "wert": 6 } }
+      ]
+    },
+    {
+      "id": "augen_der_goettin",
+      "name": "Augen der Goettin",
+      "kategorie": "Wahrnehmung",
+      "beschreibung": "Goetter sehen, was Menschen verborgen bleibt. Kein Schatten ist tief genug, keine Finsternis dicht genug — nichts regt sich, was Ninkasis Blick entgeht.",
+      "basis_kosten": 100,
+      "voraussetzungen": [{"id": "kellerseherin", "stufe": 4}],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Sichtweite +1",              "wert": { "typ": "sichtweite_bonus", "wert": 1 } },
+        { "stufe": 2, "beschreibung": "Sichtweite +2",              "wert": { "typ": "sichtweite_bonus", "wert": 2 } },
+        { "stufe": 3, "beschreibung": "Sichtweite +3",              "wert": { "typ": "sichtweite_bonus", "wert": 3 } },
+        { "stufe": 4, "beschreibung": "Sichtweite +4",              "wert": { "typ": "sichtweite_bonus", "wert": 4 } },
+        { "stufe": 5, "beschreibung": "Sichtweite +5",              "wert": { "typ": "sichtweite_bonus", "wert": 5 } },
+        { "stufe": 6, "beschreibung": "Sichtweite +6 — Zoigl",      "wert": { "typ": "sichtweite_bonus", "wert": 6 } }
+      ]
+    },
+    {
       "id": "leib_der_ninkasi",
       "name": "Leib der Ninkasi",
       "kategorie": "Lebenskraft",

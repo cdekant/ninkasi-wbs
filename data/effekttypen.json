@@ -42,5 +42,11 @@
     "einheit": "schaden_pro_runde",
     "stapelbar": true,
     "dauer_moeglich": true
+  },
+  "sichtweite_bonus": {
+    "beschreibung": "Erhoeht die Sichtweite (Kacheln, absolut)",
+    "einheit": "kacheln",
+    "stapelbar": true,
+    "dauer_moeglich": false
   }
 }

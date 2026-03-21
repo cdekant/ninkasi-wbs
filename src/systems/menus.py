@@ -16,6 +16,7 @@ MENUES = [
 # Kategorie-Reihenfolge fuer die Skill-Liste
 KATEGORIE_REIHENFOLGE = [
     "Lebenskraft",      # Vitalitaet, LP-Boni, Trinkfestigkeit
+    "Wahrnehmung",      # Sichtweite, Dunkelanpassung
     "Tennentaenzerei",  # Beweglichkeit, Ausweichen
     "Kesselzorn",       # Waffen und Angriff
     "Sudwall",          # Ruestung und Verteidigung

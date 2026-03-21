@@ -2,6 +2,7 @@
 
 import src.systems.skills as skills_system
 from src.entities.entitaet import Entitaet
+from src.systems.sichtfeld import FOV_BASIS_RADIUS
 
 
 class Spieler(Entitaet):
@@ -81,6 +82,11 @@ class Spieler(Entitaet):
     def skill_lernen(self, skill_id, alle_skills):
         """Kauft die naechste Stufe eines Skills. Gibt (bool, meldung) zurueck."""
         return skills_system.skill_lernen(self, skill_id, alle_skills)
+
+    def berechne_sichtweite(self, alle_skills):
+        """Gibt die aktuelle Sichtweite in Kacheln zurueck (Basis + Skill-Boni)."""
+        bonus = skills_system.effekt_summe(self, "sichtweite_bonus", alle_skills)
+        return FOV_BASIS_RADIUS + bonus
 
     def aktualisiere_lp_max(self, alle_skills):
         """Berechnet hp_max neu aus Basis-LP und Skill-Boni (lp_max_pct)."""

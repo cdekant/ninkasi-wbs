@@ -9,7 +9,7 @@ import numpy as np
 import tcod.map
 import tcod.constants
 
-FOV_RADIUS = 8   # Sichtweite in Kacheln; 0 waere unbegrenzt
+FOV_BASIS_RADIUS = 2   # Basis-Sichtweite ohne Skill-Boni; 0 waere unbegrenzt
 
 
 def baue_transparenz(karte):
@@ -34,16 +34,17 @@ def neues_erkundet(karte):
     return np.zeros((hoehe, breite), dtype=bool)
 
 
-def berechne_fov(transparenz, spieler_x, spieler_y):
+def berechne_fov(transparenz, spieler_x, spieler_y, radius=FOV_BASIS_RADIUS):
     """Berechnet das aktuelle Sichtfeld ausgehend von der Spielerposition.
 
-    Gibt ein bool-Array zurueck: True = gerade sichtbar.
+    radius: Sichtweite in Kacheln; 0 waere unbegrenzt.
     light_walls=True: Waende am Rand des Sichtfelds werden noch angezeigt.
+    Gibt ein bool-Array zurueck: True = gerade sichtbar.
     """
     return tcod.map.compute_fov(
         transparenz,
         (spieler_y, spieler_x),          # tcod erwartet (row, col)
-        radius=FOV_RADIUS,
+        radius=radius,
         light_walls=True,
         algorithm=tcod.constants.FOV_SYMMETRIC_SHADOWCAST,
     )
