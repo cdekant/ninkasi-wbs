@@ -15,7 +15,7 @@ Getränkefachgroßhandel. Jedes Level ist eine andere Etappe der Braukette, mit 
 2. [Der Brauerstern — Sechs Stufen, ein Zoigl](#der-brauerstern)
 3. [Skill-Menue bedienen](#skill-menue)
 4. [Kostentabelle](#kostentabelle)
-5. [Erkundung](#erkundung)
+5. [Erkundung](#erkundung) (inkl. Behälter)
 6. [Gegner](#gegner)
 7. [Kampf](#kampf)
 8. [Inventar](#inventar)
@@ -122,8 +122,9 @@ in einem zufaelligen Raum; der Rest liegt im Dunkeln.
 
 ### Sichtfeld (FOV)
 
-Ninkasi sieht alles innerhalb eines Radius von **8 Kacheln**. Was ausserhalb
-liegt, bleibt schwarz. Waende blockieren die Sichtlinie — um die Ecke siehst
+Ninkasi sieht alles innerhalb eines Radius von **2 Kacheln** (Basis ohne Skills).
+Mit den Wahrnehmungs-Skills kann die Sichtweite auf bis zu **20 Kacheln** gesteigert werden.
+Was ausserhalb liegt, bleibt schwarz. Waende blockieren die Sichtlinie — um die Ecke siehst
 du nicht.
 
 ### Fog of War
@@ -136,6 +137,13 @@ du nicht.
 
 Erkundetes bleibt erkundigt — auch nach dem Tod verschwindet das Wissen
 nicht sofort. Neue Karte bei Tod bedeutet: neues Dunkel, neues Erkunden.
+
+### Behaelter
+
+In manchen Levels stehen zerstoerbare Behaelter — z.B. Holzfaesser.
+Lauf einfach dagegen (Bump-Interaktion): der Behaelter zerbricht und
+wirft seinen Inhalt als Loot auf den Boden. Den Loot hebst du auf,
+indem du anschliessend auf das Feld trittst.
 
 ### Ausgang zurueck zum Hub
 
@@ -178,11 +186,11 @@ Manche Gegner fliehen wenn ihre HP einen bestimmten Schwellwert unterschreiten,
 unabhaengig von ihrem normalen Verhalten. Ein Schimmel der eigentlich territorial
 ist, kehrt bei 30 % HP um und sucht das Weite.
 
-### Aktuelle Gegner (Gaerkeller)
+### Aktuelle Gegner (Pflanzenzuechtung)
 
 | Symbol | Name | Verhalten | Besonderheit |
 |---|---|---|---|
-| `m` | Gaerkeller-Schimmel | Territorial (Radius 5) | Flieht unter 30 % HP; bewegt sich langsam |
+| `s` | Schleimblob | Verfolgen | — |
 | `K` | Lebensmittelkontrolleur | Verfolgen (Radius 15) | Gibt nie auf |
 
 
@@ -227,8 +235,28 @@ die Karte ein.
 |---|---|
 | **LEERTASTE** oder **ENTER** | Naechste Kampfrunde ausfuehren |
 | **LEERTASTE** (nach Ende) | Ergebnis bestaetigen und weiterspielen |
+| **WASD / Pfeiltasten** | Fluchtversuch (nur in gerader Linie weg vom Gegner) |
+| **TAB** | Inventar oeffnen (Items benutzen ohne Kampfrunde zu opfern) |
 
-Andere Tasten (Bewegung, TAB) sind waehrend des Kampfes gesperrt.
+### Kampf-Zeitlupe
+
+Die Welt steht nicht still waehrend du kaempfst. Alle drei Kampfrunden
+bewegen sich andere Gegner auf der Karte einen Schritt — ein langer Kampf
+kann Verstaerkung heranziehen.
+
+### Fliehen
+
+Druecke eine Bewegungstaste **direkt weg vom Gegner**, um zu fliehen.
+Steht der Gegner genau suedlich, ist nur Norden erlaubt; steht er
+suedoestlich, sind Norden und Westen gueltig.
+
+**Ablauf:**
+1. Feind fuehrt einen Abschlagsangriff aus
+2. Spieler bewegt sich auf das Zielfeld
+3. Feind rueckt einen Schritt nach — kein sofortiger Neukampf
+
+Ist das Zielfeld blockiert (Wand, anderer Gegner), erscheint "Kein Ausweg."
+und du bleibst im Kampf.
 
 ### Status-Effekte
 
@@ -382,6 +410,18 @@ Die verfügbaren Skills sind in 15 Kategorien aufgeteilt. Die Skills selbst sind
 
 ### Nachschub
 
+### Wahrnehmung
+
+**Wer taeglich im Dunkel der Lagerkeller tastet, lernt mit anderen Augen zu sehen** — Sichtweite, Aufmerksamkeit, Dunkelanpassung.
+
+Implementierte Skills (Basis-Sichtweite 2, Maximum 20):
+
+| Skill | Voraussetzung | Effekt je Stufe |
+|---|---|---|
+| Dunkelgewohnt | – | +1 Sichtweite |
+| Kellerseherin | Dunkle Gewohnt Stufe 4 | +1 Sichtweite |
+| Augen der Goettin | Kellerseherin Stufe 4 | +1 Sichtweite |
+
 
 
 
@@ -405,7 +445,7 @@ Die verfügbaren Skills sind in 15 Kategorien aufgeteilt. Die Skills selbst sind
 | Thema | Entscheidung |
 |---|---|
 | **Standardaktion** | Bump combat (Nahkampf) + Fernkampf wenn Fähigkeit vorhanden |
-| **Welt-Takt im Kampf** | Andere Gegner bewegen sich alle 2 Kampfrunden (× eigene Geschwindigkeit) |
+| **Welt-Takt im Kampf** | Andere Gegner bewegen sich alle 3 Kampfrunden (× eigene Geschwindigkeit) |
 | **Entscheidung pro Zug** | Position + Ressource + Zielwahl |
 | **Mehrere Gegner** | Möglich; Zielwahl per Kontextmenü |
 | **Gelände** | Taktisch nutzbar, Komplexität als Grenze |

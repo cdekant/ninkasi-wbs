@@ -45,6 +45,7 @@ lang: 'de-DE'
 - **Geheim-Level:** `"basis": "<level_name>"` erbt Grammatik, überschreibt einzelne Parameter
 - **Items:** `data/items.json`, Pflichtfeld `kategorie` (verbrauchbar, waffe, ruestung, material, quest)
 - **Objekte vs. Items:** Objekte bleiben auf der Karte (Gärtank, Hecke); Items wandern ins Inventar; Objekte haben `loot_pool`
+- **Interaktive Objekte:** Objekte mit `loot_pool` in `levels.json` sind zerstörbar (Bump-Interaktion); Generatoren geben `(karte, interaktive_objekte)` zurück; `DUNGEON_OBJEKTE` in `game.py` verwaltet Laufzeit-Zustand
 
 ## Hub-System
 
@@ -104,6 +105,6 @@ assets/              	# Tilesets und Bilder für tcod
 
 ## Dokumentation
 
-- **Pflicht:** Erst wenn eine Aufgabe vollständig abgeschlossen ist, `CLAUDE.md`, `TODO.md`, `README.md`, `HANDBUCH.md` und `VERSION` einlesen, auf Konsistenz prüfen und bei Bedarf nachziehen. Während der Aufgabe diese Dateien nicht automatisch laden.
+- **Pflicht:** Erst wenn eine Aufgabe vollständig abgeschlossen ist, `CLAUDE.md`, `TODO.md`, `README.md`, `HANDBUCH.md` und `VERSION` einlesen, auf Konsistenz prüfen und bei Bedarf nachziehen. Auch die Dokumentationen unter Doc/ einbeziehen. Während der Aufgabe diese Dateien nicht automatisch laden.
 - **Benennungsprüfung:** Benennung ist ein bekannter Schwachpunkt — bei jeder Aufgabe aktiv auf Inkonsistenzen hinweisen (Dateien, Funktionen, Variablen, Konstanten, JSON-Schlüssel), auch unaufgefordert. Lieber einmal zu viel ansprechen als zu wenig.
 - Implementierungspläne liegen unter `Plaene/` im Projektroot, Muster Dateiname: ISO-Datum vorangestellt, nicht versioniert (in `.gitignore` eingetragen)
