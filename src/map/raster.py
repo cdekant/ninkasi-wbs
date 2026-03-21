@@ -56,37 +56,23 @@ def generiere_karte(grammatik, breite, hoehe, seed=None):
         for s in range(spalten):
             if random.random() > belegung:
                 reihe.append(None)
-                continue
-
-            ox = s * zell_b
-            oy = z * zell_h
-
-            rb_max = min(grammatik["raum_breite_max"], zell_b - 2)
-            rh_max = min(grammatik["raum_hoehe_max"],  zell_h - 2)
-            rb_min = grammatik["raum_breite_min"]
-            rh_min = grammatik["raum_hoehe_min"]
-
-            if rb_max < rb_min or rh_max < rh_min:
-                reihe.append(None)
-                continue
-
-            rb = random.randint(rb_min, rb_max)
-            rh = random.randint(rh_min, rh_max)
-
-            # Raum in der Zelle zentrieren
-            rx = ox + (zell_b - rb) // 2
-            ry = oy + (zell_h - rh) // 2
-            rx = max(1, min(rx, breite - rb - 1))
-            ry = max(1, min(ry, hoehe  - rh - 1))
-
-            raum = _Rect(rx, ry, rb, rh)
-            reihe.append(raum)
-
-            for y in range(raum.y1, raum.y2):
-                for x in range(raum.x1, raum.x2):
-                    karte[y][x] = boden
-
+            else:
+                reihe.append(_raum_in_zelle(s, z, zell_b, zell_h, grammatik, breite, hoehe, karte, boden))
         gitter.append(reihe)
+
+    # Mindestzahl Raeume sicherstellen: leere Zellen nachfuellen bis raeume_min erreicht
+    raeume_min = grammatik.get("raeume_min", 1)
+    alle_raeume = [r for reihe in gitter for r in reihe if r is not None]
+    if len(alle_raeume) < raeume_min:
+        leere = [(z, s) for z in range(zeilen) for s in range(spalten) if gitter[z][s] is None]
+        random.shuffle(leere)
+        for z, s in leere:
+            if len(alle_raeume) >= raeume_min:
+                break
+            raum = _raum_in_zelle(s, z, zell_b, zell_h, grammatik, breite, hoehe, karte, boden)
+            if raum:
+                gitter[z][s] = raum
+                alle_raeume.append(raum)
 
     # Korridore: rechten und unteren Nachbar verbinden
     for z in range(zeilen):
@@ -106,7 +92,6 @@ def generiere_karte(grammatik, breite, hoehe, seed=None):
                           korr_b)
 
     # Objekte platzieren
-    alle_raeume = [r for reihe in gitter for r in reihe if r is not None]
     for obj_def in grammatik.get("objekte", []):
         obj_typ  = obj_def["typ"]
         obj_char = kacheln.get(f"objekt_{obj_typ}", "?")
@@ -223,6 +208,29 @@ def _platziere_fenster(karte, hoehe, breite, wand, boden, fenster_defs):
                 if any(n == boden or n in fenster_chars for n in nachbarn):
                     karte[r][c] = einzel
                     geaendert = True
+
+
+def _raum_in_zelle(s, z, zell_b, zell_h, grammatik, breite, hoehe, karte, boden):
+    """Platziert einen Raum in Gitterzelle (z, s). Gibt _Rect zurueck oder None wenn zu eng."""
+    ox = s * zell_b
+    oy = z * zell_h
+    rb_max = min(grammatik["raum_breite_max"], zell_b - 2)
+    rh_max = min(grammatik["raum_hoehe_max"],  zell_h - 2)
+    rb_min = grammatik["raum_breite_min"]
+    rh_min = grammatik["raum_hoehe_min"]
+    if rb_max < rb_min or rh_max < rh_min:
+        return None
+    rb = random.randint(rb_min, rb_max)
+    rh = random.randint(rh_min, rh_max)
+    rx = ox + (zell_b - rb) // 2
+    ry = oy + (zell_h - rh) // 2
+    rx = max(1, min(rx, breite - rb - 1))
+    ry = max(1, min(ry, hoehe  - rh - 1))
+    raum = _Rect(rx, ry, rb, rh)
+    for y in range(raum.y1, raum.y2):
+        for x in range(raum.x1, raum.x2):
+            karte[y][x] = boden
+    return raum
 
 
 def _korridor(karte, boden, h, w, x1, y1, x2, y2, breite):

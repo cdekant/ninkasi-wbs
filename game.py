@@ -166,6 +166,22 @@ HUB_ERKUNDET    = None
 # Level initialisieren und Gegner spawnen
 # ---------------------------------------------------------------------------
 
+def _bfs_erreichbar(karte, start_x, start_y):
+    """Gibt alle von (start_x, start_y) aus per '.' betretbaren Positionen zurueck."""
+    from collections import deque
+    besucht = {(start_x, start_y)}
+    schlange = deque([(start_x, start_y)])
+    while schlange:
+        x, y = schlange.popleft()
+        for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            nx, ny = x + dx, y + dy
+            if (nx, ny) not in besucht and 0 <= ny < len(karte) and 0 <= nx < len(karte[ny]):
+                if karte[ny][nx] == ".":
+                    besucht.add((nx, ny))
+                    schlange.append((nx, ny))
+    return besucht
+
+
 def _initialisiere_level():
     """Generiert die Karte, setzt Spielerposition und spawnt Gegner.
     Wird beim Dungeon-Eintritt, Zonen-Wechsel und nach dem Tod aufgerufen.
@@ -192,16 +208,17 @@ def _initialisiere_level():
             continue
         break
 
-    # Ausgang auf dem Bodentile am weitesten vom Spieler
+    # Ausgang auf dem erreichbaren Bodentile am weitesten vom Spieler.
+    # BFS stellt sicher, dass der Ausgang nie in einem isolierten Raum landet.
+    erreichbar = _bfs_erreichbar(KARTE, spieler_x, spieler_y)
+    erreichbar.discard((spieler_x, spieler_y))
     max_dist = -1
-    DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y = spieler_x, spieler_y
-    for y, zeile in enumerate(KARTE):
-        for x, kachel in enumerate(zeile):
-            if kachel == ".":
-                dist = abs(x - spieler_x) + abs(y - spieler_y)
-                if dist > max_dist:
-                    max_dist = dist
-                    DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y = x, y
+    DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y = spieler_x, spieler_y  # Fallback
+    for x, y in erreichbar:
+        dist = abs(x - spieler_x) + abs(y - spieler_y)
+        if dist > max_dist:
+            max_dist = dist
+            DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y = x, y
 
     zone_idx = aktuell.get("zone_index", 0)
     _spawne_gegner(12 + zone_idx * 2)
