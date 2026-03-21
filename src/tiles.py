@@ -58,7 +58,7 @@ OBJ_VEG_GRAS = "\uE1C0"    # Gras-Block (dekorativ/blockierend, Aussen-Level)
 # GEGNER  U+E2C0 – U+E33F
 # ---------------------------------------------------------------------------
 
-GEGNER_SCHLEIM_GESICHT = "\uE2C0"   # Gaerkeller-Schimmel
+GEGNER_SCHLEIM_GESICHT = "\uE2C0"   # Schleimblob (schleimblob_einfach)
 
 GEGNER_LEBENSMITTELKONTROLLEUR  = "\uE2C1"  # Lebensmittelkontrolleur
 

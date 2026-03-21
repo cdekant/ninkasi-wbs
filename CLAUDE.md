@@ -15,7 +15,8 @@ lang: 'de-DE'
 - Cheepicus 16×16 Tileset (CP437) als Basis + eigene Tiles via `set_tile()` — so schnell es geht vollständig auf custom Tiles umstellen (Plan: `Plaene/2026-03-20_tileset-benennung-und-transition.md`)
 - Custom Tiles: einzelne 16×16 PNGs unter `assets/tiles/<gruppe>/`, definiert in `src/tiles.py`, injiziert via `tileset.set_tile()`
 - **`src/tiles.py` ist die einzige Quelle der Wahrheit für Tile-Codepoints und -Namen.** JSON-Dateien verwenden symbolische Namen (z.B. `"INTER_PFLANZE"`), die von `karte.py` aufgelöst werden — nie rohe Codepoints in JSON schreiben.
-- Benennungsschema: `GRUPPE_NAME[_VARIANTE]` — Details und PUA-Cluster-Einteilung in `src/tiles.py` (Kommentar-Header) und im Plan
+- Benennungsschema: `GRUPPE_NAME[_VARIANTE]` — Details, PUA-Cluster und aktuelles Tile-Register in `Doc/Design-Tiles.md`
+- **Benennungsprüfung:** Bei jeder Tile-bezogenen Aufgabe (neue Tiles, Umbenennung, JSON-Schlüssel, PNG-Pfade, Gegner-IDs) aktiv auf Inkonsistenzen mit dem Schema hinweisen — auch unaufgefordert.
 - Startbildschirm: 120×144 RGBA-Bild via Halbblock-Technik (▀, fg=oben, bg=unten)
 - Fenster: borderless (SDL_WINDOW_BORDERLESS), 120×67 Kacheln à 16×16 px = 1920×1072 px
 - UI-Layout: Statuszeile (Zeilen 0–1), Karte (Zeilen 2–60, 59 Zeilen), Nachrichtenlog (Zeilen 61–65), Shortcut-Zeile (Zeile 66)
@@ -38,8 +39,8 @@ lang: 'de-DE'
 ## Hub-System
 
 - `src/map/hub.py`: kreisrunder Raum (Radius 7) um die Bildschirmmitte; eigener FOV/Fog-of-War-Zustand
-- **Braukessel** (U+E000, `assets/tiles/braukessel.png`): Ausgang vom Hub ins Dungeon
-- **Dungeon-Ausgang** (`<`, hellblau): am vom Spawn-Punkt am weitesten entfernten Bodentile
+- **Braukessel** (`HUB_BRAUKESSEL`, U+E000, `assets/tiles/hub/hub_braukessel.png`): Ausgang vom Hub ins Dungeon
+- **Dungeon-Ausgang** (`<`, hellblau): per BFS-Flood-Fill das erreichbare Bodentile am weitesten vom Spawn-Punkt
 - `modus` = "hub"/"kampf"/"tod" (Spielzustand); `ort` = "pilsstube"/"dungeon" (Aufenthaltsort)
 - TAB-Menü Skill-Baum nur im Hub (`ort == "pilsstube"`); Inventar in Hub, Dungeon und Kampf
 - 15 Skill-Kategorien (Details in HANDBUCH.md)
@@ -93,8 +94,15 @@ bn/
     ├── Cheepicus_16x16.png        # Aktives Tileset (16×16 px, quadratisch, CP437)
     ├── ninkasi_brutality_120x144.png  # Startbildschirm-Hintergrundbild (Halbblock-Rendering)
     └── tiles/
-        ├── braukessel.png         # Custom-Tile (16×16 px, U+E000, SPEZIAL) — Hub-Ausgang ins Dungeon
-        └── pflanze.png            # Custom-Tile (16×16 px, U+E040, UMWELT) — interaktive Pflanze
+        ├── hub/                   # HUB-Cluster  U+E000–U+E03F
+        ├── boden/                 # BODEN-Cluster U+E040–U+E07F
+        ├── wand/                  # WAND-Cluster  U+E080–U+E0BF
+        ├── inter/                 # INTER-Cluster U+E0C0–U+E1BF
+        ├── obj/                   # OBJ-Cluster   U+E1C0–U+E2BF
+        ├── gegner/                # GEGNER-Cluster U+E2C0–U+E33F
+        ├── item/                  # ITEM-Cluster  U+E340–U+E3BF
+        └── ui/                    # UI-Cluster    U+E3C0–U+E3DF
+        # Aktuelles Tile-Register: Doc/Design-Tiles.md
 ```
 
 ## Entwickler
