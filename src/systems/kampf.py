@@ -193,6 +193,17 @@ def _niederlage(zst):
 # Runde
 # ---------------------------------------------------------------------------
 
+def abschlag_ausfuehren(zst):
+    """Gegner fuehrt einen Abschlagsangriff aus, wenn der Spieler flieht.
+
+    Gibt True zurueck wenn der Spieler dabei stirbt.
+    """
+    zst.log.clear()
+    zst.log.append("--- Abschlag ---")
+    _gegner_greift_an(zst)
+    return zst.spieler.lp <= 0
+
+
 def runde_ausfuehren(zst):
     """Fuehrt eine vollstaendige Kampfrunde aus und aktualisiert zst.
 
