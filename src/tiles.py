@@ -58,7 +58,9 @@ OBJ_VEG_GRAS = "\uE1C0"    # Gras-Block (dekorativ/blockierend, Aussen-Level)
 # GEGNER  U+E2C0 – U+E33F
 # ---------------------------------------------------------------------------
 
-# (leer)
+GEGNER_SCHLEIM_GESICHT = "\uE2C0"   # Gaerkeller-Schimmel
+
+GEGNER_LEBENSMITTELKONTROLLEUR  = "\uE2C1"  # Lebensmittelkontrolleur
 
 # ---------------------------------------------------------------------------
 # ITEM  U+E340 – U+E3BF
@@ -86,7 +88,9 @@ TILE_NAMEN = {
     "WAND_FENSTER":   WAND_FENSTER,
     "WAND_GITTER":    WAND_GITTER,
     "INTER_PFLANZE":  INTER_PFLANZE,
-    "OBJ_VEG_GRAS":   OBJ_VEG_GRAS,
+    "OBJ_VEG_GRAS":            OBJ_VEG_GRAS,
+    "GEGNER_SCHLEIM_GESICHT":           GEGNER_SCHLEIM_GESICHT,
+    "GEGNER_LEBENSMITTELKONTROLLEUR":   GEGNER_LEBENSMITTELKONTROLLEUR,
 }
 
 # ---------------------------------------------------------------------------
@@ -100,5 +104,7 @@ TILE_DATEIEN = {
     ord(WAND_FENSTER):   "assets/tiles/wand/wand_fenster.png",
     ord(WAND_GITTER):    "assets/tiles/wand/wand_gitter.png",
     ord(INTER_PFLANZE):  "assets/tiles/inter/inter_pflanze.png",
-    ord(OBJ_VEG_GRAS):   "assets/tiles/obj/obj_veg_gras.png",
+    ord(OBJ_VEG_GRAS):            "assets/tiles/obj/obj_veg_gras.png",
+    ord(GEGNER_SCHLEIM_GESICHT):          "assets/tiles/gegner/schleim-gesicht.png",
+    ord(GEGNER_LEBENSMITTELKONTROLLEUR):  "assets/tiles/gegner/lebensmittelkontrolleur.png",
 }
