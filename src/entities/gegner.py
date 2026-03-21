@@ -4,6 +4,7 @@ import json
 import os
 
 from src.entities.entitaet import Entitaet
+from src.tiles import TILE_NAMEN
 
 
 def typen_laden():
@@ -100,10 +101,13 @@ class Gegner(Entitaet):
             angriff["schaden"] = max(0, round(a["schaden_basis"] * faktor))
             angriffe.append(angriff)
 
+        roh_symbol = d["symbol"]
+        symbol = TILE_NAMEN.get(roh_symbol, roh_symbol)
+
         return cls(
             typ_id=typ_id,
             name=d["name"],
-            symbol=d["symbol"],
+            symbol=symbol,
             hp_max=hp_max,
             verteidigung=verteidigung,
             ep_beute=d["ep_beute"],

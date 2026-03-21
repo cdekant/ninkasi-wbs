@@ -33,7 +33,7 @@
   "gaerkeller_schimmel": {
     "typ": "einzel",
     "name": "Gaerkeller-Schimmel",
-    "symbol": "m",
+    "symbol": "GEGNER_SCHLEIM_GESICHT",
     "hp_basis": 8,
     "verteidigung_basis": 0,
     "ep_beute": 5,
@@ -64,7 +64,7 @@
   "lebensmittelkontrolleur": {
     "typ": "einzel",
     "name": "Lebensmittelkontrolleur",
-    "symbol": "K",
+    "symbol": "GEGNER_LEBENSMITTELKONTROLLEUR",
     "hp_basis": 30,
     "verteidigung_basis": 2,
     "ep_beute": 25,

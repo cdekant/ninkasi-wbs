@@ -41,7 +41,7 @@
     "korridor_breite": 3,
     "kacheln": {
       "boden": ".",
-      "wand": "#",
+      "wand": "WAND_GITTER",
       "objekt_hochbeet": "OBJ_VEG_GRAS",
       "objekt_pflanze":  "INTER_PFLANZE"
     },
