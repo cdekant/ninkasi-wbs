@@ -8,18 +8,17 @@ lang: 'de-DE'
 
 - Solo-Roguelite im Terminal, privat, nicht-kommerziell
 - Ansprache an den Projektleiter: Ninkasi
-- `README.md`: kurze Projektvorstellung für Menschen
+- `README.md`: kurze Projektvorstellung für Menschen/GitHub
 - `HANDBUCH.md`: vollständiges Spielerhandbuch
 - `Doc/`: thematische Design-Dokumente (Tile-System, Kampf, KI, …)
-- `TODO.md`: jeweils erledigte Punkte entfernen
+- `TODO.md`: jeweils erledigte Punkte direkt nach Erledigung entfernen und zum commit stellen
 - `VERSION`: 0.x.y mit x: neues Feature und y: fix
 
 ## Stilvorgaben
 
-- Bei der Implementation und auch Analyse von neuen und bestehenden Systemen immer auf Modularität und Erweiterbarkeit achten
 - Entwickler keinerlei Programmiererfahrung — Erklärungen und Code so einfach wie möglich halten
-- Ausnahme: Klare Vorteile für Modularisierbarkeit/Portierbarkeit können Einfachheit überstimmen — dann mit Erklärung warum.
-- **Sprechende Namen:** Dateien, Funktionen, Variablen, Konstanten und JSON-Schlüssel immer so benennen, dass der Name ohne Kommentar verständlich ist. Lieber `schaden_pro_runde` als `dpr`, lieber `wand_fenster.png` als `w2.png`. Abkürzungen nur wenn allgemein bekannt (z.B. `hp`, `ui`, `fov`).
+- Dennoch bei allen Analysen immer auf Erweiterbarkeit, Modularität und Portierbarkeit achten
+- **Sprechende Namen:** Dateien, Funktionen, Variablen, Konstanten und JSON-Schlüssel immer so benennen, dass der Name ohne Kommentar verständlich ist. Lieber `schaden_pro_runde` als `dpr`, lieber `wand_fenster.png` als `w2.png`. Abkürzungen nur wenn allgemein bekannt (z.B. `hp`, `ui`, `fov`). Darauf hinweisen, wenn gegen Konventionen verstoßen wird.
 
 ## Grafik und UI
 
