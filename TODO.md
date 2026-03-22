@@ -1,6 +1,9 @@
 # TODO
 
 - Onboarding-Dokumentation: entscheiden, was neben CLAUDE.md für einen schnellen Einstieg fehlt
+- [ ] Systeminteraktion dokumentieren: Wie `game.py` die Subsysteme aufruft (Reihenfolge, Abhängigkeiten) — z.B. als `Doc/Architektur.md`
+- [ ] Skill-System dokumentieren: Effekt-Pipeline, Kauflogik, Zusammenspiel `skills.py` ↔ `skills.json` ↔ `effekttypen.json`
+- [ ] Savegame-Struktur dokumentieren: Felder in `saves/savegame.json` erklären (z.B. in `Doc/Savegame.md` oder direkt in `speichern.py`)
 
 ## 1 BUGS UND LOGIKFEHLER
 

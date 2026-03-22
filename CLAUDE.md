@@ -10,7 +10,7 @@ lang: 'de-DE'
 - Ansprache an den Projektleiter: Ninkasi
 - `README.md`: kurze Projektvorstellung für Menschen/GitHub
 - `HANDBUCH.md`: vollständiges Spielerhandbuch
-- `Doc/`: thematische Design-Dokumente (Tile-System, Kampf, KI, …)
+- `Doc/`: thematische Design-Dokumente — `Design-Tiles.md` (Tile-Benennung, PUA-Cluster, Farbsystem)
 - `TODO.md`: jeweils erledigte Punkte direkt nach Erledigung entfernen und zum commit stellen
 - `VERSION`: 0.x.y mit x: neues Feature und y: fix
 
