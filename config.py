@@ -32,8 +32,40 @@ LOG_Y0             = 61    # Nachrichtenlog
 LOG_HOEHE          =  5
 SHORTCUT_Y         = 66    # Shortcut-Zeile
 
-# Schwebendes Kampffenster (Konsolen-Koordinaten, innerhalb der Karte)
-KAMPF_FENSTER_X      = 20
-KAMPF_FENSTER_Y      = 21
-KAMPF_FENSTER_BREITE = 80
-KAMPF_FENSTER_HOEHE  = 20
+# Gegner-HP-Schwellwerte und Farben fuer Symbol-Faerbung
+GEGNER_HP_ANGESCHLAGEN_PCT = 60            # unter 60 % HP: gelb
+GEGNER_HP_VERWUNDET_PCT    = 30            # unter 30 % HP: rot
+GEGNER_FARBE_VOLL          = (200,  80,  80)   # volle HP
+GEGNER_FARBE_ANGESCHLAGEN  = (220, 180,  40)   # angeschlagen (< 60 %)
+GEGNER_FARBE_VERWUNDET     = (255,  40,  40)   # schwer verwundet (< 30 %)
+
+# -----------------------------------------------------------------------
+# Charaktererstellung
+# -----------------------------------------------------------------------
+EIGENSCHAFT_START_PUNKTE = 10   # Punkte zum Verteilen bei Spielbeginn
+EIGENSCHAFT_START_MAX    =  5   # Max Punkte pro Eigenschaft bei Erstellung
+
+# EP-Kostenreduktion durch Eigenschaften (Soft-Cap-Stufen)
+# Format: {"bis_punkt": int, "pct_pro_punkt": float}
+# Die letzte Stufe gilt fuer alle Punkte darueber.
+EIGENSCHAFT_REDUKTION_PRIMAER = [
+    {"bis_punkt":  5, "pct_pro_punkt": 7.0},
+    {"bis_punkt": 10, "pct_pro_punkt": 3.5},
+    {"bis_punkt": 99, "pct_pro_punkt": 1.75},
+]
+EIGENSCHAFT_REDUKTION_SEKUNDAER = [
+    {"bis_punkt":  5, "pct_pro_punkt": 3.0},
+    {"bis_punkt": 10, "pct_pro_punkt": 1.5},
+    {"bis_punkt": 99, "pct_pro_punkt": 0.75},
+]
+EIGENSCHAFT_REDUKTION_MAX = 0.80   # Nie mehr als 80 % Reduktion
+
+# ---------------------------------------------------------------------------
+# Fernkampf
+# ---------------------------------------------------------------------------
+PP_FERNKAMPF_KOSTEN     =  5   # PP-Kosten pro Schuss
+PP_FERNKAMPF_SCHADEN    = 10   # Rohschaden
+PP_FERNKAMPF_REICHWEITE =  6   # Max. Reichweite in Kacheln
+MP_FERNKAMPF_KOSTEN     =  5
+MP_FERNKAMPF_SCHADEN    = 12
+MP_FERNKAMPF_REICHWEITE =  8

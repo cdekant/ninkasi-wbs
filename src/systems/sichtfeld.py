@@ -53,3 +53,59 @@ def berechne_fov(transparenz, spieler_x, spieler_y, radius=FOV_BASIS_RADIUS):
 def aktualisiere_erkundet(erkundet, fov):
     """Markiert alle aktuell sichtbaren Felder dauerhaft als erkundet."""
     erkundet |= fov   # bitweises OR: alle True-Stellen in fov bleiben True
+
+
+def sichtlinie_frei(transparenz, x1, y1, x2, y2):
+    """True wenn keine undurchsichtige Kachel die gerade Linie von (x1,y1) nach (x2,y2) blockiert.
+
+    Start- und Endpunkt selbst werden nicht geprueft.
+    Nutzt den Bresenham-Algorithmus.
+    """
+    dx = abs(x2 - x1)
+    dy = abs(y2 - y1)
+    sx = 1 if x2 > x1 else -1
+    sy = 1 if y2 > y1 else -1
+    x, y = x1, y1
+    err = dx - dy
+    while not (x == x2 and y == y2):
+        e2 = 2 * err
+        if e2 > -dy:
+            err -= dy
+            x += sx
+        if e2 < dx:
+            err += dx
+            y += sy
+        if x == x2 and y == y2:
+            return True
+        hoehe, breite = transparenz.shape
+        if not (0 <= y < hoehe and 0 <= x < breite):
+            return False
+        if not transparenz[y, x]:
+            return False
+    return True
+
+
+def linie_punkte(x1, y1, x2, y2):
+    """Gibt alle (x, y) Kacheln der Bresenham-Linie von (x1,y1) nach (x2,y2) zurueck.
+
+    Beide Endpunkte sind enthalten.
+    """
+    punkte = []
+    dx = abs(x2 - x1)
+    dy = abs(y2 - y1)
+    sx = 1 if x2 > x1 else -1
+    sy = 1 if y2 > y1 else -1
+    x, y = x1, y1
+    err = dx - dy
+    while True:
+        punkte.append((x, y))
+        if x == x2 and y == y2:
+            break
+        e2 = 2 * err
+        if e2 > -dy:
+            err -= dy
+            x += sx
+        if e2 < dx:
+            err += dx
+            y += sy
+    return punkte

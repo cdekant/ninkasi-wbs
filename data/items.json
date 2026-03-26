@@ -1,5 +1,5 @@
 {
-  "_hinweis": "Item-Definitionen. kategorie: verbrauchbar/waffe/schild/ruestung/material/quest. stapelbar: true stapelt nach anzahl, false erzeugt Einzelinstanz mit haltbarkeit. seltenheit: gewoehnlich/ungewoehnlich/selten. effekt (verbrauchbar): {typ, wert} — Typen: heilen_lp/heilen_pp/heilen_mp. Waffe: schaden_bonus, schaden_typ, reichweite, haltbarkeit_max, slot (waffe_haupt/waffe_neben), effekte, skill_voraussetzung. Schild: block_wert, block_chance, resistenz_boni, haltbarkeit_max, slot=waffe_neben, bewegungs_malus, skill_voraussetzung. Ruestung: verteidigung_bonus, resistenz_boni, haltbarkeit_max, slot (kopf/koerper/beine/accessoire), bewegungs_malus, skill_voraussetzung.",
+  "_hinweis": "Item-Definitionen. kategorie: verbrauchbar/waffe/schild/ruestung/material/quest/wurfwaffe. stapelbar: true stapelt nach anzahl, false erzeugt Einzelinstanz mit haltbarkeit. seltenheit: gewoehnlich/ungewoehnlich/selten. effekt (verbrauchbar): {typ, wert} — Typen: heilen_lp/heilen_pp/heilen_mp. Waffe: schaden_bonus, schaden_typ, reichweite (>1 = Schusswaffe), haltbarkeit_max, slot (waffe_haupt/waffe_neben), effekte, skill_voraussetzung. Wurfwaffe: schaden_wert, schaden_typ, reichweite, stapelbar=true, 1x verbraucht beim Einsatz. Schild: block_wert, block_chance, resistenz_boni, haltbarkeit_max, slot=waffe_neben, bewegungs_malus, skill_voraussetzung. Ruestung: verteidigung_bonus, resistenz_boni, haltbarkeit_max, slot (kopf/koerper/beine/accessoire), bewegungs_malus, skill_voraussetzung.",
 
   "hefepaste": {
     "id": "hefepaste",
@@ -111,6 +111,39 @@
     "haltbarkeit_max": 50,
     "slot": "waffe_neben",
     "bewegungs_malus": 0.0,
+    "skill_voraussetzung": null
+  },
+
+  "wurfkrug": {
+    "id": "wurfkrug",
+    "name": "Wurfkrug",
+    "beschreibung": "Ein robuster Tonkrug, gefuellt mit gaerende Bruehe. Beim Aufprall explodiert er in beissendem Bierschaum.",
+    "kategorie": "wurfwaffe",
+    "symbol": ")",
+    "farbe": [180, 130, 80],
+    "stapelbar": true,
+    "seltenheit": "gewoehnlich",
+    "schaden_wert": 8,
+    "schaden_typ": "nah",
+    "reichweite": 5,
+    "effekte": []
+  },
+
+  "hopfenschleuder": {
+    "id": "hopfenschleuder",
+    "name": "Hopfenschleuder",
+    "beschreibung": "Eine Schleuder aus Brauerschuerzen-Leder, perfekt fuer getrocknete Hopfendolden.",
+    "kategorie": "waffe",
+    "symbol": ")",
+    "farbe": [120, 180, 80],
+    "stapelbar": false,
+    "seltenheit": "ungewoehnlich",
+    "schaden_bonus": 3,
+    "schaden_typ": "fern",
+    "reichweite": 8,
+    "haltbarkeit_max": 25,
+    "slot": "waffe_haupt",
+    "effekte": [],
     "skill_voraussetzung": null
   }
 }
