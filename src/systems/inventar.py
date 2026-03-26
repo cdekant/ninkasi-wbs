@@ -80,4 +80,9 @@ def benutzen(inventar, item_id, spieler, alle_items):
         entfernen(inventar, item_id)
         return True, f"{item_def['name']}: +{geheilt} MP."
 
+    elif effekt["typ"] == "eigenschaft_punkt_erhoehen":
+        # Braucht Benutzereingabe — Aufrufer (game.py) oeffnet Auswahlbildschirm.
+        # Item wird erst nach der Auswahl entfernt.
+        return "auswahl_noetig", item_id
+
     return False, "Unbekannter Effekt-Typ."

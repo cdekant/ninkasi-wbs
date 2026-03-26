@@ -73,6 +73,8 @@ def zeichne_menue(console, menue_id, spieler, alle_skills, alle_items, auswahl,
         detail = _skills_inhalt(console, spieler, alle_skills, auswahl, w, h)
     elif menue_id == "inventar":
         detail = _inventar_inhalt(console, spieler, alle_items, auswahl, w, h)
+    elif menue_id == "charakter":
+        detail = _charakter_inhalt(console, spieler, w, h)
     else:
         detail = ""
 
@@ -93,6 +95,8 @@ def zeichne_menue(console, menue_id, spieler, alle_skills, alle_items, auswahl,
         footer = "[ENTER] kaufen   [TAB] naechstes   [Shift+TAB] vorheriges   [ESC] schliessen"
     elif menue_id == "inventar":
         footer = "[ENTER] benutzen   [TAB] naechstes   [Shift+TAB] vorheriges   [ESC] schliessen"
+    elif menue_id == "charakter":
+        footer = "[TAB] naechstes   [Shift+TAB] vorheriges   [ESC] schliessen"
     else:
         footer = "[TAB] naechstes   [Shift+TAB] vorheriges   [ESC] schliessen"
     console.print(2, h - 2, footer[: w - 4], fg=F_FOOTER)
@@ -190,6 +194,54 @@ def _skills_inhalt(console, spieler, alle_skills, auswahl, w, h):
 
 
 
+# Anzeige-Namen fuer die sechs Eigenschaften
+_EIGENSCHAFT_ANZEIGE = {
+    "koerperkraft":     "Körperkraft",
+    "geschicklichkeit": "Geschicklichkeit",
+    "wissen":           "Wissen",
+    "weisheit":         "Weisheit",
+    "charisma":         "Charisma",
+    "geist":            "Geist",
+}
+
+
+def _charakter_inhalt(console, spieler, w, h):
+    """Zeichnet Eigenschaften und Ausruestungsslots. Gibt leeren Detail-Text zurueck."""
+
+    console.print(2, 4, "Eigenschaften:", fg=F_EP_INFO)
+
+    y = 6
+    for key, anzeige_name in _EIGENSCHAFT_ANZEIGE.items():
+        punkte = spieler.eigenschaften.get(key, 0)
+        balken = "\u2588" * punkte + "\u2591" * max(0, 10 - punkte)
+        zeile = f"  {anzeige_name:<18} [{balken}]  {punkte:>2}"
+        console.print(1, y, zeile, fg=F_NORMAL)
+        y += 1
+
+    y += 1
+    console.print(2, y, "Ausrüstung:", fg=F_EP_INFO)
+    y += 2
+
+    slot_anzeige = [
+        ("waffe_haupt",  "Waffe (Haupt)"),
+        ("waffe_neben",  "Waffe (Neben) / Schild"),
+        ("kopf",         "Kopf"),
+        ("koerper",      "Körper"),
+        ("beine",        "Beine"),
+        ("accessoire_1", "Accessoire 1"),
+        ("accessoire_2", "Accessoire 2"),
+    ]
+    for slot_key, slot_name in slot_anzeige:
+        inhalt = spieler.ausruestung.get(slot_key)
+        inhalt_str = inhalt["id"] if inhalt else "—"
+        farbe = F_NORMAL if inhalt else F_GESPERRT
+        zeile = f"  {slot_name:<24} {inhalt_str}"
+        console.print(1, y, zeile, fg=farbe)
+        y += 1
+
+    return ""
+
+
 # ---------------------------------------------------------------------------
 # Zeichenhilfen
 # ---------------------------------------------------------------------------
@@ -262,6 +314,8 @@ def _item_detail(item_def):
     if kat == "verbrauchbar":
         effekt = item_def.get("effekt")
         if effekt:
+            if effekt["typ"] == "eigenschaft_punkt_erhoehen":
+                return f"{beschreibung}  |  +1 Eigenschaftspunkt (Auswahl beim Benutzen)"
             typ_map = {"heilen_lp": "LP", "heilen_pp": "PP", "heilen_mp": "MP"}
             ziel = typ_map.get(effekt["typ"], effekt["typ"])
             return f"{beschreibung}  |  +{effekt['wert']} {ziel}"

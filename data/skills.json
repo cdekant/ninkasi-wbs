@@ -1,10 +1,19 @@
 {
-  "_hinweis": "Struktur je Skill: id, name, kategorie, beschreibung, basis_kosten, voraussetzungen, effekte (6 Stufen). Jede Stufe hat stufe, beschreibung, und entweder wert (einzelner Wert) oder werte (Objekt mit benannten Feldern fuer mehrere Effekte).",
+  "_hinweis": "Struktur je Skill: id, name, kategorie, beschreibung, basis_kosten, voraussetzungen, effekte (6 Stufen). Jede Stufe hat stufe, beschreibung, und entweder wert (einzelner Wert) oder werte (Objekt mit benannten Feldern fuer mehrere Effekte). kategorie muss einem der 6 Namen aus kategorien[] entsprechen.",
+  "eigenschaften": ["koerperkraft", "geschicklichkeit", "wissen", "weisheit", "charisma", "geist"],
+  "kategorien": [
+    { "name": "Lebenskraft und Tennentänzerei",  "primaer": "koerperkraft",     "sekundaer": "geschicklichkeit" },
+    { "name": "Kesselzorn und Sudwall",           "primaer": "geschicklichkeit", "sekundaer": "wissen"           },
+    { "name": "Natur-, Korn- und Braukunde",      "primaer": "wissen",           "sekundaer": "geist"            },
+    { "name": "Kessel-Magie und Meta-Braukunde",  "primaer": "weisheit",         "sekundaer": "charisma"         },
+    { "name": "Marktschreierei und Nachschub",    "primaer": "charisma",         "sekundaer": "weisheit"         },
+    { "name": "Brennblasen-Psi und Zahlenkult",   "primaer": "geist",            "sekundaer": "charisma"         }
+  ],
   "skills": [
     {
       "id": "trinkfestigkeit",
       "name": "Trinkfestigkeit",
-      "kategorie": "Lebenskraft",
+      "kategorie": "Lebenskraft und Tennentänzerei",
       "beschreibung": "Alkohol verleiht die Kraft zu heroischen und schrecklichen Taten. Trinkfestigkeit mindert die negativen Effekte und verkuerzt deren Dauer — fuer die Herrlichkeit von Ninkasi.",
       "basis_kosten": 10,
       "voraussetzungen": [],
@@ -21,7 +30,7 @@
     {
       "id": "gaermutterleib",
       "name": "Gaermutterleib",
-      "kategorie": "Lebenskraft",
+      "kategorie": "Lebenskraft und Tennentänzerei",
       "beschreibung": "Ein Schroten und Maischen und Kochen und Pichen. Die Plag der Brauer übt den Leib. Ninkasis Kraft kommt vom Werk des Sudes.",
       "basis_kosten": 10,
       "voraussetzungen": [],
@@ -37,7 +46,7 @@
     {
       "id": "gaergoettinleib",
       "name": "Gaergoettinleib",
-      "kategorie": "Lebenskraft",
+      "kategorie": "Lebenskraft und Tennentänzerei",
       "beschreibung": "Wer tief genug ins Geheimnis der Gaerung eingedrungen ist, traegt den Leib einer Braugoettin — unverletzlich wie Bronzeschild, strotzend wie reife Wuerze.",
       "basis_kosten": 30,
       "voraussetzungen": [{"id": "gaermutterleib", "stufe": 4}],
@@ -53,7 +62,7 @@
     {
       "id": "dunkelgewohnt",
       "name": "Dunkelgewohnt",
-      "kategorie": "Wahrnehmung",
+      "kategorie": "Kessel-Magie und Meta-Braukunde",
       "beschreibung": "Die Brauerin kennt den Malzkeller bei Nacht. Wer taeglich im Dunkel tastet, lernt, mit anderen Augen zu sehen — weiter, schaerfer, ruehiger.",
       "basis_kosten": 10,
       "voraussetzungen": [],
@@ -69,7 +78,7 @@
     {
       "id": "kellerseherin",
       "name": "Kellerseherin",
-      "kategorie": "Wahrnehmung",
+      "kategorie": "Kessel-Magie und Meta-Braukunde",
       "beschreibung": "Die Lagerkeller haben ihre Geheimnisse preisgegeben. Ninkasi sieht Bewegung im Schatten, Umrisse im Nebel der Gaerung — was andere uebersehen, entgeht ihr nicht.",
       "basis_kosten": 30,
       "voraussetzungen": [{"id": "dunkelgewohnt", "stufe": 4}],
@@ -85,7 +94,7 @@
     {
       "id": "augen_der_goettin",
       "name": "Augen der Goettin",
-      "kategorie": "Wahrnehmung",
+      "kategorie": "Kessel-Magie und Meta-Braukunde",
       "beschreibung": "Goetter sehen, was Menschen verborgen bleibt. Kein Schatten ist tief genug, keine Finsternis dicht genug — nichts regt sich, was Ninkasis Blick entgeht.",
       "basis_kosten": 100,
       "voraussetzungen": [{"id": "kellerseherin", "stufe": 4}],
@@ -99,9 +108,25 @@
       ]
     },
     {
+      "id": "sudlaeufer",
+      "name": "Sudläufer",
+      "kategorie": "Kesselzorn und Sudwall",
+      "beschreibung": "Wer den Kessel kennt, kennt auch den Weg. Sudlaeufer bewegen sich mit der Gnade der Hefe — flink wie Gaergas, unaufhaltsam wie Maischestrudel. Jeder Schritt kommt eine Idee frueher als erwartet.",
+      "basis_kosten": 15,
+      "voraussetzungen": [],
+      "effekte": [
+        { "stufe": 1, "beschreibung": "Bewegungsgeschwindigkeit +5 % (Bonus-Schritt alle 20 Zuege)",       "wert": { "typ": "bewegungs_bonus_pct", "wert":  5 } },
+        { "stufe": 2, "beschreibung": "Bewegungsgeschwindigkeit +10 % (alle 10 Zuege)",                    "wert": { "typ": "bewegungs_bonus_pct", "wert": 10 } },
+        { "stufe": 3, "beschreibung": "Bewegungsgeschwindigkeit +15 % (alle 7 Zuege)",                     "wert": { "typ": "bewegungs_bonus_pct", "wert": 15 } },
+        { "stufe": 4, "beschreibung": "Bewegungsgeschwindigkeit +20 % (alle 5 Zuege)",                     "wert": { "typ": "bewegungs_bonus_pct", "wert": 20 } },
+        { "stufe": 5, "beschreibung": "Bewegungsgeschwindigkeit +25 % (alle 4 Zuege)",                     "wert": { "typ": "bewegungs_bonus_pct", "wert": 25 } },
+        { "stufe": 6, "beschreibung": "Bewegungsgeschwindigkeit +34 % — Zoigl (alle 3 Zuege)",             "wert": { "typ": "bewegungs_bonus_pct", "wert": 34 } }
+      ]
+    },
+    {
       "id": "leib_der_ninkasi",
       "name": "Leib der Ninkasi",
-      "kategorie": "Lebenskraft",
+      "kategorie": "Lebenskraft und Tennentänzerei",
       "beschreibung": "Der Leib selbst wird zum Gaertank. Unverwuestlich, heilig, brodelnd. Wenn Ninkasi diesen Weg vollendet, ist sie nicht mehr Mensch — sie ist Brauerin, ist Goettin, ist Bier.",
       "basis_kosten": 100,
       "voraussetzungen": [{"id": "gaergoettinleib", "stufe": 5}],

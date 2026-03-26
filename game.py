@@ -26,9 +26,13 @@ import src.systems.inventar as inventar_system
 from src.entities.player import Spieler
 from src.entities.gegner import typen_laden, Gegner
 from src.entities.item import typen_laden as items_laden
-from src.systems.kampf import KampfZustand, runde_ausfuehren, abschlag_ausfuehren
+from src.systems.kampf import nahkampf_angriff, effekte_tick, regen_tick, spieler_fernkampf_angriff, gegner_fernkampf_angriff
 from src.systems.speichern import tod_reset, STANDARD_AKTUELL, speichern, laden
 from src.ui.menu_anzeige import zeichne_menue
+from src.ui.charaktererstellung_anzeige import (
+    zeichne_charaktererstellung, zeichne_eigenschaft_auswahl,
+    EIGENSCHAFTEN_REIHENFOLGE,
+)
 from src.map.karte import generiere_karte
 from src.map.hub import generiere_hub as _generiere_hub
 from src.systems import sichtfeld
@@ -108,10 +112,17 @@ alle_gegner_typen = typen_laden()
 alle_items = items_laden()
 spieler = Spieler()
 
-# Spielmodus: "hub"   = Erkundung (Menues verfuegbar)
-#             "kampf" = Kampf laeuft (nur Kampf-Eingabe aktiv)
-#             "tod"   = Tod-Screen (nur Auferstehen moeglich)
+# Spielmodus: "hub"                = Erkundung (Menues verfuegbar)
+#             "tod"                = Tod-Screen (nur Auferstehen moeglich)
+#             "charaktererstellung"= Startbildschirm, Punkte verteilen
+#             "eigenschaft_auswahl"= Auswahl welche Eigenschaft ein Item-Punkt geht
+#             "zielauswahl"        = Fernkampf-Zielauswahl (nur im Dungeon)
 modus = "hub"
+
+# Charaktererstellung und Eigenschaftspunkt-Vergabe
+neues_spiel               = False   # True nach N oder wenn kein Savegame
+eigenschaft_auswahl_item_id  = None    # Item-ID beim eigenschaft_punkt_erhoehen-Flow
+eigenschaft_auswahl_index    = 0       # Markierte Eigenschaft (0–5)
 
 # Ort: "pilsstube" = Hub | "dungeon" = laufender Run
 ort = "pilsstube"
@@ -121,11 +132,13 @@ aktives_menue = None
 menue_auswahl = 0
 status_meldung = ""
 
-# Kampf-Zustand
-aktiver_kampf = None          # KampfZustand oder None
-aktiver_kampf_eintrag = None  # Dict-Referenz in gegner_auf_karte
-_kampfrunden_zaehler = 0      # Zeitlupe: alle 3 Runden ein Welt-Tick
 _letzter_bewegungszeitpunkt = 0.0   # fuer Haltetasten-Rate-Limit
+
+# Fernkampf / Zielauswahl
+_ziel_sichtbar       = []   # Sichtbare lebende Gegner beim Eintritt in Zielauswahl
+_ziel_gegner_index   = 0    # Aktuell angevisierter Gegner
+_fernkampf_typen     = []   # Verfuegbare Angriffsmodi (dicts mit schaden_wert etc.)
+_fernkampf_typ_index = 0    # Aktuell gewaehlter Modus
 
 # Spielstand-Dict (level_index, tod_zaehler, ...)
 aktuell = dict(STANDARD_AKTUELL)
@@ -326,6 +339,282 @@ def _balken(aktuell, maximum, breite=16):
 
 
 # ---------------------------------------------------------------------------
+# Kampf-Hilfsfunktionen
+# ---------------------------------------------------------------------------
+
+def _gegner_farbe(gegner):
+    """Gibt die Anzeige-Farbe des Gegner-Symbols basierend auf HP-Anteil zurueck."""
+    pct = gegner.hp / gegner.hp_max * 100 if gegner.hp_max > 0 else 0
+    if pct <= config.GEGNER_HP_VERWUNDET_PCT:
+        return config.GEGNER_FARBE_VERWUNDET
+    if pct <= config.GEGNER_HP_ANGESCHLAGEN_PCT:
+        return config.GEGNER_FARBE_ANGESCHLAGEN
+    return config.GEGNER_FARBE_VOLL
+
+
+def _gegner_zustand_meldung(gegner):
+    """Einmalige Log-Meldung wenn Gegner einen HP-Schwellwert unterschreitet."""
+    pct = gegner.hp / gegner.hp_max * 100 if gegner.hp_max > 0 else 0
+    if pct <= config.GEGNER_HP_VERWUNDET_PCT and not getattr(gegner, "_meldung_verwundet", False):
+        gegner._meldung_verwundet = True
+        _log(f"{gegner.name} wirkt schwer verwundet.")
+    elif pct <= config.GEGNER_HP_ANGESCHLAGEN_PCT and not getattr(gegner, "_meldung_angeschlagen", False):
+        gegner._meldung_angeschlagen = True
+        _log(f"{gegner.name} wirkt angeschlagen.")
+
+
+def _loot_wuerfeln(eintrag):
+    """Wuerfelt Loot fuer einen besiegten Gegner und legt ihn als Bodenloot ab."""
+    g = eintrag["gegner"]
+    spieler.ep_hinzufuegen(g.ep_beute)
+    _log(f"{g.name} besiegt. +{g.ep_beute} EP")
+    for loot_eintrag in g.loot_pool:
+        if random.random() < loot_eintrag["chance"]:
+            aktuell.setdefault("bodenloot", []).append({
+                "x": eintrag["x"],
+                "y": eintrag["y"],
+                "id": loot_eintrag["id"],
+            })
+
+
+def _spieler_tot(verursacher_name):
+    """Setzt den Tod-Modus mit Verursacher-Name und zufaelligem Zitat."""
+    global modus, tod_gegner_name, tod_zitat
+    tod_gegner_name = verursacher_name
+    tod_zitat       = random.choice(_TOD_ZITATE)
+    modus = "tod"
+
+
+# ---------------------------------------------------------------------------
+# Fernkampf
+# ---------------------------------------------------------------------------
+
+def _fernkampf_typen_bauen():
+    """Baut Liste aller verfuegbaren Fernkampf-Modi aus Ausruestung, Inventar, PP und MP."""
+    typen = []
+    # Schusswaffe (waffe_haupt oder waffe_neben mit reichweite > 1)
+    for slot_name in ("waffe_haupt", "waffe_neben"):
+        ausgeruestet = spieler.ausruestung.get(slot_name)
+        if ausgeruestet:
+            item_def = alle_items.get(ausgeruestet["id"])
+            if item_def and item_def.get("reichweite", 1) > 1:
+                typen.append({
+                    "typ":          "schusswaffe",
+                    "name":         item_def["name"],
+                    "schaden_wert": spieler.basis_schaden + item_def.get("schaden_bonus", 0),
+                    "schaden_typ":  item_def.get("schaden_typ", "fern"),
+                    "reichweite":   item_def["reichweite"],
+                    "item_def":     item_def,
+                })
+    # Wurfwaffe (alle Stacks im Inventar)
+    for inv_slot in spieler.inventar:
+        item_def = alle_items.get(inv_slot["id"])
+        if item_def and item_def.get("kategorie") == "wurfwaffe" and inv_slot["anzahl"] > 0:
+            typen.append({
+                "typ":          "wurfwaffe",
+                "name":         item_def["name"],
+                "schaden_wert": item_def.get("schaden_wert", spieler.basis_schaden),
+                "schaden_typ":  item_def.get("schaden_typ", "nah"),
+                "reichweite":   item_def.get("reichweite", 5),
+                "item_def":     item_def,
+                "inv_slot":     inv_slot,
+            })
+    # MP-Schuss
+    if spieler.mp >= config.MP_FERNKAMPF_KOSTEN:
+        typen.append({
+            "typ":          "mp",
+            "name":         "Magie-Schuss",
+            "schaden_wert": config.MP_FERNKAMPF_SCHADEN,
+            "schaden_typ":  "magie",
+            "reichweite":   config.MP_FERNKAMPF_REICHWEITE,
+            "item_def":     None,
+        })
+    # PP-Schuss
+    if spieler.pp >= config.PP_FERNKAMPF_KOSTEN:
+        typen.append({
+            "typ":          "pp",
+            "name":         "Psi-Schuss",
+            "schaden_wert": config.PP_FERNKAMPF_SCHADEN,
+            "schaden_typ":  "psi",
+            "reichweite":   config.PP_FERNKAMPF_REICHWEITE,
+            "item_def":     None,
+        })
+    return typen
+
+
+def _zielauswahl_eintreten():
+    """F-Taste im Dungeon: Wechselt in den Zielauswahl-Modus."""
+    global modus, _ziel_sichtbar, _ziel_gegner_index, _fernkampf_typen, _fernkampf_typ_index
+    if ort != "dungeon":
+        return
+    _ziel_sichtbar = [
+        e for e in gegner_auf_karte
+        if e["gegner"].lebt and FOV[e["y"], e["x"]]
+    ]
+    if not _ziel_sichtbar:
+        _log("Kein Ziel in Sichtweite.")
+        return
+    _fernkampf_typen = _fernkampf_typen_bauen()
+    if not _fernkampf_typen:
+        _log("Kein Fernkampf-Angriff verfuegbar.")
+        return
+    _ziel_gegner_index   = 0
+    _fernkampf_typ_index = 0
+    modus = "zielauswahl"
+
+
+def _fernkampf_ausfuehren():
+    """Schuss ausfuehren: Ressource pruefen, Schaden anwenden, Welt-Tick."""
+    global modus
+    eintrag = _ziel_sichtbar[_ziel_gegner_index]
+    angriff = _fernkampf_typen[_fernkampf_typ_index]
+    ziel    = eintrag["gegner"]
+
+    # Sichtlinie pruefen
+    if not sichtfeld.sichtlinie_frei(TRANSPARENZ, spieler_x, spieler_y, eintrag["x"], eintrag["y"]):
+        _log("Keine Sichtlinie zum Ziel.")
+        return
+
+    # Reichweite pruefen (Chebyshev)
+    dist = max(abs(eintrag["x"] - spieler_x), abs(eintrag["y"] - spieler_y))
+    if dist > angriff["reichweite"]:
+        _log(f"Ziel ausser Reichweite ({dist} > {angriff['reichweite']}).")
+        return
+
+    # Ressource pruefen
+    typ = angriff["typ"]
+    if typ == "pp" and spieler.pp < config.PP_FERNKAMPF_KOSTEN:
+        _log(f"Zu wenig PP (benoetigt {config.PP_FERNKAMPF_KOSTEN}).")
+        return
+    if typ == "mp" and spieler.mp < config.MP_FERNKAMPF_KOSTEN:
+        _log(f"Zu wenig MP (benoetigt {config.MP_FERNKAMPF_KOSTEN}).")
+        return
+
+    # Zielauswahl verlassen, Angriff ausfuehren
+    modus = "hub"
+    for z in spieler_fernkampf_angriff(spieler, ziel, angriff):
+        _log(z)
+
+    # Ressource abziehen
+    if typ == "pp":
+        spieler.pp = max(0, spieler.pp - config.PP_FERNKAMPF_KOSTEN)
+    elif typ == "mp":
+        spieler.mp = max(0, spieler.mp - config.MP_FERNKAMPF_KOSTEN)
+    elif typ == "wurfwaffe":
+        inventar_system.entfernen(spieler.inventar, angriff["item_def"]["id"])
+
+    # Gegner tot?
+    if not ziel.lebt:
+        _loot_wuerfeln(eintrag)
+        gegner_auf_karte.remove(eintrag)
+
+    _welt_tick()
+
+
+def _zielauswahl_zeichnen(console):
+    """Overlay fuer den Zielauswahl-Modus: Linie, Cursor, Shortcut-Zeile."""
+    if not _ziel_sichtbar or not _fernkampf_typen:
+        return
+    KY = config.KARTE_Y0
+    eintrag = _ziel_sichtbar[_ziel_gegner_index]
+    tx, ty  = eintrag["x"], eintrag["y"]
+    angriff = _fernkampf_typen[_fernkampf_typ_index]
+
+    # Bresenham-Linie zeichnen (ohne Spieler- und Zielfeld)
+    for x, y in sichtfeld.linie_punkte(spieler_x, spieler_y, tx, ty)[1:-1]:
+        console.print(x, y + KY, "\u00b7", fg=(180, 140, 40))
+
+    # Ziel-Cursor
+    console.print(tx, ty + KY, "X", fg=(255, 220, 0))
+
+    # Shortcut-Zeile
+    typ = angriff["typ"]
+    if typ == "pp":
+        ressource = f"PP-{config.PP_FERNKAMPF_KOSTEN}"
+    elif typ == "mp":
+        ressource = f"MP-{config.MP_FERNKAMPF_KOSTEN}"
+    elif typ == "wurfwaffe":
+        ressource = f"{angriff['inv_slot']['anzahl']}\u00d7"
+    else:
+        ressource = "ausger\u00fcstet"
+
+    dist = max(abs(tx - spieler_x), abs(ty - spieler_y))
+    los  = sichtfeld.sichtlinie_frei(TRANSPARENZ, spieler_x, spieler_y, tx, ty)
+    los_txt = "" if los else " [WAND]"
+    ziel_name = eintrag["gegner"].name
+    shortcut = (
+        f"[TAB] Ziel: {ziel_name}  "
+        f"[R] {angriff['name']} ({ressource})  "
+        f"Dist:{dist}/{angriff['reichweite']}{los_txt}  "
+        f"[ENTER] Schuss  [ESC] Abbruch"
+    )
+    _zeichne_log(console, shortcut)
+
+
+def _welt_tick():
+    """Ein Welt-Tick nach jeder Spieleraktion: Regen + Effekte, dann Gegner-KI.
+
+    Reihenfolge:
+      1. Regeneration + Effekte fuer alle lebenden Gegner (DoT, Dauer sinkt)
+      2. Effekte fuer den Spieler
+      3. Gegner-KI: alle lebenden Gegner bewegen sich / greifen an
+    Tote Gegner werden sofort aus gegner_auf_karte entfernt (Loot gewuerfelt).
+    """
+    # 1. Regen + Effekte fuer Gegner
+    for eintrag in list(gegner_auf_karte):
+        g = eintrag["gegner"]
+        if not g.lebt:
+            continue
+        zeile = regen_tick(g)
+        if zeile:
+            _log(zeile)
+        for z in effekte_tick(g):
+            _log(z)
+        if not g.lebt:
+            _loot_wuerfeln(eintrag)
+            gegner_auf_karte.remove(eintrag)
+
+    # 2. Effekte fuer Spieler
+    for z in effekte_tick(spieler):
+        _log(z)
+    if spieler.lp <= 0:
+        _spieler_tot("Vergiftung")
+        return
+
+    # 3. Gegner-KI: Bewegung und Angriffe
+    nah_liste, fern_liste = ki.ki_tick(gegner_auf_karte, spieler_x, spieler_y, KARTE, TRANSPARENZ)
+    for eintrag in nah_liste:
+        for z in nahkampf_angriff(eintrag["gegner"], spieler):
+            _log(z)
+        if spieler.lp <= 0:
+            _spieler_tot(eintrag["gegner"].name)
+            return
+    for eintrag in fern_liste:
+        for z in gegner_fernkampf_angriff(eintrag["gegner"], spieler):
+            _log(z)
+        if spieler.lp <= 0:
+            _spieler_tot(eintrag["gegner"].name)
+            return
+
+
+def _gelegenheitsangriff():
+    """Alle Chebyshev-1-anliegenden lebenden Gegner greifen sofort an (vor Bewegung).
+
+    Wird aufgerufen wenn der Spieler sich von einem belegten Feld wegbewegt.
+    """
+    for eintrag in gegner_auf_karte:
+        g = eintrag["gegner"]
+        if not g.lebt:
+            continue
+        if max(abs(eintrag["x"] - spieler_x), abs(eintrag["y"] - spieler_y)) == 1:
+            for z in nahkampf_angriff(g, spieler):
+                _log(z)
+            if spieler.lp <= 0:
+                _spieler_tot(g.name)
+                return
+
+
+# ---------------------------------------------------------------------------
 # Zeichnen
 # ---------------------------------------------------------------------------
 
@@ -383,11 +672,12 @@ def zeichne(console):
                 console.print(loot["x"], loot["y"] + KY,
                                item_def["symbol"], fg=tuple(item_def["farbe"]))
 
-    # Gegner — nur sichtbar wenn im FOV
+    # Gegner — nur sichtbar wenn im FOV; Farbe zeigt HP-Zustand
     for eintrag in gegner_auf_karte:
-        if eintrag["gegner"].lebt and FOV[eintrag["y"], eintrag["x"]]:
+        g = eintrag["gegner"]
+        if g.lebt and FOV[eintrag["y"], eintrag["x"]]:
             console.print(eintrag["x"], eintrag["y"] + KY,
-                          eintrag["gegner"].symbol, fg=(200, 80, 80))
+                          g.symbol, fg=_gegner_farbe(g))
 
     # Spieler
     console.print(spieler_x, spieler_y + KY, tiles.HUB_NINKASI, fg=(255, 215, 0))
@@ -395,13 +685,8 @@ def zeichne(console):
     # Statuszeile (Zeilen 0-1)
     _zeichne_statuszeile(console)
 
-    # Schwebendes Kampffenster
-    if modus == "kampf" and aktiver_kampf:
-        _zeichne_kampf_panel(console)
-
     # Nachrichtenlog + Shortcuts
-    shortcut = "[WASD] Fliehen  [LEERTASTE] Angreifen  [TAB] Inventar" if modus == "kampf" else "[TAB] Menue  [<] Hub  [Q] Beenden"
-    _zeichne_log(console, shortcut)
+    _zeichne_log(console, "[F] Ziel  [TAB] Skills  [I] Inventar  [C] Charakter  [<] Ausgang  [Q] Beenden")
 
     # Menue-Overlay (uebermalt alles andere)
     if aktives_menue:
@@ -448,90 +733,6 @@ def _zeichne_log(console, shortcut=""):
                       shortcut, fg=(65, 65, 65))
 
 
-def _rahmen_kampf(console, x, y, w, h):
-    """Einfacher Rahmen fuer das Kampffenster."""
-    BG = (15, 8, 8)
-    FG = (100, 40, 10)
-    console.print(x,     y,     "\u250c", fg=FG, bg=BG)  # ┌
-    console.print(x+w-1, y,     "\u2510", fg=FG, bg=BG)  # ┐
-    console.print(x,     y+h-1, "\u2514", fg=FG, bg=BG)  # └
-    console.print(x+w-1, y+h-1, "\u2518", fg=FG, bg=BG)  # ┘
-    for i in range(1, w - 1):
-        console.print(x+i, y,     "\u2500", fg=FG, bg=BG)  # ─
-        console.print(x+i, y+h-1, "\u2500", fg=FG, bg=BG)
-    for j in range(1, h - 1):
-        console.print(x,     y+j, "\u2502", fg=FG, bg=BG)  # │
-        console.print(x+w-1, y+j, "\u2502", fg=FG, bg=BG)
-
-
-def _linie_kampf(console, x, y, w):
-    """Horizontale Trennlinie innerhalb des Kampffensters."""
-    BG = (15, 8, 8)
-    FG = (80, 40, 10)
-    console.print(x,     y, "\u251c", fg=FG, bg=BG)  # ├
-    console.print(x+w-1, y, "\u2524", fg=FG, bg=BG)  # ┤
-    for i in range(1, w - 1):
-        console.print(x+i, y, "\u2500", fg=FG, bg=BG)  # ─
-
-
-def _zeichne_kampf_panel(console):
-    """Schwebendes Kampffenster (zentriert in der Karte)."""
-    zst = aktiver_kampf
-    fx  = config.KAMPF_FENSTER_X
-    fy  = config.KAMPF_FENSTER_Y
-    fw  = config.KAMPF_FENSTER_BREITE
-    fh  = config.KAMPF_FENSTER_HOEHE
-    inn = fw - 2   # nutzbare Innenbreite
-
-    # Hintergrund + Rahmen
-    console.draw_rect(fx, fy, fw, fh, 32, bg=(15, 8, 8))
-    _rahmen_kampf(console, fx, fy, fw, fh)
-
-    # --- Kopfzeile: Gegner links / Spieler rechts ---
-    g     = zst.gegner
-    mitte = fw // 2
-    console.print(fx + 1, fy + 1, f"{g.symbol} {g.name}", fg=(220, 80, 80))
-    console.print(fx + mitte, fy + 1, f"@ {zst.spieler.name}", fg=(255, 215, 0))
-
-    # HP / LP Balken
-    gp_bar = _balken(g.hp, g.hp_max, 12)
-    sp_bar = _balken(zst.spieler.lp, zst.spieler.lp_max, 12)
-    console.print(fx + 1, fy + 2,
-                  f"HP [{gp_bar}] {g.hp}/{g.hp_max}", fg=(180, 60, 60))
-    console.print(fx + mitte, fy + 2,
-                  f"LP [{sp_bar}] {zst.spieler.lp}/{zst.spieler.lp_max}",
-                  fg=(100, 200, 120))
-
-    # Trennlinie nach Kopf
-    _linie_kampf(console, fx, fy + 3, fw)
-
-    # --- Kampf-Log (scrollend, aeltere Zeilen dunkler) ---
-    log_zeilen = fh - 7   # Rahmen(2) + Kopf(2) + Trennl.(1) + Trennl.(1) + Hint(1)
-    log = zst.log[-log_zeilen:] if zst.log else ["Kampf beginnt!"]
-    for i, zeile in enumerate(log):
-        hell = 80 + i * (120 // max(1, len(log)))
-        console.print(fx + 1, fy + 4 + i, zeile[:inn], fg=(hell, hell, hell))
-
-    # Trennlinie vor Steuerung
-    _linie_kampf(console, fx, fy + fh - 3, fw)
-
-    # --- Steuerungshinweis / Ergebnis ---
-    if not zst.beendet:
-        if aktives_menue:
-            hint  = "[ESC/TAB] Schliessen  [W/S] Navigieren  [ENTER] Benutzen"
-            farbe = (80, 80, 80)
-        else:
-            hint  = "[LEERTASTE] Angreifen  [TAB] Inventar"
-            farbe = (80, 80, 80)
-    elif zst.ergebnis == "sieg":
-        hint  = "SIEG!  [LEERTASTE] Weiter"
-        farbe = (100, 220, 100)
-    else:
-        hint  = "NIEDERLAGE  [LEERTASTE] Neu starten"
-        farbe = (220, 80, 80)
-    console.print(fx + 1, fy + fh - 2, hint[:inn], fg=farbe)
-
-
 # ---------------------------------------------------------------------------
 # Hub und Tod-Screen zeichnen
 # ---------------------------------------------------------------------------
@@ -562,7 +763,7 @@ def _zeichne_hub(console):
 
     # Statuszeile + Log
     _zeichne_statuszeile(console)
-    _zeichne_log(console, "[TAB] Menue  [Kessel] Dungeon  [Q] Beenden")
+    _zeichne_log(console, "[TAB] Skills  [I] Inventar  [C] Charakter  [Kessel] Dungeon  [Q] Beenden")
 
     # Menue-Overlay
     if aktives_menue:
@@ -674,8 +875,45 @@ def _zeichne_startbildschirm(console, zitat, hat_speicherstand=False):
     console.print(w - 3 - len(version_txt), 66, version_txt, fg=(70, 45, 15))
 
 
+def _charaktererstellung_durchfuehren(console, context):
+    """Zeigt den Charaktererstellungs-Bildschirm und traegt die gewaehlten Punkte ein.
+
+    Laeuft in einer eigenen Schleife bis der Spieler alle Punkte verteilt und ENTER
+    gedrueckt hat. Aendert spieler.eigenschaften direkt.
+    """
+    temp = {k: 0 for k in EIGENSCHAFTEN_REIHENFOLGE}
+    auswahl    = 0
+    verbleibend = config.EIGENSCHAFT_START_PUNKTE
+
+    while True:
+        zeichne_charaktererstellung(console, temp, auswahl, verbleibend)
+        context.present(console)
+        for event in tcod.event.wait():
+            if isinstance(event, tcod.event.Quit):
+                raise SystemExit()
+            if not isinstance(event, tcod.event.KeyDown):
+                continue
+            s = event.sym
+            key = EIGENSCHAFTEN_REIHENFOLGE[auswahl]
+            if s in (tcod.event.KeySym.UP, tcod.event.KeySym.w):
+                auswahl = (auswahl - 1) % len(EIGENSCHAFTEN_REIHENFOLGE)
+            elif s in (tcod.event.KeySym.DOWN, tcod.event.KeySym.s):
+                auswahl = (auswahl + 1) % len(EIGENSCHAFTEN_REIHENFOLGE)
+            elif s in (tcod.event.KeySym.RIGHT, tcod.event.KeySym.d):
+                if verbleibend > 0 and temp[key] < config.EIGENSCHAFT_START_MAX:
+                    temp[key]   += 1
+                    verbleibend -= 1
+            elif s in (tcod.event.KeySym.LEFT, tcod.event.KeySym.a):
+                if temp[key] > 0:
+                    temp[key]   -= 1
+                    verbleibend += 1
+            elif s == tcod.event.KeySym.RETURN and verbleibend == 0:
+                spieler.eigenschaften = dict(temp)
+                return
+
+
 def starte(console, context):
-    global spieler, aktuell
+    global spieler, aktuell, neues_spiel, modus, ort
 
     # Speicherstand pruefen
     geladener_spieler, geladenes_aktuell = laden()
@@ -684,6 +922,8 @@ def starte(console, context):
         spieler = geladener_spieler
         aktuell = geladenes_aktuell
         spieler.aktualisiere_lp_max(alle_skills)
+    else:
+        neues_spiel = True   # kein Savegame → Charaktererstellung zeigen
 
     # Phase 1: Startbildschirm
     zitat = random.choice(_START_ZITATE)
@@ -702,14 +942,35 @@ def starte(console, context):
                     # Neues Spiel trotz vorhandenem Speicherstand
                     spieler = Spieler()
                     aktuell = dict(STANDARD_AKTUELL)
+                    neues_spiel = True
                     im_start = False
                 elif event.sym == tcod.event.KeySym.q:
                     raise SystemExit()
 
+    # Phase 1.5: Charaktererstellung (nur bei neuem Spiel)
+    if neues_spiel:
+        _charaktererstellung_durchfuehren(console, context)
+        neues_spiel = False
+
     # Phase 2: Hauptspielschleife
     while True:
-        if modus == "tod":
+        if modus == "charaktererstellung":
+            _charaktererstellung_durchfuehren(console, context)
+            ort   = "pilsstube"
+            modus = "hub"
+            speichern(spieler, aktuell)
+        elif modus == "tod":
             _zeichne_tod_screen(console)
+        elif modus == "zielauswahl":
+            zeichne(console)
+            _zielauswahl_zeichnen(console)
+        elif modus == "eigenschaft_auswahl":
+            # Hintergrund je nach Aufenthaltsort, dann Overlay
+            if ort == "pilsstube":
+                _zeichne_hub(console)
+            else:
+                zeichne(console)
+            zeichne_eigenschaft_auswahl(console, spieler, eigenschaft_auswahl_index)
         elif ort == "pilsstube":
             _zeichne_hub(console)
         else:
@@ -723,15 +984,61 @@ def starte(console, context):
                 _handle_key(event)
 
 
-_BEWEGUNG_WIEDERHOLRATE = 0.12   # Sekunden zwischen Schritten beim Halten (ca. 8/s)
+_BEWEGUNG_WIEDERHOLRATE = 0.10   # Sekunden zwischen Schritten beim Halten (ca. 10/s)
 
 def _handle_key(event):
     global spieler_x, spieler_y, aktives_menue, menue_auswahl, status_meldung
-    global aktiver_kampf, aktiver_kampf_eintrag, modus, ort
+    global modus, ort
     global _letzter_bewegungszeitpunkt
+    global eigenschaft_auswahl_item_id, eigenschaft_auswahl_index
+    global _ziel_gegner_index, _fernkampf_typ_index
 
     sym   = event.sym
     shift = bool(event.mod & tcod.event.KMOD_SHIFT)
+
+    # -----------------------------------------------------------------------
+    # Zielauswahl (Fernkampf)
+    # -----------------------------------------------------------------------
+    if modus == "zielauswahl":
+        if sym in (tcod.event.KeySym.ESCAPE, tcod.event.KeySym.f):
+            modus = "hub"
+        elif sym == tcod.event.KeySym.TAB:
+            if _ziel_sichtbar:
+                if shift:
+                    _ziel_gegner_index = (_ziel_gegner_index - 1) % len(_ziel_sichtbar)
+                else:
+                    _ziel_gegner_index = (_ziel_gegner_index + 1) % len(_ziel_sichtbar)
+        elif sym == tcod.event.KeySym.r:
+            if _fernkampf_typen:
+                _fernkampf_typ_index = (_fernkampf_typ_index + 1) % len(_fernkampf_typen)
+        elif sym == tcod.event.KeySym.RETURN:
+            _fernkampf_ausfuehren()
+        return
+
+    # -----------------------------------------------------------------------
+    # Eigenschaftspunkt-Vergabe per Item — Auswahl welche Eigenschaft
+    # -----------------------------------------------------------------------
+    if modus == "eigenschaft_auswahl":
+        if sym in (tcod.event.KeySym.UP, tcod.event.KeySym.w):
+            eigenschaft_auswahl_index = (eigenschaft_auswahl_index - 1) % len(EIGENSCHAFTEN_REIHENFOLGE)
+        elif sym in (tcod.event.KeySym.DOWN, tcod.event.KeySym.s):
+            eigenschaft_auswahl_index = (eigenschaft_auswahl_index + 1) % len(EIGENSCHAFTEN_REIHENFOLGE)
+        elif sym == tcod.event.KeySym.RETURN:
+            key = EIGENSCHAFTEN_REIHENFOLGE[eigenschaft_auswahl_index]
+            spieler.eigenschaften[key] += 1
+            inventar_system.entfernen(spieler.inventar, eigenschaft_auswahl_item_id)
+            name_anzeige = key.replace("_", " ").capitalize()
+            _log(f"+1 {name_anzeige}")
+            status_meldung = f"+1 {name_anzeige}"
+            eigenschaft_auswahl_item_id = None
+            eigenschaft_auswahl_index   = 0
+            modus = "hub"
+        elif sym == tcod.event.KeySym.ESCAPE:
+            # Abbrechen — Item bleibt im Inventar
+            eigenschaft_auswahl_item_id = None
+            eigenschaft_auswahl_index   = 0
+            modus = "hub"
+        return
 
     # -----------------------------------------------------------------------
     # Tod-Screen — nur Auferstehen
@@ -739,43 +1046,6 @@ def _handle_key(event):
     if modus == "tod":
         if sym in (tcod.event.KeySym.SPACE, tcod.event.KeySym.RETURN):
             _tod_auferstehen()
-        return
-
-    # -----------------------------------------------------------------------
-    # Kampf laeuft — Kampf-Eingabe oder Inventar
-    # -----------------------------------------------------------------------
-    if modus == "kampf":
-        if aktives_menue:
-            # Inventar im Kampf navigieren
-            if sym in (tcod.event.KeySym.ESCAPE, tcod.event.KeySym.TAB):
-                aktives_menue = None
-                status_meldung = ""
-            elif sym in (tcod.event.KeySym.UP, tcod.event.KeySym.w):
-                menue_auswahl = max(0, menue_auswahl - 1)
-                status_meldung = ""
-            elif sym in (tcod.event.KeySym.DOWN, tcod.event.KeySym.s):
-                n = menus_system.anzahl_auswaehlbar_fuer(aktives_menue, alle_skills, spieler)
-                if n > 0:
-                    menue_auswahl = min(n - 1, menue_auswahl + 1)
-                status_meldung = ""
-            elif sym == tcod.event.KeySym.RETURN:
-                if aktives_menue == "inventar" and spieler.inventar:
-                    idx = max(0, min(menue_auswahl, len(spieler.inventar) - 1))
-                    item_id = spieler.inventar[idx]["id"]
-                    ok, msg = inventar_system.benutzen(
-                        spieler.inventar, item_id, spieler, alle_items)
-                    status_meldung = msg if ok else f"!{msg}"
-                    menue_auswahl = min(menue_auswahl, max(0, len(spieler.inventar) - 1))
-        elif sym == tcod.event.KeySym.TAB:
-            aktives_menue = "inventar"
-            menue_auswahl = 0
-            status_meldung = ""
-        elif sym in (tcod.event.KeySym.SPACE, tcod.event.KeySym.RETURN):
-            _kampf_aktion()
-        elif sym in (tcod.event.KeySym.UP,    tcod.event.KeySym.w): _flucht_versuchen( 0, -1)
-        elif sym in (tcod.event.KeySym.DOWN,  tcod.event.KeySym.s): _flucht_versuchen( 0,  1)
-        elif sym in (tcod.event.KeySym.LEFT,  tcod.event.KeySym.a): _flucht_versuchen(-1,  0)
-        elif sym in (tcod.event.KeySym.RIGHT, tcod.event.KeySym.d): _flucht_versuchen( 1,  0)
         return
 
     # -----------------------------------------------------------------------
@@ -817,11 +1087,17 @@ def _handle_key(event):
             elif aktives_menue == "inventar" and spieler.inventar:
                 idx = max(0, min(menue_auswahl, len(spieler.inventar) - 1))
                 item_id = spieler.inventar[idx]["id"]
-                ok, msg = inventar_system.benutzen(
+                ok, extra = inventar_system.benutzen(
                     spieler.inventar, item_id, spieler, alle_items)
-                status_meldung = msg if ok else f"!{msg}"
-                # Cursor korrigieren wenn Item verbraucht wurde
-                menue_auswahl = min(menue_auswahl, max(0, len(spieler.inventar) - 1))
+                if ok == "auswahl_noetig":
+                    eigenschaft_auswahl_item_id = extra
+                    eigenschaft_auswahl_index   = 0
+                    aktives_menue = None
+                    modus = "eigenschaft_auswahl"
+                else:
+                    status_meldung = extra if ok else f"!{extra}"
+                    # Cursor korrigieren wenn Item verbraucht wurde
+                    menue_auswahl = min(menue_auswahl, max(0, len(spieler.inventar) - 1))
 
         return
 
@@ -830,11 +1106,24 @@ def _handle_key(event):
     # -----------------------------------------------------------------------
 
     if sym == tcod.event.KeySym.TAB:
-        verfuegbar = menus_system.verfuegbare_menues(ort)
-        if verfuegbar:
-            aktives_menue = verfuegbar[0]["id"]
-            menue_auswahl = 0
-            status_meldung = ""
+        aktives_menue = "skills"
+        menue_auswahl = 0
+        status_meldung = ""
+
+    elif sym == tcod.event.KeySym.i:
+        # I oeffnet Inventar (Hub und Dungeon)
+        aktives_menue = "inventar"
+        menue_auswahl = 0
+        status_meldung = ""
+
+    elif sym == tcod.event.KeySym.c and ort in ("pilsstube", "dungeon"):
+        # C oeffnet Charakter-Screen (Hub und Dungeon)
+        aktives_menue = "charakter"
+        menue_auswahl = 0
+        status_meldung = ""
+
+    elif sym == tcod.event.KeySym.f and ort == "dungeon":
+        _zielauswahl_eintreten()
 
     else:
         bewegen = _hub_bewege if ort == "pilsstube" else _bewege
@@ -843,6 +1132,8 @@ def _handle_key(event):
             tcod.event.KeySym.LEFT, tcod.event.KeySym.RIGHT,
             tcod.event.KeySym.w, tcod.event.KeySym.s,
             tcod.event.KeySym.a, tcod.event.KeySym.d,
+            tcod.event.KeySym.z, tcod.event.KeySym.u,    # NW / NE
+            tcod.event.KeySym.b, tcod.event.KeySym.n,    # SW / SE
         )
         if sym in bewegungstasten:
             if event.repeat:
@@ -854,24 +1145,30 @@ def _handle_key(event):
             elif sym in (tcod.event.KeySym.DOWN,  tcod.event.KeySym.s): bewegen( 0,  1)
             elif sym in (tcod.event.KeySym.LEFT,  tcod.event.KeySym.a): bewegen(-1,  0)
             elif sym in (tcod.event.KeySym.RIGHT, tcod.event.KeySym.d): bewegen( 1,  0)
+            elif sym == tcod.event.KeySym.z:              bewegen(-1, -1)  # NW
+            elif sym == tcod.event.KeySym.u:              bewegen( 1, -1)  # NE
+            elif sym == tcod.event.KeySym.b:              bewegen(-1,  1)  # SW
+            elif sym == tcod.event.KeySym.n:              bewegen( 1,  1)  # SE
         elif sym == tcod.event.KeySym.q:
             speichern(spieler, aktuell)
             raise SystemExit()
 
 
 def _bewege(dx, dy):
-    global spieler_x, spieler_y, aktiver_kampf, aktiver_kampf_eintrag, modus, FOV
-    global _kampfrunden_zaehler
+    global spieler_x, spieler_y, FOV, modus
 
     nx, ny = spieler_x + dx, spieler_y + dy
 
-    # Gegner auf Zielfeld? -> Kampf starten
-    for eintrag in gegner_auf_karte:
+    # Gegner auf Zielfeld? -> Bump-Angriff (Spieler greift an, kein Modus-Wechsel)
+    for eintrag in list(gegner_auf_karte):
         if eintrag["x"] == nx and eintrag["y"] == ny and eintrag["gegner"].lebt:
-            aktiver_kampf = KampfZustand(spieler, eintrag["gegner"])
-            aktiver_kampf_eintrag = eintrag
-            _kampfrunden_zaehler = 0
-            modus = "kampf"
+            for z in nahkampf_angriff(spieler, eintrag["gegner"]):
+                _log(z)
+            _gegner_zustand_meldung(eintrag["gegner"])
+            if not eintrag["gegner"].lebt:
+                _loot_wuerfeln(eintrag)
+                gegner_auf_karte.remove(eintrag)
+            _welt_tick()
             return
 
     # Interaktives Objekt? (Bump-Interaktion)
@@ -898,8 +1195,11 @@ def _bewege(dx, dy):
             _zurueck_zum_hub()
         return
 
-    # Freies Feld -> bewegen
+    # Freies Feld -> Gelegenheitsangriff-Check, dann bewegen
     if ist_betretbar(nx, ny):
+        _gelegenheitsangriff()
+        if modus == "tod":
+            return
         spieler_x, spieler_y = nx, ny
         spieler.runden += 1
         spieler.ep_hinzufuegen(1)
@@ -916,13 +1216,14 @@ def _bewege(dx, dy):
                 _log(f"{item_def['name']} aufgehoben.")
             bodenloot.remove(loot)
 
-        # Gegner reagieren auf den Spielerzug
-        angreifer = ki.ki_tick(gegner_auf_karte, spieler_x, spieler_y, KARTE)
-        if angreifer:
-            aktiver_kampf = KampfZustand(spieler, angreifer["gegner"])
-            aktiver_kampf_eintrag = angreifer
-            _kampfrunden_zaehler = 0
-            modus = "kampf"
+        # Geschwindigkeits-Akkumulator: Bonus-Schritte loesen keinen Welt-Tick aus.
+        # Ganzzahl-Prozente (skaliert x100) vermeiden Floating-Point-Drift.
+        bonus_pct = int(round(spieler.berechne_geschwindigkeit(alle_skills) * 100)) - 100
+        spieler.bewegungs_bonus_zaehler += bonus_pct
+        if spieler.bewegungs_bonus_zaehler >= 100:
+            spieler.bewegungs_bonus_zaehler -= 100
+        else:
+            _welt_tick()
 
 
 def _hub_bewege(dx, dy):
@@ -978,117 +1279,17 @@ def _betrete_dungeon():
 
 
 def _tod_auferstehen():
-    """LEERTASTE auf dem Tod-Screen: LP/PP zuruecksetzen, zurueck zum Hub."""
+    """LEERTASTE auf dem Tod-Screen: Vollstaendiger Reset, weiter zur Charaktererstellung."""
     global modus, ort, aktuell, hub_spieler_x, hub_spieler_y, HUB_FOV
 
     aktuell = tod_reset(spieler, aktuell)
+    spieler.aktualisiere_lp_max(alle_skills)   # lp_max auf Basis zuruecksetzen (Skills geleert)
+    spieler.lp = spieler.lp_max
     hub_spieler_x = HUB_START_X
     hub_spieler_y = HUB_START_Y
     HUB_FOV = sichtfeld.berechne_fov(HUB_TRANSPARENZ, hub_spieler_x, hub_spieler_y, spieler.berechne_sichtweite(alle_skills))
     sichtfeld.aktualisiere_erkundet(HUB_ERKUNDET, HUB_FOV)
     ort   = "pilsstube"
-    modus = "hub"
-    speichern(spieler, aktuell)
+    modus = "charaktererstellung"
 
 
-def _flucht_versuchen(dx, dy):
-    """Spieler versucht, im Kampf zu fliehen.
-
-    Erlaubte Richtungen: nur direkt weg vom Gegner (gerade Linie).
-    Bei Diagonalstellung des Gegners sind beide Achsen gueltig.
-    Bei Erfolg: Gegner fuehrt Abschlag aus, Spieler bewegt sich,
-    Gegner rueckt einen Schritt nach, Kampf endet.
-    """
-    global spieler_x, spieler_y, aktiver_kampf, aktiver_kampf_eintrag, modus, FOV
-    global tod_gegner_name, tod_zitat, _kampfrunden_zaehler
-
-    feind_x = aktiver_kampf_eintrag["x"]
-    feind_y = aktiver_kampf_eintrag["y"]
-    rel_dx  = feind_x - spieler_x   # positiv = Feind rechts
-    rel_dy  = feind_y - spieler_y   # positiv = Feind unterhalb
-
-    # Gueltige Fluchtrichtungen: exakt entgegengesetzt zum Feind
-    gueltig = set()
-    if rel_dx > 0:   gueltig.add((-1,  0))
-    elif rel_dx < 0: gueltig.add(( 1,  0))
-    if rel_dy > 0:   gueltig.add(( 0, -1))
-    elif rel_dy < 0: gueltig.add(( 0,  1))
-
-    if (dx, dy) not in gueltig:
-        return  # falsche Richtung, ignorieren
-
-    nx, ny = spieler_x + dx, spieler_y + dy
-    if not ist_betretbar(nx, ny):
-        _log("Kein Ausweg.")
-        return
-
-    # Abschlag: Feind greift noch einmal an
-    gestorben = abschlag_ausfuehren(aktiver_kampf)
-    for zeile in aktiver_kampf.log:
-        _log(zeile)
-
-    if gestorben:
-        tod_gegner_name = aktiver_kampf.gegner.name
-        tod_zitat       = random.choice(_TOD_ZITATE)
-        aktiver_kampf       = None
-        aktiver_kampf_eintrag = None
-        modus = "tod"
-        return
-
-    # Spieler flieht auf das Zielfeld
-    spieler_x, spieler_y = nx, ny
-    FOV = sichtfeld.berechne_fov(TRANSPARENZ, spieler_x, spieler_y, spieler.berechne_sichtweite(alle_skills))
-    sichtfeld.aktualisiere_erkundet(ERKUNDET, FOV)
-
-    # Feind rueckt einen Schritt nach (Richtung neue Spielerposition)
-    adx = nx - feind_x
-    ady = ny - feind_y
-    if abs(adx) >= abs(ady) and adx != 0:
-        aktiver_kampf_eintrag["x"] += 1 if adx > 0 else -1
-    elif ady != 0:
-        aktiver_kampf_eintrag["y"] += 1 if ady > 0 else -1
-
-    _log(f"Geflohen! {aktiver_kampf.gegner.name} setzt nach.")
-    aktiver_kampf       = None
-    aktiver_kampf_eintrag = None
-    _kampfrunden_zaehler  = 0
-    modus = "hub"
-
-
-def _kampf_aktion():
-    """LEERTASTE / ENTER im Kampf: naechste Runde oder Ergebnis bestaetigen."""
-    global modus, aktiver_kampf, aktiver_kampf_eintrag, tod_gegner_name, tod_zitat
-    global _kampfrunden_zaehler
-
-    if not aktiver_kampf.beendet:
-        runde_ausfuehren(aktiver_kampf)
-        _kampfrunden_zaehler += 1
-        if _kampfrunden_zaehler % 3 == 0:
-            # Zeitlupe: alle 3 Kampfrunden einen Welt-Tick
-            ki.ki_tick(gegner_auf_karte, spieler_x, spieler_y, KARTE)
-            # Rueckgabewert ignoriert: kein neuer Kampf waehrend laufendem Kampf
-        return
-
-    # Kampf beendet — Ergebnis verarbeiten
-    if aktiver_kampf.ergebnis == "sieg":
-        _log(f"{aktiver_kampf.gegner.name} besiegt.")
-        # Loot-Wuerfel: jedes Item im loot_pool wird unabhaengig gewuerfelt
-        for loot_eintrag in aktiver_kampf.gegner.loot_pool:
-            if random.random() < loot_eintrag["chance"]:
-                aktuell.setdefault("bodenloot", []).append({
-                    "x": aktiver_kampf_eintrag["x"],
-                    "y": aktiver_kampf_eintrag["y"],
-                    "id": loot_eintrag["id"],
-                })
-        if aktiver_kampf_eintrag in gegner_auf_karte:
-            gegner_auf_karte.remove(aktiver_kampf_eintrag)
-        aktiver_kampf = None
-        aktiver_kampf_eintrag = None
-        modus = "hub"
-
-    elif aktiver_kampf.ergebnis == "niederlage":
-        tod_gegner_name = aktiver_kampf.gegner.name
-        tod_zitat       = random.choice(_TOD_ZITATE)
-        aktiver_kampf = None
-        aktiver_kampf_eintrag = None
-        modus = "tod"

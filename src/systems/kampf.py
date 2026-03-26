@@ -1,41 +1,19 @@
-"""Kampfsystem: rundenbasierter Kampf fuer Battle Ninkasi.
+"""Kampfberechnungen fuer Battle Ninkasi.
 
-Ablauf einer Runde (runde_ausfuehren):
-    1. Regeneration des Gegners
-    2. Status-Effekte ticken (DoT-Schaden, Dauer reduzieren)
-    3. Spieler greift an
-    4. Gegner greift an (zufaelliger Angriff aus seiner Liste)
-    5. Sieg/Niederlage pruefen
+Dieses Modul ist zustandslos: Funktionen erhalten Entitaet-Objekte
+und geben Log-Zeilen als Liste zurueck. Spielzustand liegt in game.py.
 
-Status-Effekte (z.B. dot_biologisch, psi_malus_pct) werden in KampfZustand
-als Listen von Dicts gespeichert: {"typ": "...", "wert": X, "runden": N}
-DoT-Effekte (Typ beginnt mit "dot_") ziehen pro Runde Schaden ab.
-Andere Effekte (Debuffs) werden nur mitgezaehlt — auswertende Systeme
-(z.B. Psi-System) lesen sie bei Bedarf aus spieler_effekte.
-
-AoE-Angriffe werden vorerst wie Einzelangriffe behandelt — das aendert sich
-wenn Positionierung und Schwarm-Logik implementiert sind.
+    schaden_berechnen        -- Schaden nach Verteidigung und Resistenz
+    effekt_anwenden          -- Status-Effekt auf Entitaet eintragen
+    effekte_tick             -- Effekte einer Entitaet abarbeiten (DoT, Dauer -1)
+    regen_tick               -- HP-Regeneration einer Entitaet
+    aktiver_effekt_wert      -- Summe aktiver Effekte eines Typs
+    nahkampf_angriff         -- Angreifer schlaegt Ziel im Nahkampf
+    spieler_fernkampf_angriff -- Spieler greift Ziel aus der Ferne an
+    gegner_fernkampf_angriff  -- Gegner greift Ziel aus der Ferne an
 """
 
 import random
-
-
-# ---------------------------------------------------------------------------
-# Kampfzustand
-# ---------------------------------------------------------------------------
-
-class KampfZustand:
-    """Haelt den gesamten Zustand eines laufenden Kampfes."""
-
-    def __init__(self, spieler, gegner):
-        self.spieler = spieler
-        self.gegner = gegner
-        self.spieler_effekte = []  # Aktive Status-Effekte auf dem Spieler
-        self.gegner_effekte = []   # Aktive Status-Effekte auf dem Gegner
-        self.log = []              # Texte der aktuellen Runde (fuer Anzeige)
-        self.runde = 0
-        self.beendet = False
-        self.ergebnis = None       # "sieg" oder "niederlage" nach Kampfende
 
 
 # ---------------------------------------------------------------------------
@@ -47,7 +25,6 @@ def schaden_berechnen(roh_schaden, verteidigung, resistenzen, schadenstyp):
 
     Verteidigung: flacher Abzug vom Rohschaden (mindestens 0).
     Resistenz:    prozentuale Reduktion je Schadenstyp (0.0 = keine, 1.0 = immun).
-                  Werte aus gegner.resistenzen, z.B. {"biologisch": 0.5}.
     """
     nach_verteidigung = max(0, roh_schaden - verteidigung)
     resistenz = resistenzen.get(schadenstyp, 0.0)
@@ -58,194 +35,161 @@ def schaden_berechnen(roh_schaden, verteidigung, resistenzen, schadenstyp):
 # Status-Effekte
 # ---------------------------------------------------------------------------
 
-def _effekt_hinzufuegen(effekte_liste, effekt_def):
-    """Fuegt einen Status-Effekt zur Effekte-Liste hinzu.
+def effekt_anwenden(entitaet, effekt_def):
+    """Fuegt einen Status-Effekt zur aktive_effekte-Liste der Entitaet hinzu.
 
-    effekt_def muss "typ", "wert" und "dauer" enthalten (aus Angriffs-JSON).
-    Stapelbarkeit wird hier vereinfacht: alle Effekte werden gestapelt.
-    Nicht-stapelbare Effekte (spaetere Erweiterung): Dauer auffrischen statt stapeln.
+    effekt_def muss 'typ', 'wert' und 'dauer' enthalten (aus Angriffs-JSON).
     """
-    effekte_liste.append({
-        "typ": effekt_def["typ"],
-        "wert": effekt_def["wert"],
+    entitaet.aktive_effekte.append({
+        "typ":    effekt_def["typ"],
+        "wert":   effekt_def["wert"],
         "runden": effekt_def["dauer"],
     })
 
 
-def _effekte_tick(effekte_liste, ziel_ist_spieler, zst):
-    """Wendet alle aktiven Status-Effekte an und verringert ihre Dauer um 1.
+def effekte_tick(entitaet):
+    """Wendet alle aktiven Effekte der Entitaet an und verringert Dauer um 1.
 
-    DoT-Effekte (Typ beginnt mit "dot_"): ziehen Schaden ab.
-    Andere Effekte (Debuffs): nur Dauer reduzieren, keine direkte Aktion.
-
-    Gibt True zurueck wenn das Ziel durch DoT-Schaden auf 0 LP/HP faellt.
+    DoT-Effekte (Typ beginnt mit 'dot_'): ziehen HP ab.
+    Andere Effekte (Debuffs): nur Dauer reduzieren.
+    Gibt Liste von Log-Zeilen zurueck.
     """
+    log = []
     verbleibend = []
-    for e in effekte_liste:
+    for e in entitaet.aktive_effekte:
         if e["typ"].startswith("dot_"):
             schaden = e["wert"]
-            if ziel_ist_spieler:
-                zst.spieler.lp = max(0, zst.spieler.lp - schaden)
-                zst.log.append(
-                    f"  {e['typ']}: {schaden} Schaden "
-                    f"(LP {zst.spieler.lp}/{zst.spieler.lp_max})"
-                )
-            else:
-                zst.gegner.hp = max(0, zst.gegner.hp - schaden)
-                zst.log.append(
-                    f"  {e['typ']}: {schaden} Schaden "
-                    f"({zst.gegner.name} HP {zst.gegner.hp}/{zst.gegner.hp_max})"
-                )
-
+            entitaet.hp = max(0, entitaet.hp - schaden)
+            log.append(
+                f"  {e['typ']}: {schaden} Schaden "
+                f"({entitaet.name} {entitaet.hp}/{entitaet.hp_max} HP)"
+            )
         e["runden"] -= 1
         if e["runden"] > 0:
             verbleibend.append(e)
         else:
-            zst.log.append(f"  {e['typ']} klingt ab.")
-
-    effekte_liste[:] = verbleibend
-
-    if ziel_ist_spieler:
-        return zst.spieler.lp <= 0
-    else:
-        return zst.gegner.hp <= 0
+            log.append(f"  {e['typ']} klingt ab.")
+    entitaet.aktive_effekte[:] = verbleibend
+    return log
 
 
-def aktiver_effekt_wert(effekte_liste, typ):
+def regen_tick(entitaet):
+    """Regeneriert HP gemaess regen_hp-Attribut der Entitaet.
+
+    Gibt eine Log-Zeile zurueck wenn geheilt wurde, sonst None.
+    """
+    regen = getattr(entitaet, "regen_hp", 0)
+    if regen > 0 and entitaet.lebt and entitaet.hp < entitaet.hp_max:
+        geheilt = min(regen, entitaet.hp_max - entitaet.hp)
+        entitaet.hp += geheilt
+        return f"  {entitaet.name} regeneriert {geheilt} HP."
+    return None
+
+
+def aktiver_effekt_wert(entitaet, typ):
     """Summiert den Gesamtwert aller aktiven Effekte eines bestimmten Typs.
 
-    Nuetzlich fuer Debuff-Auswertung ausserhalb des Kampfsystems,
-    z.B.: aktiver_effekt_wert(zst.spieler_effekte, "psi_malus_pct") -> 30
+    Nuetzlich fuer Debuff-Auswertung, z.B. psi_malus_pct.
     Gibt 0 zurueck wenn kein solcher Effekt aktiv ist.
     """
-    return sum(e["wert"] for e in effekte_liste if e["typ"] == typ)
+    return sum(e["wert"] for e in entitaet.aktive_effekte if e["typ"] == typ)
 
 
 # ---------------------------------------------------------------------------
-# Angriffe
+# Angriff
 # ---------------------------------------------------------------------------
 
-def _spieler_greift_an(zst):
-    """Spieler fuehrt seinen Basisangriff aus.
+def nahkampf_angriff(angreifer, ziel):
+    """Angreifer schlaegt Ziel im Nahkampf.
 
-    Platzhalter bis das Waffensystem existiert.
-    Dann wird hier der ausgewaehlte Waffen-Angriff eingesetzt.
+    Hat der Angreifer Angriffs-Definitionen (Gegner), wird einer zufaellig
+    gewaehlt. Hat er keine (unbewaffneter Spieler), wird basis_schaden mit
+    Schadenstyp 'nah' verwendet.
+    Gibt Liste von Log-Zeilen zurueck.
     """
-    schaden = schaden_berechnen(
-        zst.spieler.basis_schaden,
-        zst.gegner.verteidigung,
-        zst.gegner.resistenzen,
-        "nah",
-    )
-    zst.gegner.hp = max(0, zst.gegner.hp - schaden)
-    zst.log.append(
-        f"{zst.spieler.name} greift an: {schaden} Schaden "
-        f"({zst.gegner.name} HP {zst.gegner.hp}/{zst.gegner.hp_max})"
-    )
+    log = []
+    resistenzen = getattr(ziel, "resistenzen", {})
+
+    if angreifer.angriffe:
+        nah_angriffe = [a for a in angreifer.angriffe if a.get("reichweite", 1) <= 1]
+        angriff = random.choice(nah_angriffe if nah_angriffe else angreifer.angriffe)
+        schaden = schaden_berechnen(
+            angriff["schaden"], ziel.verteidigung, resistenzen, angriff["typ"]
+        )
+        ziel.hp = max(0, ziel.hp - schaden)
+        log.append(
+            f"{angreifer.name}: {angriff['name']} \u2014 {schaden} Schaden "
+            f"({ziel.name} {ziel.hp}/{ziel.hp_max} HP)"
+        )
+        for e in angriff.get("effekte", []):
+            if "dauer" in e:
+                effekt_anwenden(ziel, e)
+                log.append(f"  {e['typ']} fuer {e['dauer']} Runden")
+    else:
+        schaden = schaden_berechnen(
+            angreifer.basis_schaden, ziel.verteidigung, resistenzen, "nah"
+        )
+        ziel.hp = max(0, ziel.hp - schaden)
+        log.append(
+            f"{angreifer.name} greift an \u2014 {schaden} Schaden "
+            f"({ziel.name} {ziel.hp}/{ziel.hp_max} HP)"
+        )
+    return log
 
 
-def _gegner_greift_an(zst):
-    """Gegner waehlt zufaellig einen Angriff und fuehrt ihn aus.
+def spieler_fernkampf_angriff(spieler, ziel, angriff_eintrag):
+    """Spieler greift ein Ziel aus der Ferne an.
 
-    AoE-Angriffe (ziel != "einzel") werden vorerst wie Einzelangriffe behandelt.
-    Schwarm-Logik folgt spaeter.
+    angriff_eintrag enthaelt schon berechnete Felder:
+        name, schaden_wert, schaden_typ, typ, (item_def nur fuer wurfwaffe)
+    Ressourcen-Abzug erfolgt in game.py.
+    Gibt Liste von Log-Zeilen zurueck.
     """
-    if not zst.gegner.angriffe:
-        return
-
-    angriff = random.choice(zst.gegner.angriffe)
+    log = []
+    resistenzen = getattr(ziel, "resistenzen", {})
     schaden = schaden_berechnen(
-        angriff["schaden"],
-        zst.spieler.verteidigung,
-        {},
-        angriff["typ"],
+        angriff_eintrag["schaden_wert"],
+        ziel.verteidigung,
+        resistenzen,
+        angriff_eintrag["schaden_typ"],
     )
-    zst.spieler.lp = max(0, zst.spieler.lp - schaden)
-    zst.log.append(
-        f"{zst.gegner.name}: {angriff['name']} - {schaden} Schaden "
-        f"(LP {zst.spieler.lp}/{zst.spieler.lp_max})"
+    ziel.hp = max(0, ziel.hp - schaden)
+    log.append(
+        f"{spieler.name} [{angriff_eintrag['name']}] \u2192 {schaden} Schaden "
+        f"({ziel.name} {ziel.hp}/{ziel.hp_max} HP)"
     )
+    # Effekte der Wurfwaffe (falls vorhanden)
+    item_def = angriff_eintrag.get("item_def")
+    if item_def:
+        for e in item_def.get("effekte", []):
+            if "dauer" in e:
+                effekt_anwenden(ziel, e)
+                log.append(f"  {e['typ']} fuer {e['dauer']} Runden")
+    return log
 
+
+def gegner_fernkampf_angriff(angreifer, ziel):
+    """Gegner greift Ziel aus der Ferne an.
+
+    Waehlt zufaellig einen Angriff mit reichweite > 1.
+    Gibt Liste von Log-Zeilen zurueck.
+    """
+    log = []
+    fern_angriffe = [a for a in angreifer.angriffe if a.get("reichweite", 1) > 1]
+    if not fern_angriffe:
+        return log
+    angriff = random.choice(fern_angriffe)
+    resistenzen = getattr(ziel, "resistenzen", {})
+    schaden = schaden_berechnen(
+        angriff["schaden"], ziel.verteidigung, resistenzen, angriff["typ"]
+    )
+    ziel.hp = max(0, ziel.hp - schaden)
+    log.append(
+        f"{angreifer.name}: {angriff['name']} (Fern) \u2014 {schaden} Schaden "
+        f"({ziel.name} {ziel.hp}/{ziel.hp_max} HP)"
+    )
     for e in angriff.get("effekte", []):
         if "dauer" in e:
-            _effekt_hinzufuegen(zst.spieler_effekte, e)
-            zst.log.append(f"  -> {e['typ']} fuer {e['dauer']} Runden")
-
-
-# ---------------------------------------------------------------------------
-# Sieg / Niederlage
-# ---------------------------------------------------------------------------
-
-def _sieg(zst):
-    zst.beendet = True
-    zst.ergebnis = "sieg"
-    zst.spieler.ep_hinzufuegen(zst.gegner.ep_beute)
-    zst.log.append(f"{zst.gegner.name} ist besiegt! +{zst.gegner.ep_beute} EP")
-
-
-def _niederlage(zst):
-    zst.beendet = True
-    zst.ergebnis = "niederlage"
-    zst.log.append(f"{zst.spieler.name} ist besiegt.")
-
-
-# ---------------------------------------------------------------------------
-# Runde
-# ---------------------------------------------------------------------------
-
-def abschlag_ausfuehren(zst):
-    """Gegner fuehrt einen Abschlagsangriff aus, wenn der Spieler flieht.
-
-    Gibt True zurueck wenn der Spieler dabei stirbt.
-    """
-    zst.log.clear()
-    zst.log.append("--- Abschlag ---")
-    _gegner_greift_an(zst)
-    return zst.spieler.lp <= 0
-
-
-def runde_ausfuehren(zst):
-    """Fuehrt eine vollstaendige Kampfrunde aus und aktualisiert zst.
-
-    Reihenfolge:
-      1. Regeneration (Gegner heilt sich um regen_hp)
-      2. Status-Effekte ticken — DoT schadet, Dauer sinkt, abgelaufene fallen weg
-      3. Spieler greift an
-      4. Gegner greift an
-    Nach jedem toedlichen Schritt wird sofort abgebrochen (zst.beendet = True).
-    """
-    if zst.beendet:
-        return
-
-    zst.runde += 1
-    zst.log.clear()
-    zst.log.append(f"--- Runde {zst.runde} ---")
-
-    # 1. Regeneration
-    if zst.gegner.regen_hp > 0 and zst.gegner.hp > 0:
-        geheilt = min(zst.gegner.regen_hp, zst.gegner.hp_max - zst.gegner.hp)
-        zst.gegner.hp += geheilt
-        if geheilt > 0:
-            zst.log.append(f"  {zst.gegner.name} regeneriert {geheilt} HP.")
-
-    # 2. Status-Effekte
-    if _effekte_tick(zst.gegner_effekte, False, zst):
-        zst.log.append(f"{zst.gegner.name} stirbt an Status-Effekten.")
-        _sieg(zst)
-        return
-
-    if _effekte_tick(zst.spieler_effekte, True, zst):
-        zst.log.append(f"{zst.spieler.name} stirbt an Status-Effekten.")
-        _niederlage(zst)
-        return
-
-    # 3. Spieler greift an
-    _spieler_greift_an(zst)
-    if zst.gegner.hp <= 0:
-        _sieg(zst)
-        return
-
-    # 4. Gegner greift an
-    _gegner_greift_an(zst)
-    if zst.spieler.lp <= 0:
-        _niederlage(zst)
+            effekt_anwenden(ziel, e)
+            log.append(f"  {e['typ']} fuer {e['dauer']} Runden")
+    return log

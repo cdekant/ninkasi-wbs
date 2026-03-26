@@ -9,28 +9,19 @@ import src.systems.skills as skills_system
 
 # Reihenfolge = TAB-Reihenfolge
 MENUES = [
-    {"id": "skills",   "name": "Skill-Baum", "verfuegbar": ["pilsstube"]},
-    {"id": "inventar", "name": "Inventar",   "verfuegbar": ["pilsstube", "dungeon"]},
+    {"id": "skills",    "name": "Skill-Baum", "verfuegbar": ["pilsstube", "dungeon"]},
+    {"id": "inventar",  "name": "Inventar",   "verfuegbar": ["pilsstube", "dungeon"]},
+    {"id": "charakter", "name": "Charakter",  "verfuegbar": ["pilsstube", "dungeon"]},
 ]
 
-# Kategorie-Reihenfolge fuer die Skill-Liste
+# Kategorie-Reihenfolge fuer die Skill-Liste (muss mit skills.json["kategorien"] uebereinstimmen)
 KATEGORIE_REIHENFOLGE = [
-    "Lebenskraft",      # Vitalitaet, LP-Boni, Trinkfestigkeit
-    "Wahrnehmung",      # Sichtweite, Dunkelanpassung
-    "Tennentaenzerei",  # Beweglichkeit, Ausweichen
-    "Kesselzorn",       # Waffen und Angriff
-    "Sudwall",          # Ruestung und Verteidigung
-    "Kesselhexerei",    # Bier-Magie
-    "SchnaPsi",         # Psi-Kraft
-    "Braukunde",        # Brauprozess und Geraete
-    "Kornkunde",        # Anbau, Ernte, Maelzen
-    "Maschinenkunde",   # Anlagentechnik
-    "Meta-Braukunde",   # Verfahrenstechnik, EP-Effizienz
-    "Naturkunde",       # Biologie, Chemie, Mikrobiologie
-    "Zahlenkult",       # Berechnungen, Psi-Effizienz
-    "Schankkunst",      # Gastronomie, Soziales
-    "Marktschreierei",  # Handel und Marketing
-    "Nachschub",        # Logistik
+    "Lebenskraft und Tennentänzerei",
+    "Kesselzorn und Sudwall",
+    "Natur-, Korn- und Braukunde",
+    "Kessel-Magie und Meta-Braukunde",
+    "Marktschreierei und Nachschub",
+    "Brennblasen-Psi und Zahlenkult",
 ]
 
 
@@ -103,4 +94,6 @@ def anzahl_auswaehlbar_fuer(menue_id, alle_skills, spieler):
         return anzahl_auswaehlbar(alle_skills)
     if menue_id == "inventar":
         return len(spieler.inventar)
+    if menue_id == "charakter":
+        return 6  # 6 Eigenschaften
     return 0

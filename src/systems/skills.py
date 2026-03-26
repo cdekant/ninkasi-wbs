@@ -3,6 +3,10 @@
 import json
 import os
 
+# Kategorie-Definitionen aus skills.json (primaer/sekundaer-Eigenschafts-Mapping).
+# Wird von lade_skills() befuellt und von kosten_fuer_stufe() genutzt.
+_alle_kategorien = []
+
 
 def lade_effekttypen():
     """Laedt alle bekannten Effekttypen aus data/effekttypen.json.
@@ -40,7 +44,52 @@ def lade_skills():
                     f"(Stufe {effekt['stufe']}). Bitte in data/effekttypen.json eintragen."
                 )
 
+    global _alle_kategorien
+    _alle_kategorien = daten.get("kategorien", [])
     return {skill["id"]: skill for skill in daten["skills"]}
+
+
+def eigenschafts_reduktion(punkte, stufen_config):
+    """Berechnet die prozentuale Reduktion (0.0 bis 1.0) fuer eine Eigenschaftspunktzahl.
+
+    punkte        -- int: Punkte in der Eigenschaft
+    stufen_config -- Liste aus config.py (EIGENSCHAFT_REDUKTION_PRIMAER o. SEKUNDAER)
+    """
+    gesamt_pct = 0.0
+    bisher = 0
+    for stufe in stufen_config:
+        grenze   = stufe["bis_punkt"]
+        rate     = stufe["pct_pro_punkt"]
+        in_stufe = max(0, min(punkte, grenze) - bisher)
+        gesamt_pct += in_stufe * rate
+        bisher = grenze
+        if punkte <= grenze:
+            break
+    return gesamt_pct / 100.0
+
+
+def kosten_fuer_stufe(basis_kosten, stufe, kategorie_name, spieler):
+    """Berechnet EP-Kosten nach Basis-Formel und Eigenschafts-Reduktion.
+
+    Faellt auf stufen_kosten() zurueck wenn keine Kategorie-Definition gefunden wird
+    oder kein Spieler uebergeben wurde.
+    """
+    import config
+    basis = stufen_kosten(basis_kosten, stufe)
+    if spieler is None:
+        return basis
+    kat_def = next((k for k in _alle_kategorien if k["name"] == kategorie_name), None)
+    if kat_def is None:
+        return basis
+    p_prim = spieler.eigenschaften.get(kat_def["primaer"], 0)
+    p_sek  = spieler.eigenschaften.get(kat_def["sekundaer"], 0)
+    reduktion = (
+        eigenschafts_reduktion(p_prim, config.EIGENSCHAFT_REDUKTION_PRIMAER)
+        + eigenschafts_reduktion(p_sek,  config.EIGENSCHAFT_REDUKTION_SEKUNDAER)
+    )
+    reduktion = min(reduktion, config.EIGENSCHAFT_REDUKTION_MAX)
+    minimum   = basis * (1.0 - config.EIGENSCHAFT_REDUKTION_MAX)
+    return int(max(basis * (1.0 - reduktion), minimum) + 0.5)
 
 
 def stufen_kosten(basis_kosten, stufe):
@@ -78,7 +127,7 @@ def kann_lernen(spieler, skill_id, alle_skills):
         return False, f"{skill_def['name']} ist bereits auf Maximalsstufe (Zoigl)."
 
     naechste_stufe = aktuelle_stufe + 1
-    kosten = stufen_kosten(skill_def["basis_kosten"], naechste_stufe)
+    kosten = kosten_fuer_stufe(skill_def["basis_kosten"], naechste_stufe, skill_def["kategorie"], spieler)
 
     if spieler.ep_verfuegbar < kosten:
         return False, (
@@ -103,7 +152,7 @@ def skill_lernen(spieler, skill_id, alle_skills):
     skill_def = alle_skills[skill_id]
     aktuelle_stufe = spieler.skill_stufe(skill_id)
     naechste_stufe = aktuelle_stufe + 1
-    kosten = stufen_kosten(skill_def["basis_kosten"], naechste_stufe)
+    kosten = kosten_fuer_stufe(skill_def["basis_kosten"], naechste_stufe, skill_def["kategorie"], spieler)
 
     spieler.ep_verfuegbar -= kosten
     spieler.skills[skill_id] = naechste_stufe
@@ -138,8 +187,8 @@ def naechste_kosten(spieler, skill_id, alle_skills):
     stufe = spieler.skill_stufe(skill_id)
     if stufe >= 6:
         return 0
-    basis = alle_skills[skill_id]["basis_kosten"]
-    return stufen_kosten(basis, stufe + 1)
+    sd = alle_skills[skill_id]
+    return kosten_fuer_stufe(sd["basis_kosten"], stufe + 1, sd["kategorie"], spieler)
 
 
 def skills_nach_kategorie(alle_skills):

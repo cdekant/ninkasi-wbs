@@ -20,6 +20,7 @@ class Spieler(Entitaet):
         self.basis_schaden = 5
         # Spieler-eigene Felder
         self.ep_gesamt = 0        # Alle je verdienten EP (nie zurueckgesetzt)
+        self.bewegungs_bonus_zaehler = 0.0  # Akkumulator fuer Bonus-Schritte
         self.ep_verfuegbar = 0    # Ausgebbare EP
         self.skills = {}          # {skill_id: stufe} — nur gekaufte Skills
         self.runden = 0           # Gesamte gespielte Runden
@@ -35,6 +36,15 @@ class Spieler(Entitaet):
             "beine":        None,
             "accessoire_1": None,
             "accessoire_2": None,
+        }
+        # Eigenschaften: Persoenlichkeitsausrichtung — beeinflusst EP-Kostenreduktion fuer Skills
+        self.eigenschaften = {
+            "koerperkraft":     0,
+            "geschicklichkeit": 0,
+            "wissen":           0,
+            "weisheit":         0,
+            "charisma":         0,
+            "geist":            0,
         }
 
     # ------------------------------------------------------------------
@@ -88,6 +98,11 @@ class Spieler(Entitaet):
         bonus = skills_system.effekt_summe(self, "sichtweite_bonus", alle_skills)
         return FOV_BASIS_RADIUS + bonus
 
+    def berechne_geschwindigkeit(self, alle_skills):
+        """Gibt die aktuelle Bewegungsgeschwindigkeit zurueck (Basis 1.0 + Skill-Boni)."""
+        bonus_pct = skills_system.effekt_summe(self, "bewegungs_bonus_pct", alle_skills)
+        return 1.0 + bonus_pct / 100.0
+
     def aktualisiere_lp_max(self, alle_skills):
         """Berechnet hp_max neu aus Basis-LP und Skill-Boni (lp_max_pct)."""
         pct = skills_system.effekt_summe(self, "lp_max_pct", alle_skills)
@@ -107,10 +122,12 @@ class Spieler(Entitaet):
         d["lp_max_basis"] = self.lp_max_basis
         d["ep_gesamt"] = self.ep_gesamt
         d["ep_verfuegbar"] = self.ep_verfuegbar
+        d["bewegungs_bonus_zaehler"] = self.bewegungs_bonus_zaehler
         d["skills"] = dict(self.skills)
         d["runden"] = self.runden
         d["inventar"] = list(self.inventar)
         d["ausruestung"] = dict(self.ausruestung)
+        d["eigenschaften"] = dict(self.eigenschaften)
         return d
 
     @classmethod
@@ -131,6 +148,7 @@ class Spieler(Entitaet):
         spieler.angriffe      = list(daten.get("angriffe", []))
         spieler.ep_gesamt     = daten.get("ep_gesamt", 0)
         spieler.ep_verfuegbar = daten.get("ep_verfuegbar", 0)
+        spieler.bewegungs_bonus_zaehler = daten.get("bewegungs_bonus_zaehler", 0.0)
         spieler.skills        = daten.get("skills", {})
         spieler.runden        = daten.get("runden", 0)
         spieler.inventar      = list(daten.get("inventar", []))
@@ -138,5 +156,9 @@ class Spieler(Entitaet):
             "waffe_haupt": None, "waffe_neben": None,
             "kopf": None, "koerper": None, "beine": None,
             "accessoire_1": None, "accessoire_2": None,
+        })
+        spieler.eigenschaften = daten.get("eigenschaften", {
+            "koerperkraft": 0, "geschicklichkeit": 0, "wissen": 0,
+            "weisheit": 0, "charisma": 0, "geist": 0,
         })
         return spieler

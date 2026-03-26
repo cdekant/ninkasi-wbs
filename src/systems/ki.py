@@ -16,19 +16,47 @@ geschwindigkeit: Werte < 1.0 bedeuten, der Gegner bewegt sich nicht jeden Zug.
     0.5  = bewegt sich jeden zweiten Spielerzug
     2.0  = bewegt sich zweimal pro Spielerzug (noch nicht implementiert, >= 1 = 1)
 
-Gibt den ersten Gegner-Eintrag zurueck, der den Spieler erreicht hat (Kampf),
-oder None wenn kein Gegner den Spieler beruehrt hat.
+Gibt (nah_liste, fern_liste) zurueck:
+    nah_liste  — Eintraege deren Gegner das Spielerfeld betreten hat (Nahkampf)
+    fern_liste — Eintraege deren Gegner den Spieler aus der Ferne angreift
 """
 
 import math
+import src.systems.sichtfeld as sichtfeld
 
 
-def ki_tick(gegner_auf_karte, spieler_x, spieler_y, karte):
+def _kann_fernkampf(eintrag, spieler_x, spieler_y, transparenz):
+    """True wenn der Gegner den Spieler aus der Ferne angreifen kann.
+
+    Prueft: Fernkampf-Angriffe vorhanden, Spieler in Reichweite, Sichtlinie frei.
+    """
+    if transparenz is None:
+        return False
+    g = eintrag["gegner"]
+    fern_angriffe = [a for a in g.angriffe if a.get("reichweite", 1) > 1]
+    if not fern_angriffe:
+        return False
+    max_reichweite = max(a["reichweite"] for a in fern_angriffe)
+    dist = math.sqrt(
+        (eintrag["x"] - spieler_x) ** 2 +
+        (eintrag["y"] - spieler_y) ** 2
+    )
+    if dist > max_reichweite:
+        return False
+    return sichtfeld.sichtlinie_frei(
+        transparenz, eintrag["x"], eintrag["y"], spieler_x, spieler_y
+    )
+
+
+def ki_tick(gegner_auf_karte, spieler_x, spieler_y, karte, transparenz=None):
     """Bewegt alle lebenden Gegner einmal gemaess ihrem Verhalten.
 
-    Gibt den Eintrag des ersten Gegners zurueck, der auf das Spielerfeld
-    tritt (loest Kampf aus), oder None.
+    Gibt (nah_liste, fern_liste) zurueck:
+        nah_liste  — Eintraege deren Gegner das Spielerfeld betreten hat (Nahkampf)
+        fern_liste — Eintraege deren Gegner den Spieler aus der Ferne angreift
     """
+    nah_liste  = []
+    fern_liste = []
     for eintrag in gegner_auf_karte:
         g = eintrag["gegner"]
         if not g.lebt:
@@ -48,6 +76,13 @@ def ki_tick(gegner_auf_karte, spieler_x, spieler_y, karte):
         if g.bewegungs_zaehler < 1.0:
             continue
         g.bewegungs_zaehler -= 1.0
+
+        # Fernkampf-Check: Gegner mit reichweite > 1 koennen aus der Distanz angreifen
+        dist_chebyshev = max(abs(eintrag["x"] - spieler_x), abs(eintrag["y"] - spieler_y))
+        if verhalten != "flucht" and dist_chebyshev > 1:
+            if _kann_fernkampf(eintrag, spieler_x, spieler_y, transparenz):
+                fern_liste.append(eintrag)
+                continue
 
         # Distanz zum Spieler (euklidisch fuer Radiuscheck)
         distanz = math.sqrt(
@@ -93,14 +128,15 @@ def ki_tick(gegner_auf_karte, spieler_x, spieler_y, karte):
 
         nx, ny = eintrag["x"] + dx, eintrag["y"] + dy
 
-        # Spielerfeld erreicht -> Kampf ausloesen
+        # Spielerfeld erreicht -> als Nahkaempfer vormerken, nicht bewegen
         if nx == spieler_x and ny == spieler_y:
-            return eintrag
+            nah_liste.append(eintrag)
+            continue
 
         eintrag["x"] = nx
         eintrag["y"] = ny
 
-    return None
+    return nah_liste, fern_liste
 
 
 # ---------------------------------------------------------------------------

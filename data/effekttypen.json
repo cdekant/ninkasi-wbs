@@ -48,5 +48,17 @@
     "einheit": "kacheln",
     "stapelbar": true,
     "dauer_moeglich": false
+  },
+  "eigenschaft_punkt_erhoehen": {
+    "beschreibung": "Gibt dem Spieler einen Eigenschaftspunkt zum Verteilen",
+    "einheit": "punkte",
+    "stapelbar": false,
+    "dauer_moeglich": false
+  },
+  "bewegungs_bonus_pct": {
+    "beschreibung": "Erhoeht die Bewegungsgeschwindigkeit [%] — Bonus-Schritte ohne Welt-Tick",
+    "einheit": "pct",
+    "stapelbar": true,
+    "dauer_moeglich": false
   }
 }

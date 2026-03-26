@@ -32,6 +32,7 @@ class Entitaet:
         self.basis_schaden = 0
         self.resistenzen = {}
         self.angriffe = []
+        self.aktive_effekte = []
 
     @property
     def lebt(self):
@@ -53,4 +54,5 @@ class Entitaet:
             "basis_schaden": self.basis_schaden,
             "resistenzen": dict(self.resistenzen),
             "angriffe": list(self.angriffe),
+            "aktive_effekte": list(self.aktive_effekte),
         }
