@@ -98,7 +98,7 @@ class Gegner(Entitaet):
         angriffe = []
         for a in d.get("angriffe", []):
             angriff = dict(a)
-            angriff["schaden"] = max(0, round(a["schaden_basis"] * faktor))
+            angriff["schaden"] = max(0, round(a["schaden"] * faktor))
             angriffe.append(angriff)
 
         roh_symbol = d["symbol"]
