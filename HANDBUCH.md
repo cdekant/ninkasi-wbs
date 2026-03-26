@@ -13,14 +13,15 @@ Getränkefachgroßhandel. Jedes Level ist eine andere Etappe der Braukette, mit 
 
 1. [Erfahrungspunkte (EP)](#erfahrungspunkte)
 2. [Der Brauerstern — Sechs Stufen, ein Zoigl](#der-brauerstern)
-3. [Skill-Menue bedienen](#skill-menue)
-4. [Kostentabelle](#kostentabelle)
-5. [Erkundung](#erkundung) (inkl. Behälter)
-6. [Gegner](#gegner)
-7. [Kampf](#kampf)
-8. [Inventar](#inventar)
-9. [Tod und Neubeginn](#tod-und-neubeginn)
-10. [Skill-Kategorien (Entwurf)](#skill-kategorien)
+3. [Charaktererstellung](#charaktererstellung)
+4. [Skill-Menue bedienen](#skill-menue)
+5. [Kostentabelle](#kostentabelle)
+6. [Erkundung](#erkundung) (inkl. Behälter)
+7. [Gegner](#gegner)
+8. [Kampf](#kampf)
+9. [Inventar](#inventar)
+10. [Tod und Neubeginn](#tod-und-neubeginn)
+11. [Skill-Kategorien (Entwurf)](#skill-kategorien)
 
 ## Spielprinzip
 
@@ -61,20 +62,60 @@ Beherrschung einer Kunst. Den Zoigl erreicht man nicht zufaellig; er kostet
 viele EP und ist das Ziel langfristiger Planung.
 
 
-## Skill-Menue
+## Charaktererstellung
 
-Das Menue ist nur im Hub verfuegbar, nicht mitten im Level. Waehrend eines Runs ist TAB wirkungslos.
+Zu Beginn jedes neuen Runs erscheint ein eigener Bildschirm zur Charaktererstellung.
+Dort verteilst du **10 Punkte** auf die sechs **Eigenschaften** (max. 5 pro Eigenschaft):
 
-### Menue oeffnen und wechseln
+| Eigenschaft | Wirkung |
+|---|---|
+| **Körperkraft** | Erleichtert Skills in *Lebenskraft und Tennentänzerei* |
+| **Geschicklichkeit** | Erleichtert Skills in *Kesselzorn und Sudwall* |
+| **Wissen** | Erleichtert Skills in *Natur-, Korn- und Braukunde* |
+| **Weisheit** | Erleichtert Skills in *Kessel-Magie und Meta-Braukunde* |
+| **Charisma** | Erleichtert Skills in *Marktschreierei und Nachschub* |
+| **Geist** | Erleichtert Skills in *Brennblasen-Psi und Zahlenkult* |
+
+Eigenschaften sind **Persönlichkeitsausrichtungen**, keine Kampfwerte.
+Sie reduzieren ausschließlich die EP-Kosten für Skills der zugehörigen Kategorie.
+Alle Skills bleiben für jeden Charakter zugänglich — höhere Eigenschaften machen sie nur günstiger.
+
+### Steuerung im Charaktererstellungs-Bildschirm
 
 | Taste | Wirkung |
 |---|---|
-| **TAB** | Menue oeffnen (erstes verfuegbares) |
+| **↑ / ↓** oder **W / S** | Eigenschaft wählen |
+| **→** oder **D** | Punkt hinzufügen |
+| **←** oder **A** | Punkt zurücknehmen |
+| **ENTER** | Bestätigen (nur wenn alle 10 Punkte vergeben) |
+
+### Eigenschaftspunkte im Spielverlauf
+
+Im Laufe des Spiels können weitere Punkte dazukommen — als verbrauchbare Items
+in Truhen, nach Bosskämpfen oder im Hub-Shop. Beim Benutzen öffnet sich ein
+kleines Auswahlfeld: du wählst welche Eigenschaft den Punkt erhält.
+Umskillen ist nicht möglich.
+
+
+## Skill-Menue
+
+Das Skill-Menue ist nur im Hub verfuegbar, nicht mitten im Level.
+
+### Menues oeffnen
+
+| Taste | Menue | Verfuegbar |
+|---|---|---|
+| **TAB** | Skill-Baum | nur Hub |
+| **I** | Inventar | Hub, Dungeon, Kampf |
+| **C** | Charakter + Eigenschaften | Hub, Dungeon |
+
+### Im Menue navigieren
+
+| Taste | Wirkung |
+|---|---|
 | **TAB** (im Menue) | Zum naechsten Tab wechseln |
 | **Shift + TAB** | Zum vorherigen Tab wechseln |
 | **ESC** | Menue schliessen |
-
-Verfuegbarer Tab im Hub: **Skill-Baum**.
 
 ### Im Skill-Baum navigieren
 
@@ -135,8 +176,7 @@ du nicht.
 | **Dunkel** (abgedunkelt) | Schon erkundet, aber nicht mehr im Blickfeld |
 | **Schwarz** | Noch nie betreten oder gesehen |
 
-Erkundetes bleibt erkundigt — auch nach dem Tod verschwindet das Wissen
-nicht sofort. Neue Karte bei Tod bedeutet: neues Dunkel, neues Erkunden.
+Erkundetes bleibt erkundigt, aber außerhalb der Sichtweite und Sichlinie dunkler dargestellt. Neue Karte bei Tod bedeutet: neues Dunkel, neues Erkunden.
 
 ### Behaelter
 
@@ -213,7 +253,7 @@ die Karte ein.
 │ Ninkasi greift an: 3 Schaden (Gaerkeller-Schimmel HP 9/12)                  │
 │ ...                                                                          │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│ [LEERTASTE] Angreifen  [TAB] Inventar                                        │
+│ [LEERTASTE] Angreifen  [I] Inventar                                          │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -236,7 +276,7 @@ die Karte ein.
 | **LEERTASTE** oder **ENTER** | Naechste Kampfrunde ausfuehren |
 | **LEERTASTE** (nach Ende) | Ergebnis bestaetigen und weiterspielen |
 | **WASD / Pfeiltasten** | Fluchtversuch (nur in gerader Linie weg vom Gegner) |
-| **TAB** | Inventar oeffnen (Items benutzen ohne Kampfrunde zu opfern) |
+| **I** | Inventar oeffnen (Items benutzen ohne Kampfrunde zu opfern) |
 
 ### Kampf-Zeitlupe
 
@@ -293,7 +333,7 @@ Tritt auf das Feld des gefallenen Gegners, um alles automatisch aufzuheben.
 
 ### Inventar oeffnen
 
-**TAB** (im Hub, im Dungeon oder mitten im Kampf) oeffnet das Inventar-Menue.
+**I** (im Hub, im Dungeon oder mitten im Kampf) oeffnet das Inventar-Menue.
 Im Gegensatz zum Skill-Baum ist das Inventar ueberall zugaenglich — du kannst
 also mitten im Kampf einen Heiltrank benutzen, ohne eine Kampfrunde zu opfern.
 
@@ -348,69 +388,13 @@ Das ist das Roguelite-Versprechen: Der Tod kostet Zeit, nicht Fortschritt.
 
 ## Skill-Kategorien
 
-Die verfügbaren Skills sind in 15 Kategorien aufgeteilt. Die Skills selbst sind keine Fähigkeiten, die der Charakter bekommt, es sind einerseits Modifier für die tatsächlichen Fähigkeiten (Level 5 in Hopfenmagie erhöht den Schaden aller Hopfen-Angriffszauber um 25 Prozent z.B.) und andererseits sind für bestimmte Fähigkeiten Mindestskill notwendig (für Hopfen-Creep braucht man mindestens Level 4 in Fortgeschrittene Hopfenmagie).
+Die verfügbaren Skills sind in 6 Kategorien aufgeteilt. Skills sind Modifier — sie verbessern Fähigkeiten oder schalten Mindestanforderungen frei. Welche Kategorie für einen Charakter günstig ist, hängt von den bei der Charaktererstellung gewählten Eigenschaften ab (siehe [Charaktererstellung](#charaktererstellung)).
 
-### Lebenskraft – Vitalität
+### Lebenskraft und Tennentänzerei
 
-**Der Bierbauch der Brauerin ist ebenso wie ihre Zöpfe ihr Stolz** – Nur mit Training übersteht sie die Strapazen von Schroten, Maischen, Ausschlagen und Anstellen.
+### Kesselzorn und Sudwall
 
-- Trinkfestigkeit
-
-- Saumagen
-
-### Tennentänzerei – Beweglichkeit
-
-**Agil und flink wie ein Wiesel ist sie Ninaksi, die zwei Ströme küsste** – Ausweichen von Angriffen, defekten Dampfventilen, Orientierung und Gewaltmärsche.
-
-### Kesselzorn – Waffen und Angriff
-
-**Ob Braupaddel, Milchrohrschlüssel oder mobile Keg-Anlage** – Wenn es beweglich ist, kann man es als Waffe verwenden (außer man kann es nicht tragen).
-
-### Sudwall – Rüstung und Verteidigung
-
-**Die Verteidigung umfasst physische, magische, Psi, chemische und biologische Resistenzen** – Rüstungen zu tragen muss trainiert werden, möchte man nicht vom langsamsten Schleim eingeholt werden, Amulette, Ohrringe, Diademe sind leichter zu tragen und bieten oft magischen/Psi-Schutz
-
-### Kesselhexerei – Bier-Magie
-
-**Die Magie der Gaerung ist organisch, lebendig, unkontrollierbar** — Hefe tut was sie will, der Brauer lenkt sie nur. Bier-Magie wirkt auf (höhere) Lebewesen, Prozesse, Zufälle.
-
-### SchnaPsi – Psi-Kraft
-
-**Das Psi der Destillation präzise, konzentrierte Klarheit** – SchnaPsi wirkt auf (niedere) Lebewesen, Materie, Zahlen, Technik. Psi-Punkte sind die Waehrung beider Systeme; welches System mehr verbraucht ist offen (`?`).
-
-### Braukunde
-
-**Ohne ein gerüttelt Maß an Brauerwissen ist Hopfen und Malz verloren** – ohne das Wissen über Brauprozesse und Geräte wird man sin in den dunkleren Ecken der Brauerei nur schwer behaupten können
-
-### Kornkunde
-
-**Das Wissen über Anbau, Ernte, Maelzen, Schroten ist eine eigene Form von Magie** – es erleichtert die Fortbewegung im Freien und den Kampf gegen viele Mikroorganismen
-
-### Maschinenkunde
-
-**Als Anlagenflüsterer nutzt man die Maschinenumgebung situativ zu seinen Gunsten** – Begünstigt auch das Sammeln von Materialien und pro Run Verbesserungen
-
-### Meta-Braukunde – Verfahrenstechnik
-
-**Als Meta-Skill-Tree holt sich Battle Ninkasi hier die letzten Optimierungen** – Prozessoptimierung, Effizienz, EP-Gewinn
-
-### Naturkunde
-
-**Die absolute Basis für viele fortgeschrittene Skills** – Biologie, Chemie, Mikrobiologie
-
-### Zahlenkult
-
-**Die letzte Stufe der Magie, die kaum eine Brauerin je erreichen wird ...** – Berechnungen, Rezepturen, Psi-Effizienz?
-
-### Schankkunst – Gastronomie
-
-**Brauereinnen sind soziale Wesen und wissen wann sie freundlich zu sein haben** - das könnte auch die Kategorie Sozial sein
-
-### Marktschreierei – Handel und Marketing
-
-### Nachschub
-
-### Wahrnehmung
+### Kessel-Magie, Meta-Braukunde und Wahrnehmung
 
 **Wer taeglich im Dunkel der Lagerkeller tastet, lernt mit anderen Augen zu sehen** — Sichtweite, Aufmerksamkeit, Dunkelanpassung.
 
@@ -419,8 +403,14 @@ Implementierte Skills (Basis-Sichtweite 2, Maximum 20):
 | Skill | Voraussetzung | Effekt je Stufe |
 |---|---|---|
 | Dunkelgewohnt | – | +1 Sichtweite |
-| Kellerseherin | Dunkle Gewohnt Stufe 4 | +1 Sichtweite |
+| Kellerseherin | Dunkelgewohnt Stufe 4 | +1 Sichtweite |
 | Augen der Goettin | Kellerseherin Stufe 4 | +1 Sichtweite |
+
+### Brennblasen-Psi und Zahlenkult
+
+### Natur-, Korn- und Braukunde
+
+### Marktschreierei und Nachschub
 
 
 

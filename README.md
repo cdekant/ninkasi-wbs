@@ -31,7 +31,9 @@ python main.py
 | A / Pfeil links | Links |
 | D / Pfeil rechts | Rechts |
 | LEERTASTE / ENTER | Kampfrunde ausfuehren (im Kampf) |
-| TAB | Menue oeffnen/wechseln (auch im Kampf: Inventar) |
+| TAB | Skill-Baum oeffnen (nur im Hub) |
+| I | Inventar oeffnen (Hub, Dungeon, Kampf) |
+| C | Charakter-Screen oeffnen (Hub, Dungeon) |
 | ESC | Menue schliessen |
 | Q | Beenden |
 

@@ -51,9 +51,10 @@ lang: 'de-DE'
 - `src/map/hub.py`: kreisrunder Raum (Radius 7) um die Bildschirmmitte; eigener FOV/Fog-of-War-Zustand
 - **Braukessel** (`HUB_BRAUKESSEL`, U+E000, `assets/tiles/hub/hub_braukessel.png`): Ausgang vom Hub ins Dungeon
 - **Dungeon-Ausgang** (`<`, hellblau): per BFS-Flood-Fill das erreichbare Bodentile am weitesten vom Spawn-Punkt
-- `modus` = "hub"/"kampf"/"tod" (Spielzustand); `ort` = "pilsstube"/"dungeon" (Aufenthaltsort)
-- TAB-Menü Skill-Baum nur im Hub (`ort == "pilsstube"`); Inventar in Hub, Dungeon und Kampf
-- 15 Skill-Kategorien (Details in HANDBUCH.md)
+- `modus` = "hub"/"zielauswahl"/"tod"/"charaktererstellung"/"eigenschaft_auswahl"; `ort` = "pilsstube"/"dungeon"
+- Tastenbelegung: TAB = Skill-Baum (nur Hub), I = Inventar (Hub/Dungeon), C = Charakter-Screen (Hub/Dungeon)
+- 6 Skill-Kategorien = 6 Cluster, je mit Primär- und Sekundär-Eigenschaft (Details in `Doc/Charakter_Stats.md`)
+- Eigenschaften (6 Persönlichkeitsausrichtungen) in `player.py`; EP-Kostenreduktions-Konfiguration in `config.py`
 
 ## Technologie
 
@@ -79,7 +80,7 @@ src/                 	# Gesamter Spielcode
 ├── tiles.py         	# Custom-Tile-Definitionen: Unicode-Platzhalter (U+E000+) + Dateipfade
 ├── entities/        	# Spieler, Gegner, Items
 │   ├── entitaet.py  	# Basis-Klasse: hp/hp_max, pp, mp, verteidigung, resistenzen, angriffe, lebt
-│   ├── player.py    	# Spieler(Entitaet): EP, Skills, lp/lp_max-Aliases, inventar, ausruestung
+│   ├── player.py    	# Spieler(Entitaet): EP, Skills, eigenschaften, lp/lp_max-Aliases, inventar, ausruestung
 │   ├── gegner.py    	# Gegner(Entitaet): typen_laden(), aus_typ() mit Staerke-Skalierung
 │   └── item.py      	# typen_laden() — laedt data/items.json
 ├── map/             	# Kartengenerierung
@@ -96,7 +97,8 @@ src/                 	# Gesamter Spielcode
 │   ├── menus.py     	# Menue-Registry + State (Skill-Baum: Hub; Inventar: Hub+Dungeon)
 │   └── speichern.py 	# Speichern/Laden + Tod-Reset (setzt LP/PP zurueck); bodenloot in aktuell
 └── ui/              	# Darstellung, HUD
-    └── menu_anzeige.py # TAB-Menue-Overlay (Vollbild)
+    ├── menu_anzeige.py              # Vollbild-Overlay (Skill-Baum, Inventar, Charakter-Screen)
+    └── charaktererstellung_anzeige.py  # Charaktererstellungs-Screen + Eigenschaftspunkt-Overlay
 assets/              	# Tilesets und Bilder für tcod
 ├── Cheepicus_16x16.png # Aktives Tileset (16×16 px, quadratisch, CP437)
 ├── ninkasi_brutality_120x144.png  # Startbildschirm-Hintergrundbild (Halbblock-Rendering)

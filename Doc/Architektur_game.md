@@ -10,7 +10,11 @@ Alles hängt an zwei globalen Variablen:
 
 | Variable | Mögliche Werte | Bedeutung |
 |----------|----------------|-----------|
-| `modus`  | `"hub"` / `"kampf"` / `"tod"` | Was gerade *passiert* |
+| `modus`  | `"hub"` | Erkundung (Hub oder Dungeon), Normalzustand |
+| `modus`  | `"kampf"` | Kampf läuft — eigene Eingabe-Priorität |
+| `modus`  | `"tod"` | Spieler gestorben — nur Leertaste erlaubt |
+| `modus`  | `"charaktererstellung"` | Startbildschirm: 10 Punkte auf 6 Eigenschaften verteilen |
+| `modus`  | `"eigenschaft_auswahl"` | Overlay: Eigenschaftspunkt aus Item vergeben |
 | `ort`    | `"pilsstube"` / `"dungeon"` | Wo der Spieler *ist* |
 
 `modus` steuert die Eingabe-Priorität. `ort` steuert, welche Karte gezeichnet wird und welche Menüs verfügbar sind.
@@ -41,14 +45,22 @@ Wird von `main.py` aufgerufen. Läuft in zwei Phasen:
 ```
 Phase 1: Startbildschirm
   laden()                     → Spieler + aktuell aus saves/savegame.json (oder None)
+  Falls kein Savegame oder N gedrückt: neues_spiel = True
   Loop: _zeichne_startbildschirm → warten auf ENTER / N / Q
+
+Phase 1.5: Charaktererstellung (nur wenn neues_spiel == True)
+  _charaktererstellung_durchfuehren()
+    Eigene Event-Loop, modus = "charaktererstellung"
+    10 Punkte auf 6 Eigenschaften verteilen (max. 5 pro Eigenschaft)
+    ENTER nur wenn alle Punkte verteilt → spieler.eigenschaften setzen, return
 
 Phase 2: Hauptspielschleife
   Loop:
     Zeichnen (abhängig von modus/ort):
-      modus == "tod"         → _zeichne_tod_screen()
-      ort   == "pilsstube"   → _zeichne_hub()
-      sonst                  → zeichne()   (Dungeon)
+      modus == "tod"                → _zeichne_tod_screen()
+      modus == "eigenschaft_auswahl" → Hintergrund (Hub/Dungeon) + zeichne_eigenschaft_auswahl()
+      ort   == "pilsstube"          → _zeichne_hub()
+      sonst                         → zeichne()   (Dungeon)
     context.present(console)
     Events abhören → _handle_key()
 ```
@@ -60,11 +72,22 @@ Phase 2: Hauptspielschleife
 Die Funktion prüft den Zustand von oben nach unten und gibt nach dem ersten Treffer zurück:
 
 ```
-1. modus == "tod"    → nur Leertaste: _tod_auferstehen()
-2. modus == "kampf"  → Inventar-Navigation ODER Leertaste: _kampf_aktion()
+1. modus == "eigenschaft_auswahl"
+                     → W/S: Auswahl ±1 (6 Eigenschaften)
+                        ENTER: Punkt vergeben, Item entfernen, modus = "hub"
+                        ESC: Abbrechen, modus = "hub"
+
+2. modus == "tod"    → nur Leertaste: _tod_auferstehen()
+
+3. modus == "kampf"  → Inventar-Navigation (I öffnet/schließt Inventar)
+                        ODER Leertaste/ENTER: _kampf_aktion()
                         ODER WASD: _flucht_versuchen()
-3. aktives_menue     → Menü-Navigation (TAB, ESC, W/S, ENTER)
-4. Erkundung         → TAB: Menü öffnen
+
+4. aktives_menue     → Menü-Navigation (ESC, W/S, ENTER)
+
+5. Erkundung         → TAB: Skill-Baum öffnen (nur ort == "pilsstube")
+                        I: Inventar öffnen (Hub + Dungeon)
+                        C: Charakter-Screen öffnen (Hub + Dungeon)
                         WASD/Pfeile: _bewege() oder _hub_bewege()
                         Q: speichern() + Beenden
 ```
@@ -168,4 +191,5 @@ Wird aufgerufen bei: Dungeon-Eintritt, Zonen-Wechsel, nach dem Tod (nicht expliz
 | `hub`     | `src/map/hub.py` | `generiere_hub` (nur Programmstart) |
 | `tiles`   | `src/tiles.py` | Tile-Codepoints, `WAND_TILES` |
 | `config`  | `config.py` | Layout-Konstanten (Positionen, Größen) |
-| `menu_anzeige` | `src/ui/menu_anzeige.py` | `zeichne_menue` — Overlay über Karte |
+| `menu_anzeige` | `src/ui/menu_anzeige.py` | `zeichne_menue` — Overlay über Karte (Skill-Baum, Inventar, Charakter) |
+| `charaktererstellung_anzeige` | `src/ui/charaktererstellung_anzeige.py` | `zeichne_charaktererstellung` (Vollbild), `zeichne_eigenschaft_auswahl` (Overlay) |
