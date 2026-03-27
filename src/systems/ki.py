@@ -103,8 +103,9 @@ def ki_tick(gegner_auf_karte, spieler_x, spieler_y, karte, transparenz=None):
             )
 
         elif verhalten == "verfolgen":
-            # Erst aktivieren wenn Spieler im sicht_radius
-            if g.ki_zustand == "idle" and distanz > g.sicht_radius:
+            # Aktivieren wenn Spieler im sicht_radius; deaktivieren wenn Abstand zu gross
+            if distanz > g.sicht_radius:
+                g.ki_zustand = "idle"
                 continue
             g.ki_zustand = "aktiv"
             dx, dy = _schritt_zu(

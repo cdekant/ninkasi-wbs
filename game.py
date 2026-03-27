@@ -211,7 +211,7 @@ def _initialisiere_level():
 
     level_name = aktuell.get("level_name", "pflanzenzuechtung")
     grammatik  = alle_level[level_name]
-    KARTE, DUNGEON_OBJEKTE = generiere_karte(grammatik, breite=config.BREITE, hoehe=config.KARTE_HOEHE)
+    KARTE, DUNGEON_OBJEKTE = generiere_karte(grammatik, breite=config.KARTE_BREITE, hoehe=config.KARTE_HOEHE)
     roh = grammatik.get("boden_tile")
     _karte_boden_tile = tiles.TILE_NAMEN.get(roh) if roh else None
 
@@ -298,7 +298,7 @@ def _initialisiere_hub():
     global hub_spieler_x, hub_spieler_y
     global HUB_TRANSPARENZ, HUB_FOV, HUB_ERKUNDET
 
-    HUB_KARTE, sx, sy, ausgang = _generiere_hub(config.BREITE, config.KARTE_HOEHE)
+    HUB_KARTE, sx, sy, ausgang = _generiere_hub(config.KARTE_BREITE, config.KARTE_HOEHE)
     HUB_START_X   = sx
     HUB_START_Y   = sy
     hub_spieler_x = sx
@@ -516,16 +516,17 @@ def _zielauswahl_zeichnen(console):
     if not _ziel_sichtbar or not _fernkampf_typen:
         return
     KY = config.KARTE_Y0
+    KX = config.KARTE_X0
     eintrag = _ziel_sichtbar[_ziel_gegner_index]
     tx, ty  = eintrag["x"], eintrag["y"]
     angriff = _fernkampf_typen[_fernkampf_typ_index]
 
     # Bresenham-Linie zeichnen (ohne Spieler- und Zielfeld)
     for x, y in sichtfeld.linie_punkte(spieler_x, spieler_y, tx, ty)[1:-1]:
-        console.print(x, y + KY, "\u00b7", fg=(180, 140, 40))
+        console.print(x + KX, y + KY, "\u00b7", fg=(180, 140, 40))
 
     # Ziel-Cursor
-    console.print(tx, ty + KY, "X", fg=(255, 220, 0))
+    console.print(tx + KX, ty + KY, "X", fg=(255, 220, 0))
 
     # Shortcut-Zeile
     typ = angriff["typ"]
@@ -548,7 +549,7 @@ def _zielauswahl_zeichnen(console):
         f"Dist:{dist}/{angriff['reichweite']}{los_txt}  "
         f"[ENTER] Schuss  [ESC] Abbruch"
     )
-    _zeichne_log(console, shortcut)
+    _zeichne_shortcut(console, shortcut)
 
 
 def _welt_tick():
@@ -621,72 +622,76 @@ def _gelegenheitsangriff():
 def zeichne(console):
     console.clear()
     KY = config.KARTE_Y0
+    KX = config.KARTE_X0
 
     # Karte mit FOV / Fog of War
     for y, zeile in enumerate(KARTE):
         for x, zeichen in enumerate(zeile):
             cy = y + KY
+            cx = x + KX
             # "." ggf. durch Level-spezifisches Boden-Tile ersetzen
             anzeige = _karte_boden_tile if (zeichen == "." and _karte_boden_tile) else zeichen
             if FOV[y, x]:
                 if zeichen == tiles.WAND_GITTER:
-                    console.print(x, cy, anzeige, fg=(140, 210, 140))
+                    console.print(cx, cy, anzeige, fg=(140, 210, 140))
                 elif zeichen == tiles.OBJ_VEG_GRAS:
-                    console.print(x, cy, anzeige, fg=(255, 255, 255))
+                    console.print(cx, cy, anzeige, fg=(255, 255, 255))
                 elif zeichen == tiles.INTER_FASS:
-                    console.print(x, cy, anzeige, fg=(160, 110, 60))
+                    console.print(cx, cy, anzeige, fg=(160, 110, 60))
                 elif _ist_wand(zeichen):
-                    console.print(x, cy, anzeige, fg=(200, 200, 200))
+                    console.print(cx, cy, anzeige, fg=(200, 200, 200))
                 elif anzeige == tiles.BODEN_FLIESSE:
                     # jede 7. Fliese leicht bläulich (deterministisch per Position)
                     if (x * 3 + y * 7) % 7 == 0:
-                        console.print(x, cy, anzeige, fg=(160, 180, 220))
+                        console.print(cx, cy, anzeige, fg=(160, 180, 220))
                     else:
-                        console.print(x, cy, anzeige, fg=(200, 200, 200))
+                        console.print(cx, cy, anzeige, fg=(200, 200, 200))
                 else:
-                    console.print(x, cy, anzeige, fg=(90, 90, 90))
+                    console.print(cx, cy, anzeige, fg=(90, 90, 90))
             elif ERKUNDET[y, x]:
                 if zeichen == tiles.WAND_GITTER:
-                    console.print(x, cy, anzeige, fg=(45, 70, 45))
+                    console.print(cx, cy, anzeige, fg=(45, 70, 45))
                 elif zeichen == tiles.OBJ_VEG_GRAS:
-                    console.print(x, cy, anzeige, fg=(60, 60, 60))
+                    console.print(cx, cy, anzeige, fg=(60, 60, 60))
                 elif zeichen == tiles.INTER_FASS:
-                    console.print(x, cy, anzeige, fg=(50, 35, 20))
+                    console.print(cx, cy, anzeige, fg=(50, 35, 20))
                 elif _ist_wand(zeichen):
-                    console.print(x, cy, anzeige, fg=(60, 60, 60))
+                    console.print(cx, cy, anzeige, fg=(60, 60, 60))
                 elif anzeige == tiles.BODEN_FLIESSE:
-                    console.print(x, cy, anzeige, fg=(40, 45, 60))
+                    console.print(cx, cy, anzeige, fg=(40, 45, 60))
                 else:
-                    console.print(x, cy, anzeige, fg=(20, 20, 20))
+                    console.print(cx, cy, anzeige, fg=(20, 20, 20))
             # Nie gesehen: nicht zeichnen (bleibt schwarz)
 
     # Dungeon-Ausgang
     if FOV[DUNGEON_AUSGANG_Y, DUNGEON_AUSGANG_X]:
-        console.print(DUNGEON_AUSGANG_X, DUNGEON_AUSGANG_Y + KY, "<", fg=(80, 200, 255))
+        console.print(DUNGEON_AUSGANG_X + KX, DUNGEON_AUSGANG_Y + KY, "<", fg=(80, 200, 255))
 
     # Bodenloot — nur sichtbar wenn im FOV
     for loot in aktuell.get("bodenloot", []):
         if FOV[loot["y"], loot["x"]]:
             item_def = alle_items.get(loot["id"])
             if item_def:
-                console.print(loot["x"], loot["y"] + KY,
+                console.print(loot["x"] + KX, loot["y"] + KY,
                                item_def["symbol"], fg=tuple(item_def["farbe"]))
 
     # Gegner — nur sichtbar wenn im FOV; Farbe zeigt HP-Zustand
     for eintrag in gegner_auf_karte:
         g = eintrag["gegner"]
         if g.lebt and FOV[eintrag["y"], eintrag["x"]]:
-            console.print(eintrag["x"], eintrag["y"] + KY,
+            console.print(eintrag["x"] + KX, eintrag["y"] + KY,
                           g.symbol, fg=_gegner_farbe(g))
 
     # Spieler
-    console.print(spieler_x, spieler_y + KY, tiles.HUB_NINKASI, fg=(255, 215, 0))
+    console.print(spieler_x + KX, spieler_y + KY, tiles.HUB_NINKASI, fg=(255, 215, 0))
 
     # Statuszeile (Zeilen 0-1)
     _zeichne_statuszeile(console)
 
-    # Nachrichtenlog + Shortcuts
-    _zeichne_log(console, "[F] Ziel  [TAB] Skills  [I] Inventar  [C] Charakter  [<] Ausgang  [Q] Beenden")
+    # Seitenleisten + Shortcut-Zeile
+    _zeichne_links_panel(console)
+    _zeichne_rechts_panel(console)
+    _zeichne_shortcut(console, "[F] Ziel  [I] Inventar  [TAB] Skills  [C] Charakter  [<] Ausgang  [Q] Beenden")
 
     # Menue-Overlay (uebermalt alles andere)
     if aktives_menue:
@@ -717,20 +722,89 @@ def _zeichne_statuszeile(console):
         console.print(2, 1, f"Zone {z}/{zg}", fg=(110, 110, 110))
 
 
-def _zeichne_log(console, shortcut=""):
-    """Nachrichtenlog (Zeilen 61-65) + Shortcut-Zeile (Zeile 66)."""
-    w = console.width
-    console.draw_rect(0, config.LOG_Y0, w, config.LOG_HOEHE + 1, 32, bg=(8, 4, 12))
+def _zeichne_links_panel(console):
+    """Linke Seitenleiste: vertikaler Nachrichtenlog (Zeilen 2–65)."""
+    pw  = config.PANEL_BREITE
+    y0  = config.KARTE_Y0
+    ph  = config.HOEHE - y0 - 1   # 64 Zeilen (Zeile 2..65)
+    cw  = pw - 2                   # Inhalt-Breite: 24 (minus Padding + Trennlinie)
 
-    eintraege = _nachrichtenlog[-config.LOG_HOEHE:]
+    # Hintergrund
+    console.draw_rect(0, y0, pw, ph, 32, bg=(8, 4, 12))
+    # Rechte Trennlinie
+    for ry in range(y0, y0 + ph):
+        console.print(pw - 1, ry, "\u2502", fg=(40, 40, 60))
+
+    # Meldungen: neueste unten, aelteste oben; unten-ausgerichtet
+    verfuegbare_zeilen = ph - 1   # 1 Zeile Padding oben
+    eintraege = _nachrichtenlog[-verfuegbare_zeilen:]
+    y_start = y0 + 1 + max(0, verfuegbare_zeilen - len(eintraege))
     for i, text in enumerate(eintraege):
-        # Neueste Eintraege heller
-        hell = 80 + i * (120 // max(1, config.LOG_HOEHE))
-        console.print(2, config.LOG_Y0 + i, text[:w - 4], fg=(hell, hell, hell))
+        hell = max(40, 40 + i * (160 // max(1, len(eintraege))))
+        console.print(1, y_start + i, text[:cw], fg=(hell, hell, hell))
 
-    if shortcut:
-        console.print(w - 2 - len(shortcut), config.SHORTCUT_Y,
-                      shortcut, fg=(65, 65, 65))
+
+def _zeichne_rechts_panel(console):
+    """Rechte Seitenleiste: sichtbare Gegner (Dungeon) oder Kontext-Info (Hub)."""
+    rx  = config.KARTE_X0 + config.KARTE_BREITE   # x-Start des Panels (Spalte 94)
+    pw  = config.PANEL_BREITE
+    y0  = config.KARTE_Y0
+    ph  = config.HOEHE - y0 - 1   # 64 Zeilen
+    cw  = pw - 3                   # Inhalt-Breite: 23 (Trennlinie + 1 Pad links + 1 Pad rechts)
+    cx  = rx + 2                   # Inhalt-x
+
+    # Hintergrund + linke Trennlinie
+    console.draw_rect(rx, y0, pw, ph, 32, bg=(8, 4, 12))
+    for ry in range(y0, y0 + ph):
+        console.print(rx, ry, "\u2502", fg=(40, 40, 60))
+
+    y = y0 + 1
+
+    if ort == "dungeon":
+        # -- Sichtbare Gegner --
+        console.print(cx, y, "Sichtbar:", fg=(120, 120, 160))
+        y += 1
+        sichtbare = [e for e in gegner_auf_karte if e["gegner"].lebt and FOV[e["y"], e["x"]]]
+        max_gegner_y = y0 + ph - 9   # Platz fuer Trennlinie + 6 Aktionen + Padding
+        if not sichtbare:
+            console.print(cx, y, "\u2014", fg=(50, 50, 70))
+            y += 1
+        else:
+            for eintrag in sichtbare:
+                if y >= max_gegner_y:
+                    break
+                g   = eintrag["gegner"]
+                pct = int(g.hp / max(1, g.hp_max) * 100)
+                zeile = f"{g.name[:cw - 5]:<{cw - 5}} {pct:>3}%"
+                console.print(cx, y, zeile, fg=_gegner_farbe(g))
+                y += 1
+
+        # -- Trennlinie + Aktionen (immer am unteren Rand) --
+        trenn_y = y0 + ph - 8
+        console.print(rx + 1, trenn_y, "\u2500" * (pw - 1), fg=(40, 40, 60))
+        aktionen = ["[F]   Fernkampf", "[I]   Inventar", "[TAB] Skills",
+                    "[C]   Charakter", "[<]   Ausgang", "[Q]   Beenden"]
+        for i, atext in enumerate(aktionen):
+            console.print(cx, trenn_y + 1 + i, atext[:cw], fg=(60, 60, 80))
+
+    else:   # hub
+        console.print(cx, y, "Pilsstube:", fg=(120, 120, 160))
+
+        # -- Trennlinie + Aktionen --
+        trenn_y = y0 + ph - 6
+        console.print(rx + 1, trenn_y, "\u2500" * (pw - 1), fg=(40, 40, 60))
+        aktionen = ["[TAB] Skills", "[I]   Inventar", "[C]   Charakter",
+                    "[Q]   Beenden"]
+        for i, atext in enumerate(aktionen):
+            console.print(cx, trenn_y + 1 + i, atext[:cw], fg=(60, 60, 80))
+
+
+def _zeichne_shortcut(console, text=""):
+    """Shortcut-Zeile (Zeile 66), volle Breite."""
+    w = console.width
+    console.draw_rect(0, config.SHORTCUT_Y, w, 1, 32, bg=(6, 3, 10))
+    if text:
+        console.print(1, config.SHORTCUT_Y, text[:w - 2], fg=(65, 65, 65))
 
 
 # ---------------------------------------------------------------------------
@@ -741,29 +815,33 @@ def _zeichne_hub(console):
     """Hub zeichnen."""
     console.clear()
     KY = config.KARTE_Y0
+    KX = config.KARTE_X0
 
     # Karte mit FOV — warme Bodenfarbe (Holz/Stroh) statt Dungeon-Grau
     for y, zeile in enumerate(HUB_KARTE):
         for x, zeichen in enumerate(zeile):
             cy = y + KY
+            cx = x + KX
             if HUB_FOV[y, x]:
                 fg = (200, 200, 200) if _ist_wand(zeichen) else (110, 80, 35)
-                console.print(x, cy, zeichen, fg=fg)
+                console.print(cx, cy, zeichen, fg=fg)
             elif HUB_ERKUNDET[y, x]:
                 fg = (60, 60, 60) if _ist_wand(zeichen) else (40, 28, 10)
-                console.print(x, cy, zeichen, fg=fg)
+                console.print(cx, cy, zeichen, fg=fg)
 
     # Hub-Objekte (Braukessel/Ausgang etc.)
     for obj in HUB_OBJEKTE:
         if HUB_FOV[obj["y"], obj["x"]]:
-            console.print(obj["x"], obj["y"] + KY, obj["symbol"], fg=obj["farbe"])
+            console.print(obj["x"] + KX, obj["y"] + KY, obj["symbol"], fg=obj["farbe"])
 
     # Spieler
-    console.print(hub_spieler_x, hub_spieler_y + KY, tiles.HUB_NINKASI, fg=(255, 215, 0))
+    console.print(hub_spieler_x + KX, hub_spieler_y + KY, tiles.HUB_NINKASI, fg=(255, 215, 0))
 
-    # Statuszeile + Log
+    # Statuszeile + Seitenleisten + Shortcut
     _zeichne_statuszeile(console)
-    _zeichne_log(console, "[TAB] Skills  [I] Inventar  [C] Charakter  [Kessel] Dungeon  [Q] Beenden")
+    _zeichne_links_panel(console)
+    _zeichne_rechts_panel(console)
+    _zeichne_shortcut(console, "[TAB] Skills  [I] Inventar  [C] Charakter  [Kessel] Dungeon  [Q] Beenden")
 
     # Menue-Overlay
     if aktives_menue:

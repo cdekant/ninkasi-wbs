@@ -18,18 +18,23 @@ KACHEL_PX =  16   # Kachelgröße in Pixel (Tileset muss passen)
 SDL_FLAGS = 0x00000010   # borderless  (normales Fenster: 0)
 
 # -----------------------------------------------------------------------
-# UI-Layout  (alle Masse in Kacheln; Summe = HOEHE = 67)
+# UI-Layout  (alle Masse in Kacheln; Summe = BREITE = 120, HOEHE = 67)
 # -----------------------------------------------------------------------
 #
 #  Zeile  0–1  : Statuszeile  (LP / PP / MP / EP)          2 Zeilen
-#  Zeile  2–60 : Spielkarte                                59 Zeilen  = KARTE_HOEHE
-#  Zeile 61–65 : Nachrichtenlog                             5 Zeilen  = LOG_HOEHE
+#  Zeile  2–65 : Seitenleisten (Log links, Gegner/Aktionen rechts)
+#  Zeile  2–60 : Spielkarte (Mitte)                        59 Zeilen  = KARTE_HOEHE
 #  Zeile 66    : Kontextsensitive Shortcuts                 1 Zeile
-#  -----------------------------------------------------------------------
+#
+#  Spalten  0–25  : Log-Panel       (PANEL_BREITE)
+#  Spalten 26–93  : Karte           (KARTE_X0 .. KARTE_X0+KARTE_BREITE-1)
+#  Spalten 94–119 : Kontext-Panel   (PANEL_BREITE)
+# -----------------------------------------------------------------------
+PANEL_BREITE       = 26    # Breite jeder Seitenleiste (links + rechts)
+KARTE_X0           = 26    # x-Startposition der Karte (= PANEL_BREITE)
+KARTE_BREITE       = 68    # Kartenbreite (BREITE - 2 * PANEL_BREITE)
 KARTE_Y0           =  2    # Karte beginnt in Zeile 2
 KARTE_HOEHE        = 59    # Karte: Zeilen 2–60
-LOG_Y0             = 61    # Nachrichtenlog
-LOG_HOEHE          =  5
 SHORTCUT_Y         = 66    # Shortcut-Zeile
 
 # Gegner-HP-Schwellwerte und Farben fuer Symbol-Faerbung
